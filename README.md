@@ -18,5 +18,14 @@ The project embraces privacy and flexibility. All configuration is kept locally,
 ## Status
 This repository is the starting point. More documentation, code and widgets will follow as the project evolves.
 
+## Development
+
+The extension code lives in the `extension/` directory. To try it out:
+
+1. Open Chrome and navigate to `chrome://extensions`.
+2. Enable **Developer mode**.
+3. Click **Load unpacked** and select the `extension` folder.
+4. Open a new tab to see the clock widget.
+
 ---
 Bring unlimited power to your browser – *maximized pro-level ultra-ness* with zero subscriptions.
