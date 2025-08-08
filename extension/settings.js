@@ -5,11 +5,14 @@ const closeSettingsButton = document.getElementById('close-settings');
 settingsPanel.classList.add('hidden');
 
 settingsButton.addEventListener('click', () => {
+  settingsButton.classList.add('hidden');
   settingsPanel.classList.remove('hidden');
 });
 
-closeSettingsButton.addEventListener('click', () => {
+closeSettingsButton.addEventListener('click', (e) => {
+  e.stopPropagation();
   settingsPanel.classList.add('hidden');
+  settingsButton.classList.remove('hidden');
 });
 
 // tab handling
