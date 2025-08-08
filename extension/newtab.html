@@ -7,6 +7,35 @@
 </head>
 <body>
   <div id="clock" class="widget clock-widget"></div>
+  <div id="settings-button">&#9881;</div>
+  <div id="settings-panel" class="hidden">
+    <section>
+      <h2>Export / Import</h2>
+      <div class="export-import">
+        <select id="export-type">
+          <option value="text">Text</option>
+          <option value="file">File</option>
+        </select>
+        <button id="export-btn">Export</button>
+      </div>
+      <div class="export-import">
+        <select id="import-type">
+          <option value="text">Text</option>
+          <option value="file">File</option>
+        </select>
+        <button id="import-btn">Import</button>
+        <input type="file" id="import-file" accept="application/json" style="display:none">
+      </div>
+    </section>
+    <section>
+      <h2>Background</h2>
+      <div class="background-settings">
+        <input type="color" id="bg-color-picker">
+        <input type="file" id="bg-image-picker" accept="image/*">
+      </div>
+    </section>
+  </div>
   <script src="clock.js"></script>
+  <script src="settings.js"></script>
 </body>
 </html>
