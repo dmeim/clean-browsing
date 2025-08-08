@@ -5,8 +5,21 @@ settingsButton.addEventListener('click', () => {
   settingsPanel.classList.toggle('hidden');
 });
 
+// tab handling
+const tabButtons = document.querySelectorAll('.settings-tabs button');
+const tabContents = document.querySelectorAll('.tab-content');
+tabButtons.forEach(btn => {
+  btn.addEventListener('click', () => {
+    tabButtons.forEach(b => b.classList.remove('active'));
+    tabContents.forEach(c => c.classList.add('hidden'));
+    btn.classList.add('active');
+    document.getElementById(`${btn.dataset.tab}-tab`).classList.remove('hidden');
+  });
+});
+
 const defaultSettings = {
-  background: { type: 'color', value: '#222' }
+  background: { type: 'color', value: '#222' },
+  lastColor: '#222'
 };
 
 function loadSettings() {
@@ -30,20 +43,32 @@ function applyBackground(s) {
 }
 
 let settings = loadSettings();
+if (!settings.lastColor) settings.lastColor = defaultSettings.lastColor;
 applyBackground(settings);
+
+function updateBackgroundControls() {
+  if (settings.background.type === 'image') {
+    colorPicker.value = settings.lastColor || defaultSettings.lastColor;
+    removeImageBtn.classList.remove('hidden');
+  } else {
+    colorPicker.value = settings.background.value;
+    removeImageBtn.classList.add('hidden');
+  }
+}
 
 // background controls
 const colorPicker = document.getElementById('bg-color-picker');
 const imagePicker = document.getElementById('bg-image-picker');
+const removeImageBtn = document.getElementById('remove-bg-image');
 
-if (settings.background.type === 'color') {
-  colorPicker.value = settings.background.value;
-}
+updateBackgroundControls();
 
 colorPicker.addEventListener('input', (e) => {
   settings.background = { type: 'color', value: e.target.value };
+  settings.lastColor = e.target.value;
   applyBackground(settings);
   saveSettings(settings);
+  updateBackgroundControls();
 });
 
 imagePicker.addEventListener('change', (e) => {
@@ -54,8 +79,17 @@ imagePicker.addEventListener('change', (e) => {
     settings.background = { type: 'image', value: reader.result };
     applyBackground(settings);
     saveSettings(settings);
+    updateBackgroundControls();
   };
   reader.readAsDataURL(file);
+});
+
+removeImageBtn.addEventListener('click', () => {
+  settings.background = { type: 'color', value: settings.lastColor || defaultSettings.lastColor };
+  applyBackground(settings);
+  saveSettings(settings);
+  imagePicker.value = '';
+  updateBackgroundControls();
 });
 
 // export / import
@@ -88,6 +122,7 @@ importBtn.addEventListener('click', () => {
       settings = JSON.parse(data);
       saveSettings(settings);
       applyBackground(settings);
+      updateBackgroundControls();
     } catch {
       alert('Invalid JSON');
     }
@@ -105,6 +140,7 @@ importFile.addEventListener('change', () => {
       settings = JSON.parse(reader.result);
       saveSettings(settings);
       applyBackground(settings);
+      updateBackgroundControls();
     } catch {
       alert('Invalid JSON file');
     }
