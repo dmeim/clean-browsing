@@ -1,8 +1,15 @@
 const settingsButton = document.getElementById('settings-button');
 const settingsPanel = document.getElementById('settings-panel');
+const closeSettingsButton = document.getElementById('close-settings');
+
+settingsPanel.classList.add('hidden');
 
 settingsButton.addEventListener('click', () => {
-  settingsPanel.classList.toggle('hidden');
+  settingsPanel.classList.remove('hidden');
+});
+
+closeSettingsButton.addEventListener('click', () => {
+  settingsPanel.classList.add('hidden');
 });
 
 // tab handling
@@ -18,15 +25,27 @@ tabButtons.forEach(btn => {
 });
 
 const defaultSettings = {
-  background: { type: 'color', value: '#222' },
-  lastColor: '#222'
+  background: { type: 'color', value: '#222222' },
+  lastColor: '#222222'
 };
+
+function normalizeColor(color) {
+  if (/^#[0-9a-f]{3}$/i.test(color)) {
+    return `#${color[1]}${color[1]}${color[2]}${color[2]}${color[3]}${color[3]}`;
+  }
+  return color;
+}
 
 function loadSettings() {
   try {
-    return JSON.parse(localStorage.getItem('settings')) || defaultSettings;
+    const s = JSON.parse(localStorage.getItem('settings')) || { ...defaultSettings };
+    if (s.background && s.background.type === 'color') {
+      s.background.value = normalizeColor(s.background.value);
+    }
+    s.lastColor = normalizeColor(s.lastColor || defaultSettings.lastColor);
+    return s;
   } catch (e) {
-    return defaultSettings;
+    return { ...defaultSettings };
   }
 }
 
@@ -43,7 +62,6 @@ function applyBackground(s) {
 }
 
 let settings = loadSettings();
-if (!settings.lastColor) settings.lastColor = defaultSettings.lastColor;
 applyBackground(settings);
 
 function updateBackgroundControls() {
@@ -121,6 +139,7 @@ importBtn.addEventListener('click', () => {
     try {
       settings = JSON.parse(data);
       saveSettings(settings);
+      settings = loadSettings();
       applyBackground(settings);
       updateBackgroundControls();
     } catch {
@@ -139,6 +158,7 @@ importFile.addEventListener('change', () => {
     try {
       settings = JSON.parse(reader.result);
       saveSettings(settings);
+      settings = loadSettings();
       applyBackground(settings);
       updateBackgroundControls();
     } catch {
