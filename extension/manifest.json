@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "newtab-pluspromaxultra",
-  "version": "0.1.0",
+  "version": "v:0.0.5",
   "description": "Experimental new tab page with a clock widget.",
   "chrome_url_overrides": {
     "newtab": "newtab.html"
