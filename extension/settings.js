@@ -1,7 +1,6 @@
 const settingsButton = document.getElementById('settings-button');
 const settingsPanel = document.getElementById('settings-panel');
 const closeSettingsButton = document.getElementById('close-settings');
-const widgetGrid = document.getElementById('widget-grid');
 
 settingsPanel.classList.add('hidden');
 
@@ -94,6 +93,7 @@ let settings = loadSettings();
 applyBackground(settings);
 
 function applyGridSettings() {
+  const widgetGrid = document.getElementById('widget-grid');
   widgetGrid.style.setProperty('--cols', settings.grid.columns);
   widgetGrid.style.setProperty('--rows', settings.grid.rows);
   widgetGrid.style.gridTemplateColumns = `repeat(${settings.grid.columns}, 1fr)`;
@@ -202,7 +202,11 @@ importBtn.addEventListener('click', () => {
       saveSettings(settings);
       settings = loadSettings();
       applyBackground(settings);
+      applyGridSettings();
       updateBackgroundControls();
+      gridColumnsInput.value = settings.grid.columns;
+      gridRowsInput.value = settings.grid.rows;
+      if (typeof renderWidgets === 'function') renderWidgets();
     } catch {
       alert('Invalid JSON');
     }
@@ -221,7 +225,11 @@ importFile.addEventListener('change', () => {
       saveSettings(settings);
       settings = loadSettings();
       applyBackground(settings);
+      applyGridSettings();
       updateBackgroundControls();
+      gridColumnsInput.value = settings.grid.columns;
+      gridRowsInput.value = settings.grid.rows;
+      if (typeof renderWidgets === 'function') renderWidgets();
     } catch {
       alert('Invalid JSON file');
     }
