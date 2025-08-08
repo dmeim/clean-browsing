@@ -1,5 +1,4 @@
 // Widget management
-const widgetGrid = document.getElementById('widget-grid');
 const widgetsButton = document.getElementById('widgets-button');
 const widgetsPanel = document.getElementById('widgets-panel');
 const closeWidgetsButton = document.getElementById('close-widgets');
