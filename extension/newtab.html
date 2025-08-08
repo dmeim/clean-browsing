@@ -9,6 +9,7 @@
   <div id="widget-grid" class="widget-grid"></div>
   <div id="settings-button">&#9881;</div>
   <div id="widgets-button">Widgets</div>
+  <div id="edit-button">Edit</div>
   <div id="settings-panel" class="hidden">
     <button id="close-settings" class="close-button">&times;</button>
     <div class="settings-tabs">
@@ -31,6 +32,11 @@
         </select>
         <button id="import-btn">Import</button>
         <input type="file" id="import-file" accept="application/json" style="display:none">
+      </div>
+      <h2>Layout</h2>
+      <div class="layout-settings">
+        <label>Columns: <input type="number" id="grid-columns" min="1"></label>
+        <label>Rows: <input type="number" id="grid-rows" min="1"></label>
       </div>
     </div>
     <div id="appearance-tab" class="tab-content hidden">
