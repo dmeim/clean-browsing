@@ -12,50 +12,83 @@
     <div id="widgets-button" class="action-button">&#9638;</div>
     <div id="edit-button" class="action-button">&#9998;</div>
   </div>
-  <div id="settings-panel" class="hidden">
-    <button id="close-settings" class="close-button">&times;</button>
+  <div id="settings-modal" class="hidden">
+    <div class="modal-header">
+      <h2 class="modal-title">Settings</h2>
+      <button id="close-settings" class="close-button">&times;</button>
+    </div>
     <div class="settings-tabs">
-      <button data-tab="config" class="active">Config</button>
+      <button data-tab="config" class="active">Configuration</button>
       <button data-tab="appearance">Appearance</button>
     </div>
-    <div id="config-tab" class="tab-content">
-      <h2>Export / Import</h2>
-      <div class="export-import">
-        <select id="export-type">
-          <option value="text">Text</option>
-          <option value="file">File</option>
-        </select>
-        <button id="export-btn">Export</button>
+    <div class="modal-content">
+      <div id="config-tab" class="tab-content">
+        <div class="settings-section">
+          <h3 class="section-title">Export / Import</h3>
+          <div class="settings-group">
+            <div class="input-group">
+              <label for="export-type">Export Format</label>
+              <select id="export-type">
+                <option value="text">Text Format</option>
+                <option value="file">File Download</option>
+              </select>
+              <button id="export-btn" class="primary-button">Export Settings</button>
+            </div>
+            <div class="input-group">
+              <label for="import-type">Import Format</label>
+              <select id="import-type">
+                <option value="text">Text Format</option>
+                <option value="file">File Upload</option>
+              </select>
+              <button id="import-btn" class="primary-button">Import Settings</button>
+              <input type="file" id="import-file" accept="application/json" style="display:none">
+            </div>
+          </div>
+        </div>
+        <div class="settings-section">
+          <h3 class="section-title">Grid Layout</h3>
+          <div class="settings-group">
+            <div class="input-row">
+              <div class="input-group">
+                <label for="grid-columns">Columns</label>
+                <input type="number" id="grid-columns" min="1" max="8">
+              </div>
+              <div class="input-group">
+                <label for="grid-rows">Rows</label>
+                <input type="number" id="grid-rows" min="1" max="8">
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
-      <div class="export-import">
-        <select id="import-type">
-          <option value="text">Text</option>
-          <option value="file">File</option>
-        </select>
-        <button id="import-btn">Import</button>
-        <input type="file" id="import-file" accept="application/json" style="display:none">
-      </div>
-      <h2>Layout</h2>
-      <div class="layout-settings">
-        <label>Columns: <input type="number" id="grid-columns" min="1"></label>
-        <label>Rows: <input type="number" id="grid-rows" min="1"></label>
-      </div>
-    </div>
-    <div id="appearance-tab" class="tab-content hidden">
-      <h2>Background</h2>
-      <div class="background-settings">
-        <input type="color" id="bg-color-picker">
-        <div class="image-wrapper">
-          <input type="file" id="bg-image-picker" accept="image/*">
-          <button id="remove-bg-image" class="remove-image hidden">&times;</button>
+      <div id="appearance-tab" class="tab-content hidden">
+        <div class="settings-section">
+          <h3 class="section-title">Background</h3>
+          <div class="settings-group">
+            <div class="input-group">
+              <label for="bg-color-picker">Background Color</label>
+              <input type="color" id="bg-color-picker">
+            </div>
+            <div class="input-group">
+              <label for="bg-image-picker">Background Image</label>
+              <div class="image-wrapper">
+                <input type="file" id="bg-image-picker" accept="image/*">
+                <button id="remove-bg-image" class="remove-image hidden">&times;</button>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
   </div>
   <div id="widgets-panel" class="hidden">
-    <button id="close-widgets" class="close-button">&times;</button>
-    <h2>Widgets</h2>
-    <div id="widget-list"></div>
+    <div class="modal-header">
+      <h2 class="modal-title">Widgets</h2>
+      <button id="close-widgets" class="close-button">&times;</button>
+    </div>
+    <div class="modal-content">
+      <div id="widget-list"></div>
+    </div>
   </div>
   <script src="settings.js"></script>
   <script src="widgets.js"></script>

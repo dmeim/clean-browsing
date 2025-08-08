@@ -1,18 +1,16 @@
 const settingsButton = document.getElementById('settings-button');
-const settingsPanel = document.getElementById('settings-panel');
+const settingsModal = document.getElementById('settings-modal');
 const closeSettingsButton = document.getElementById('close-settings');
 
-settingsPanel.classList.add('hidden');
+settingsModal.classList.add('hidden');
 
 settingsButton.addEventListener('click', () => {
-  settingsButton.classList.add('hidden');
-  settingsPanel.classList.remove('hidden');
+  settingsModal.classList.remove('hidden');
 });
 
 closeSettingsButton.addEventListener('click', (e) => {
   e.stopPropagation();
-  settingsPanel.classList.add('hidden');
-  settingsButton.classList.remove('hidden');
+  settingsModal.classList.add('hidden');
 });
 
 // tab handling
@@ -43,7 +41,8 @@ const defaultSettings = {
         flashing: false,
         locale: 'auto',
         use24h: false,
-        daylightSavings: true
+        daylightSavings: true,
+        textSize: 100
       }
     }
   ]
