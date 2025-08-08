@@ -1,35 +1,52 @@
 // Widget management
-const widgetsButton = document.getElementById('widgets-button');
-const widgetsPanel = document.getElementById('widgets-panel');
-const closeWidgetsButton = document.getElementById('close-widgets');
-const widgetList = document.getElementById('widget-list');
-const editButton = document.getElementById('edit-button');
-const widgetGrid = document.getElementById('widget-grid');
+let widgetsButton;
+let widgetsPanel;
+let closeWidgetsButton;
+let widgetList;
+let editButton;
+let widgetGrid;
 let jiggleMode = false;
 let dragIndex = null;
 let activeIntervals = [];
 
-// Ensure panels start hidden
-widgetsPanel.classList.add('hidden');
+function initWidgetsUI() {
+  widgetsButton = document.getElementById('widgets-button');
+  widgetsPanel = document.getElementById('widgets-panel');
+  closeWidgetsButton = document.getElementById('close-widgets');
+  widgetList = document.getElementById('widget-list');
+  editButton = document.getElementById('edit-button');
+  widgetGrid = document.getElementById('widget-grid');
 
-widgetsButton.addEventListener('click', () => {
-  widgetsPanel.classList.remove('hidden');
-  widgetsButton.classList.add('hidden');
-});
-
-editButton.addEventListener('click', () => {
-  jiggleMode = !jiggleMode;
-  editButton.innerHTML = jiggleMode ? '&#10003;' : '&#9998;';
-  widgetGrid.classList.toggle('jiggle-mode', jiggleMode);
-  renderWidgets();
-});
-
-closeWidgetsButton.addEventListener('click', (e) => {
-  e.stopPropagation();
+  // Ensure panels start hidden
   widgetsPanel.classList.add('hidden');
-  widgetsButton.classList.remove('hidden');
-  buildWidgetList();
-});
+
+  widgetsButton.addEventListener('click', () => {
+    widgetsPanel.classList.remove('hidden');
+    widgetsButton.classList.add('hidden');
+  });
+
+  editButton.addEventListener('click', () => {
+    jiggleMode = !jiggleMode;
+    editButton.innerHTML = jiggleMode ? '&#10003;' : '&#9998;';
+    widgetGrid.classList.toggle('jiggle-mode', jiggleMode);
+    renderWidgets();
+  });
+
+  closeWidgetsButton.addEventListener('click', (e) => {
+    e.stopPropagation();
+    widgetsPanel.classList.add('hidden');
+    widgetsButton.classList.remove('hidden');
+    buildWidgetList();
+  });
+
+  initializeWidgets();
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initWidgetsUI);
+} else {
+  initWidgetsUI();
+}
 
 function initializeWidgets() {
   // Ensure settings is available
@@ -266,17 +283,4 @@ function openWidgetSettings(widget, index) {
   if (widget.type === 'clock') {
     openClockConfig(widget, index);
   }
-}
-
-// Initialize widgets when DOM is ready and settings are available
-document.addEventListener('DOMContentLoaded', () => {
-  initializeWidgets();
-});
-
-// Fallback if DOMContentLoaded has already fired
-if (document.readyState === 'loading') {
-  // DOM is still loading, event listener will handle it
-} else {
-  // DOM is already ready, initialize now
-  initializeWidgets();
 }
