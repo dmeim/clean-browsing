@@ -29,7 +29,19 @@ tabButtons.forEach(btn => {
 
 const defaultSettings = {
   background: { type: 'color', value: '#222222' },
-  lastColor: '#222222'
+  lastColor: '#222222',
+  widgets: [
+    {
+      type: 'clock',
+      settings: {
+        showSeconds: true,
+        flashing: false,
+        locale: 'auto',
+        use24h: false,
+        daylightSavings: true
+      }
+    }
+  ]
 };
 
 function normalizeColor(color) {
@@ -46,6 +58,7 @@ function loadSettings() {
       s.background.value = normalizeColor(s.background.value);
     }
     s.lastColor = normalizeColor(s.lastColor || defaultSettings.lastColor);
+    s.widgets = s.widgets || defaultSettings.widgets;
     return s;
   } catch (e) {
     return { ...defaultSettings };
