@@ -4,9 +4,12 @@ const widgetsPanel = document.getElementById('widgets-panel');
 const closeWidgetsButton = document.getElementById('close-widgets');
 const widgetList = document.getElementById('widget-list');
 const editButton = document.getElementById('edit-button');
+const widgetGrid = document.getElementById('widget-grid');
 let jiggleMode = false;
 let dragIndex = null;
+let activeIntervals = [];
 
+// Ensure panels start hidden
 widgetsPanel.classList.add('hidden');
 
 widgetsButton.addEventListener('click', () => {
@@ -16,7 +19,7 @@ widgetsButton.addEventListener('click', () => {
 
 editButton.addEventListener('click', () => {
   jiggleMode = !jiggleMode;
-  editButton.textContent = jiggleMode ? 'Done' : 'Edit';
+  editButton.innerHTML = jiggleMode ? '&#10003;' : '&#9998;';
   widgetGrid.classList.toggle('jiggle-mode', jiggleMode);
   renderWidgets();
 });
@@ -28,10 +31,21 @@ closeWidgetsButton.addEventListener('click', (e) => {
   buildWidgetList();
 });
 
-if (!settings.widgets) settings.widgets = [];
-
-widgetGrid.addEventListener('dragover', handleDragOver);
-widgetGrid.addEventListener('drop', handleGridDrop);
+function initializeWidgets() {
+  // Ensure settings is available
+  if (typeof settings === 'undefined') {
+    console.error('Settings not available during widget initialization');
+    return;
+  }
+  
+  if (!settings.widgets) settings.widgets = [];
+  
+  widgetGrid.addEventListener('dragover', handleDragOver);
+  widgetGrid.addEventListener('drop', handleGridDrop);
+  
+  buildWidgetList();
+  renderWidgets();
+}
 
 function saveAndRender() {
   saveSettings(settings);
@@ -39,6 +53,10 @@ function saveAndRender() {
 }
 
 function renderWidgets() {
+  // Clear existing intervals to prevent memory leaks
+  activeIntervals.forEach(clearInterval);
+  activeIntervals = [];
+  
   widgetGrid.innerHTML = '';
   (settings.widgets || []).forEach((widget, index) => {
     if (widget.type === 'clock') {
@@ -110,7 +128,8 @@ function renderClockWidget(widget, index) {
   }
 
   update();
-  setInterval(update, 1000);
+  const intervalId = setInterval(update, 1000);
+  activeIntervals.push(intervalId);
 }
 
 function addClockWidget(options) {
@@ -249,5 +268,15 @@ function openWidgetSettings(widget, index) {
   }
 }
 
-buildWidgetList();
-renderWidgets();
+// Initialize widgets when DOM is ready and settings are available
+document.addEventListener('DOMContentLoaded', () => {
+  initializeWidgets();
+});
+
+// Fallback if DOMContentLoaded has already fired
+if (document.readyState === 'loading') {
+  // DOM is still loading, event listener will handle it
+} else {
+  // DOM is already ready, initialize now
+  initializeWidgets();
+}

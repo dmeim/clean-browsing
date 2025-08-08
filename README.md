@@ -27,5 +27,11 @@ The extension code lives in the `extension/` directory. To try it out:
 3. Click **Load unpacked** and select the `extension` folder.
 4. Open a new tab to see the clock widget.
 
+### Versioning
+The extension follows semantic versioning with the format `x.y.z`:
+- **x** - Major release (significant feature additions or breaking changes)
+- **y** - Minor/beta release (new features, improvements)  
+- **z** - Alpha/testing release (bug fixes, experimental features)
+
 ---
 Bring unlimited power to your browser – *maximized pro-level ultra-ness* with zero subscriptions.
