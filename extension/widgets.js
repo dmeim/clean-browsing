@@ -30,6 +30,9 @@ closeWidgetsButton.addEventListener('click', (e) => {
 
 if (!settings.widgets) settings.widgets = [];
 
+widgetGrid.addEventListener('dragover', handleDragOver);
+widgetGrid.addEventListener('drop', handleGridDrop);
+
 function saveAndRender() {
   saveSettings(settings);
   renderWidgets();
@@ -47,8 +50,8 @@ function renderWidgets() {
 function renderClockWidget(widget, index) {
   const container = document.createElement('div');
   container.className = 'widget clock-widget';
-  container.style.gridColumn = `span ${widget.w || 1}`;
-  container.style.gridRow = `span ${widget.h || 1}`;
+  container.style.gridColumn = `${(widget.x || 0) + 1} / span ${widget.w || 1}`;
+  container.style.gridRow = `${(widget.y || 0) + 1} / span ${widget.h || 1}`;
   container.dataset.index = index;
 
   const span = document.createElement('span');
@@ -113,6 +116,8 @@ function renderClockWidget(widget, index) {
 function addClockWidget(options) {
   const widget = {
     type: 'clock',
+    x: 0,
+    y: 0,
     w: 1,
     h: 1,
     settings: {
@@ -139,10 +144,35 @@ function handleDragOver(e) {
 
 function handleDrop(e) {
   e.preventDefault();
+  e.stopPropagation();
   const targetIndex = +e.currentTarget.dataset.index;
-  if (dragIndex === null || dragIndex === targetIndex) return;
-  const [moved] = settings.widgets.splice(dragIndex, 1);
-  settings.widgets.splice(targetIndex, 0, moved);
+  if (dragIndex === null || dragIndex === targetIndex) {
+    dragIndex = null;
+    return;
+  }
+  const tempX = settings.widgets[targetIndex].x;
+  const tempY = settings.widgets[targetIndex].y;
+  settings.widgets[targetIndex].x = settings.widgets[dragIndex].x;
+  settings.widgets[targetIndex].y = settings.widgets[dragIndex].y;
+  settings.widgets[dragIndex].x = tempX;
+  settings.widgets[dragIndex].y = tempY;
+  dragIndex = null;
+  saveAndRender();
+}
+
+function handleGridDrop(e) {
+  e.preventDefault();
+  if (dragIndex === null) return;
+  const rect = widgetGrid.getBoundingClientRect();
+  const colSize = rect.width / settings.grid.columns;
+  const rowSize = rect.height / settings.grid.rows;
+  const widget = settings.widgets[dragIndex];
+  let col = Math.floor((e.clientX - rect.left) / colSize);
+  let row = Math.floor((e.clientY - rect.top) / rowSize);
+  col = Math.max(0, Math.min(settings.grid.columns - (widget.w || 1), col));
+  row = Math.max(0, Math.min(settings.grid.rows - (widget.h || 1), row));
+  widget.x = col;
+  widget.y = row;
   dragIndex = null;
   saveAndRender();
 }
@@ -154,8 +184,8 @@ function handleResizeEnd(e) {
   const index = +el.dataset.index;
   const colSize = widgetGrid.clientWidth / settings.grid.columns;
   const rowSize = widgetGrid.clientHeight / settings.grid.rows;
-  const newW = Math.max(1, Math.round(el.offsetWidth / colSize));
-  const newH = Math.max(1, Math.round(el.offsetHeight / rowSize));
+  const newW = Math.max(1, Math.min(settings.grid.columns - settings.widgets[index].x, Math.round(el.offsetWidth / colSize)));
+  const newH = Math.max(1, Math.min(settings.grid.rows - settings.widgets[index].y, Math.round(el.offsetHeight / rowSize)));
   settings.widgets[index].w = newW;
   settings.widgets[index].h = newH;
   el.style.width = '';

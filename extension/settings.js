@@ -35,6 +35,8 @@ const defaultSettings = {
   widgets: [
     {
       type: 'clock',
+      x: 0,
+      y: 0,
       w: 1,
       h: 1,
       settings: {
@@ -64,6 +66,8 @@ function loadSettings() {
     s.lastColor = normalizeColor(s.lastColor || defaultSettings.lastColor);
     s.widgets = (s.widgets || defaultSettings.widgets).map(w => ({
       ...w,
+      x: w.x || 0,
+      y: w.y || 0,
       w: w.w || 1,
       h: w.h || 1,
     }));
