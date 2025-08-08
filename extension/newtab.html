@@ -9,7 +9,11 @@
   <div id="clock" class="widget clock-widget"></div>
   <div id="settings-button">&#9881;</div>
   <div id="settings-panel" class="hidden">
-    <section>
+    <div class="settings-tabs">
+      <button data-tab="config" class="active">Config</button>
+      <button data-tab="appearance">Appearance</button>
+    </div>
+    <div id="config-tab" class="tab-content">
       <h2>Export / Import</h2>
       <div class="export-import">
         <select id="export-type">
@@ -26,14 +30,17 @@
         <button id="import-btn">Import</button>
         <input type="file" id="import-file" accept="application/json" style="display:none">
       </div>
-    </section>
-    <section>
+    </div>
+    <div id="appearance-tab" class="tab-content hidden">
       <h2>Background</h2>
       <div class="background-settings">
         <input type="color" id="bg-color-picker">
-        <input type="file" id="bg-image-picker" accept="image/*">
+        <div class="image-wrapper">
+          <input type="file" id="bg-image-picker" accept="image/*">
+          <button id="remove-bg-image" class="remove-image hidden">&times;</button>
+        </div>
       </div>
-    </section>
+    </div>
   </div>
   <script src="clock.js"></script>
   <script src="settings.js"></script>
