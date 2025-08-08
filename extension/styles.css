@@ -15,31 +15,106 @@ body {
 
 #settings-button {
   position: fixed;
-  bottom: 10px;
+  top: 10px;
   right: 10px;
   font-size: 1.5rem;
+  padding: 0.4rem;
   cursor: pointer;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  backdrop-filter: blur(4px);
+  transition: background 0.3s;
+}
+
+#settings-button:hover {
+  background: rgba(255, 255, 255, 0.2);
 }
 
 #settings-panel {
   position: fixed;
-  bottom: 50px;
-  right: 10px;
-  background: rgba(0, 0, 0, 0.8);
-  padding: 10px;
-  border-radius: 4px;
+  top: 0;
+  right: 0;
+  height: 100%;
+  width: min(90vw, 320px);
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(10px);
   color: #eee;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
 }
 
 .hidden {
   display: none;
 }
 
+.settings-tabs {
+  display: flex;
+}
+
+.settings-tabs button {
+  flex: 1;
+  padding: 0.5rem;
+  background: transparent;
+  border: none;
+  color: inherit;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.settings-tabs button.active,
+.settings-tabs button:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.tab-content {
+  flex: 1;
+  padding: 1rem;
+  overflow-y: auto;
+}
+
 .export-import {
   margin-bottom: 0.5rem;
 }
 
-.background-settings input {
-  display: block;
-  margin-bottom: 0.5rem;
+.background-settings {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.image-wrapper {
+  position: relative;
+  display: inline-block;
+}
+
+.remove-image {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 20px;
+  height: 20px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.6);
+  color: #fff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+button {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #fff;
+  padding: 0.4rem 0.6rem;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+button:hover {
+  background: rgba(255, 255, 255, 0.2);
 }
