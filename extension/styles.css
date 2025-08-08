@@ -12,3 +12,34 @@ body {
 .clock-widget {
   font-size: 4rem;
 }
+
+#settings-button {
+  position: fixed;
+  bottom: 10px;
+  right: 10px;
+  font-size: 1.5rem;
+  cursor: pointer;
+}
+
+#settings-panel {
+  position: fixed;
+  bottom: 50px;
+  right: 10px;
+  background: rgba(0, 0, 0, 0.8);
+  padding: 10px;
+  border-radius: 4px;
+  color: #eee;
+}
+
+.hidden {
+  display: none;
+}
+
+.export-import {
+  margin-bottom: 0.5rem;
+}
+
+.background-settings input {
+  display: block;
+  margin-bottom: 0.5rem;
+}
