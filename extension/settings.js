@@ -1,6 +1,7 @@
 const settingsButton = document.getElementById('settings-button');
 const settingsPanel = document.getElementById('settings-panel');
 const closeSettingsButton = document.getElementById('close-settings');
+const widgetGrid = document.getElementById('widget-grid');
 
 settingsPanel.classList.add('hidden');
 
@@ -30,9 +31,12 @@ tabButtons.forEach(btn => {
 const defaultSettings = {
   background: { type: 'color', value: '#222222' },
   lastColor: '#222222',
+  grid: { columns: 4, rows: 4 },
   widgets: [
     {
       type: 'clock',
+      w: 1,
+      h: 1,
       settings: {
         showSeconds: true,
         flashing: false,
@@ -58,7 +62,12 @@ function loadSettings() {
       s.background.value = normalizeColor(s.background.value);
     }
     s.lastColor = normalizeColor(s.lastColor || defaultSettings.lastColor);
-    s.widgets = s.widgets || defaultSettings.widgets;
+    s.widgets = (s.widgets || defaultSettings.widgets).map(w => ({
+      ...w,
+      w: w.w || 1,
+      h: w.h || 1,
+    }));
+    s.grid = s.grid || { ...defaultSettings.grid };
     return s;
   } catch (e) {
     return { ...defaultSettings };
@@ -79,6 +88,15 @@ function applyBackground(s) {
 
 let settings = loadSettings();
 applyBackground(settings);
+
+function applyGridSettings() {
+  widgetGrid.style.setProperty('--cols', settings.grid.columns);
+  widgetGrid.style.setProperty('--rows', settings.grid.rows);
+  widgetGrid.style.gridTemplateColumns = `repeat(${settings.grid.columns}, 1fr)`;
+  widgetGrid.style.gridTemplateRows = `repeat(${settings.grid.rows}, minmax(100px, 1fr))`;
+}
+
+applyGridSettings();
 
 function updateBackgroundControls() {
   if (settings.background.type === 'image') {
@@ -124,6 +142,29 @@ removeImageBtn.addEventListener('click', () => {
   saveSettings(settings);
   imagePicker.value = '';
   updateBackgroundControls();
+});
+
+// layout controls
+const gridColumnsInput = document.getElementById('grid-columns');
+const gridRowsInput = document.getElementById('grid-rows');
+
+gridColumnsInput.value = settings.grid.columns;
+gridRowsInput.value = settings.grid.rows;
+
+gridColumnsInput.addEventListener('input', (e) => {
+  const val = parseInt(e.target.value, 10);
+  settings.grid.columns = val > 0 ? val : 1;
+  applyGridSettings();
+  saveSettings(settings);
+  if (typeof renderWidgets === 'function') renderWidgets();
+});
+
+gridRowsInput.addEventListener('input', (e) => {
+  const val = parseInt(e.target.value, 10);
+  settings.grid.rows = val > 0 ? val : 1;
+  applyGridSettings();
+  saveSettings(settings);
+  if (typeof renderWidgets === 'function') renderWidgets();
 });
 
 // export / import
