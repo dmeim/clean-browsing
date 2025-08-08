@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "newtab-pluspromaxultra",
+  "name": "NewTab PlusProMaxUltra",
   "version": "v:0.0.5",
-  "description": "Experimental new tab page with a clock widget.",
+  "description": "The PRO PREMIUM MAXED-OUT ULTRA new tab experience",
   "chrome_url_overrides": {
     "newtab": "newtab.html"
   },
