@@ -49,6 +49,17 @@ body {
   display: none;
 }
 
+.close-button {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: transparent;
+  border: none;
+  color: inherit;
+  font-size: 1.2rem;
+  cursor: pointer;
+}
+
 .settings-tabs {
   display: flex;
 }
