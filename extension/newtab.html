@@ -6,8 +6,9 @@
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <div id="clock" class="widget clock-widget"></div>
+  <div id="widget-grid" class="widget-grid"></div>
   <div id="settings-button">&#9881;</div>
+  <div id="widgets-button">Widgets</div>
   <div id="settings-panel" class="hidden">
     <button id="close-settings" class="close-button">&times;</button>
     <div class="settings-tabs">
@@ -43,7 +44,12 @@
       </div>
     </div>
   </div>
-  <script src="clock.js"></script>
+  <div id="widgets-panel" class="hidden">
+    <button id="close-widgets" class="close-button">&times;</button>
+    <h2>Widgets</h2>
+    <div id="widget-list"></div>
+  </div>
   <script src="settings.js"></script>
+  <script src="widgets.js"></script>
 </body>
 </html>
