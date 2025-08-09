@@ -28,14 +28,29 @@ tabButtons.forEach(btn => {
 const defaultSettings = {
   background: { type: 'color', value: '#222222' },
   lastColor: '#222222',
-  grid: { columns: 4, rows: 4 },
+  globalWidgetAppearance: {
+    fontSize: 100,
+    fontWeight: 400,
+    italic: false,
+    underline: false,
+    textColor: '#ffffff',
+    textOpacity: 100,
+    backgroundColor: '#000000',
+    backgroundOpacity: 20,
+    blur: 10,
+    borderRadius: 12,
+    opacity: 100,
+    textAlign: 'center',
+    verticalAlign: 'center',
+    padding: 16
+  },
   widgets: [
     {
       type: 'clock',
       x: 0,
       y: 0,
-      w: 1,
-      h: 1,
+      w: 4,
+      h: 3,
       settings: {
         showSeconds: true,
         flashing: false,
@@ -62,14 +77,14 @@ function loadSettings() {
       s.background.value = normalizeColor(s.background.value);
     }
     s.lastColor = normalizeColor(s.lastColor || defaultSettings.lastColor);
+    s.globalWidgetAppearance = { ...defaultSettings.globalWidgetAppearance, ...(s.globalWidgetAppearance || {}) };
     s.widgets = (s.widgets || defaultSettings.widgets).map(w => ({
       ...w,
       x: w.x || 0,
       y: w.y || 0,
-      w: w.w || 1,
-      h: w.h || 1,
+      w: w.w || 4,
+      h: w.h || 3,
     }));
-    s.grid = s.grid || { ...defaultSettings.grid };
     return s;
   } catch (e) {
     return { ...defaultSettings };
@@ -91,15 +106,7 @@ function applyBackground(s) {
 let settings = loadSettings();
 applyBackground(settings);
 
-function applyGridSettings() {
-  const widgetGrid = document.getElementById('widget-grid');
-  widgetGrid.style.setProperty('--cols', settings.grid.columns);
-  widgetGrid.style.setProperty('--rows', settings.grid.rows);
-  widgetGrid.style.gridTemplateColumns = `repeat(${settings.grid.columns}, 1fr)`;
-  widgetGrid.style.gridTemplateRows = `repeat(${settings.grid.rows}, minmax(100px, 1fr))`;
-}
-
-applyGridSettings();
+// Grid is now fixed and responsive - no user configuration needed
 
 function updateBackgroundControls() {
   if (settings.background.type === 'image') {
@@ -147,28 +154,7 @@ removeImageBtn.addEventListener('click', () => {
   updateBackgroundControls();
 });
 
-// layout controls
-const gridColumnsInput = document.getElementById('grid-columns');
-const gridRowsInput = document.getElementById('grid-rows');
-
-gridColumnsInput.value = settings.grid.columns;
-gridRowsInput.value = settings.grid.rows;
-
-gridColumnsInput.addEventListener('input', (e) => {
-  const val = parseInt(e.target.value, 10);
-  settings.grid.columns = val > 0 ? val : 1;
-  applyGridSettings();
-  saveSettings(settings);
-  if (typeof renderWidgets === 'function') renderWidgets();
-});
-
-gridRowsInput.addEventListener('input', (e) => {
-  const val = parseInt(e.target.value, 10);
-  settings.grid.rows = val > 0 ? val : 1;
-  applyGridSettings();
-  saveSettings(settings);
-  if (typeof renderWidgets === 'function') renderWidgets();
-});
+// Grid controls removed - using fixed responsive grid
 
 // export / import
 const exportBtn = document.getElementById('export-btn');
@@ -201,10 +187,7 @@ importBtn.addEventListener('click', () => {
       saveSettings(settings);
       settings = loadSettings();
       applyBackground(settings);
-      applyGridSettings();
       updateBackgroundControls();
-      gridColumnsInput.value = settings.grid.columns;
-      gridRowsInput.value = settings.grid.rows;
       if (typeof renderWidgets === 'function') renderWidgets();
     } catch {
       alert('Invalid JSON');
@@ -224,10 +207,7 @@ importFile.addEventListener('change', () => {
       saveSettings(settings);
       settings = loadSettings();
       applyBackground(settings);
-      applyGridSettings();
       updateBackgroundControls();
-      gridColumnsInput.value = settings.grid.columns;
-      gridRowsInput.value = settings.grid.rows;
       if (typeof renderWidgets === 'function') renderWidgets();
     } catch {
       alert('Invalid JSON file');
@@ -235,4 +215,171 @@ importFile.addEventListener('change', () => {
   };
   reader.readAsText(file);
 });
+
+// Global Widget Appearance Controls
+function updateGlobalWidgetControls() {
+  const g = settings.globalWidgetAppearance;
+  
+  document.getElementById('global-widget-font-size').value = g.fontSize;
+  document.getElementById('global-widget-font-size-value').textContent = g.fontSize + '%';
+  
+  document.getElementById('global-widget-font-weight').value = g.fontWeight;
+  document.getElementById('global-widget-italic').checked = g.italic;
+  document.getElementById('global-widget-underline').checked = g.underline;
+  document.getElementById('global-widget-text-color').value = g.textColor;
+  document.getElementById('global-widget-text-opacity').value = g.textOpacity;
+  document.getElementById('global-widget-text-opacity-value').textContent = g.textOpacity + '%';
+  
+  document.getElementById('global-widget-bg-color').value = g.backgroundColor;
+  document.getElementById('global-widget-bg-opacity').value = g.backgroundOpacity;
+  document.getElementById('global-widget-bg-opacity-value').textContent = g.backgroundOpacity + '%';
+  document.getElementById('global-widget-blur').value = g.blur;
+  document.getElementById('global-widget-blur-value').textContent = g.blur + 'px';
+  document.getElementById('global-widget-border-radius').value = g.borderRadius;
+  document.getElementById('global-widget-border-radius-value').textContent = g.borderRadius + 'px';
+  document.getElementById('global-widget-opacity').value = g.opacity;
+  document.getElementById('global-widget-opacity-value').textContent = g.opacity + '%';
+  
+  document.getElementById('global-widget-text-align').value = g.textAlign;
+  document.getElementById('global-widget-vertical-align').value = g.verticalAlign;
+  document.getElementById('global-widget-padding').value = g.padding;
+  document.getElementById('global-widget-padding-value').textContent = g.padding + 'px';
+}
+
+function initGlobalWidgetControls() {
+  updateGlobalWidgetControls();
+  
+  // Font size
+  const fontSizeSlider = document.getElementById('global-widget-font-size');
+  const fontSizeValue = document.getElementById('global-widget-font-size-value');
+  fontSizeSlider.addEventListener('input', (e) => {
+    settings.globalWidgetAppearance.fontSize = parseInt(e.target.value);
+    fontSizeValue.textContent = e.target.value + '%';
+    saveSettings(settings);
+    if (typeof renderWidgets === 'function') renderWidgets();
+  });
+  
+  // Font weight
+  document.getElementById('global-widget-font-weight').addEventListener('change', (e) => {
+    settings.globalWidgetAppearance.fontWeight = parseInt(e.target.value);
+    saveSettings(settings);
+    if (typeof renderWidgets === 'function') renderWidgets();
+  });
+  
+  // Font style
+  document.getElementById('global-widget-italic').addEventListener('change', (e) => {
+    settings.globalWidgetAppearance.italic = e.target.checked;
+    saveSettings(settings);
+    if (typeof renderWidgets === 'function') renderWidgets();
+  });
+  
+  document.getElementById('global-widget-underline').addEventListener('change', (e) => {
+    settings.globalWidgetAppearance.underline = e.target.checked;
+    saveSettings(settings);
+    if (typeof renderWidgets === 'function') renderWidgets();
+  });
+  
+  // Text color
+  document.getElementById('global-widget-text-color').addEventListener('input', (e) => {
+    settings.globalWidgetAppearance.textColor = e.target.value;
+    saveSettings(settings);
+    if (typeof renderWidgets === 'function') renderWidgets();
+  });
+  
+  // Text opacity
+  const textOpacitySlider = document.getElementById('global-widget-text-opacity');
+  const textOpacityValue = document.getElementById('global-widget-text-opacity-value');
+  textOpacitySlider.addEventListener('input', (e) => {
+    settings.globalWidgetAppearance.textOpacity = parseInt(e.target.value);
+    textOpacityValue.textContent = e.target.value + '%';
+    saveSettings(settings);
+    if (typeof renderWidgets === 'function') renderWidgets();
+  });
+  
+  // Background color
+  document.getElementById('global-widget-bg-color').addEventListener('input', (e) => {
+    settings.globalWidgetAppearance.backgroundColor = e.target.value;
+    saveSettings(settings);
+    if (typeof renderWidgets === 'function') renderWidgets();
+  });
+  
+  // Background opacity
+  const bgOpacitySlider = document.getElementById('global-widget-bg-opacity');
+  const bgOpacityValue = document.getElementById('global-widget-bg-opacity-value');
+  bgOpacitySlider.addEventListener('input', (e) => {
+    settings.globalWidgetAppearance.backgroundOpacity = parseInt(e.target.value);
+    bgOpacityValue.textContent = e.target.value + '%';
+    saveSettings(settings);
+    if (typeof renderWidgets === 'function') renderWidgets();
+  });
+  
+  // Blur
+  const blurSlider = document.getElementById('global-widget-blur');
+  const blurValue = document.getElementById('global-widget-blur-value');
+  blurSlider.addEventListener('input', (e) => {
+    settings.globalWidgetAppearance.blur = parseInt(e.target.value);
+    blurValue.textContent = e.target.value + 'px';
+    saveSettings(settings);
+    if (typeof renderWidgets === 'function') renderWidgets();
+  });
+  
+  // Border radius
+  const borderRadiusSlider = document.getElementById('global-widget-border-radius');
+  const borderRadiusValue = document.getElementById('global-widget-border-radius-value');
+  borderRadiusSlider.addEventListener('input', (e) => {
+    settings.globalWidgetAppearance.borderRadius = parseInt(e.target.value);
+    borderRadiusValue.textContent = e.target.value + 'px';
+    saveSettings(settings);
+    if (typeof renderWidgets === 'function') renderWidgets();
+  });
+  
+  // Widget opacity
+  const opacitySlider = document.getElementById('global-widget-opacity');
+  const opacityValue = document.getElementById('global-widget-opacity-value');
+  opacitySlider.addEventListener('input', (e) => {
+    settings.globalWidgetAppearance.opacity = parseInt(e.target.value);
+    opacityValue.textContent = e.target.value + '%';
+    saveSettings(settings);
+    if (typeof renderWidgets === 'function') renderWidgets();
+  });
+  
+  // Text alignment
+  document.getElementById('global-widget-text-align').addEventListener('change', (e) => {
+    settings.globalWidgetAppearance.textAlign = e.target.value;
+    saveSettings(settings);
+    if (typeof renderWidgets === 'function') renderWidgets();
+  });
+  
+  // Vertical alignment
+  document.getElementById('global-widget-vertical-align').addEventListener('change', (e) => {
+    settings.globalWidgetAppearance.verticalAlign = e.target.value;
+    saveSettings(settings);
+    if (typeof renderWidgets === 'function') renderWidgets();
+  });
+  
+  // Padding
+  const paddingSlider = document.getElementById('global-widget-padding');
+  const paddingValue = document.getElementById('global-widget-padding-value');
+  paddingSlider.addEventListener('input', (e) => {
+    settings.globalWidgetAppearance.padding = parseInt(e.target.value);
+    paddingValue.textContent = e.target.value + 'px';
+    saveSettings(settings);
+    if (typeof renderWidgets === 'function') renderWidgets();
+  });
+  
+  // Reset button
+  document.getElementById('reset-global-widget-appearance').addEventListener('click', () => {
+    settings.globalWidgetAppearance = { ...defaultSettings.globalWidgetAppearance };
+    updateGlobalWidgetControls();
+    saveSettings(settings);
+    if (typeof renderWidgets === 'function') renderWidgets();
+  });
+}
+
+// Initialize global widget controls when DOM is ready
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initGlobalWidgetControls);
+} else {
+  initGlobalWidgetControls();
+}
 
