@@ -1,3 +1,5 @@
 node_modules/
 .claude/
-CLAUDE.me
+CLAUDE.md
+.DS_Store
+.gitignore

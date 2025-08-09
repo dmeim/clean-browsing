@@ -81,3 +81,45 @@ The extension follows semantic versioning with the format `x.y.z`:
 - **z** - Alpha/testing release (bug fixes, experimental features)
 
 **IMPORTANT: Always increment the version in `manifest.json` whenever making code changes to the extension.**
+
+## Release Preparation Procedures
+
+When the user asks for release preparation (major, beta, or alpha), follow these steps:
+
+### 1. Release Notes Creation
+- Create a new release notes file in the `releases/` directory
+- Use the format `vX.Y.Z.md` matching the version number
+- Include comprehensive feature list, changes, and technical specifications
+- Document all user-facing features and capabilities
+- Add installation instructions and what's next section
+
+### 2. Documentation Updates
+- Update the main `README.md` with:
+  - Current version badges and links
+  - Professional project description and overview
+  - Feature highlights with emojis and formatting
+  - Installation instructions for users and developers
+  - Project structure and architecture overview
+  - Roadmap and contribution guidelines
+  - Professional GitHub presentation standards
+
+### 3. Version Management
+- Update `manifest.json` to the new release version
+- Ensure version consistency across all documentation
+- Follow semantic versioning principles strictly
+
+### 4. Project Presentation Standards
+- Use consistent emoji usage and professional formatting
+- Include badges for version, license, and platform
+- Maintain clear section headers and organized content
+- Ensure all links and references are functional
+- Keep documentation comprehensive but readable
+
+### 5. Release Checklist
+- [ ] Release notes created with full feature documentation
+- [ ] README.md updated with professional presentation
+- [ ] manifest.json version updated
+- [ ] All documentation cross-references updated
+- [ ] Project structure clearly documented
+- [ ] Installation instructions verified
+- [ ] Links and badges functional
