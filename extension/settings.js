@@ -59,6 +59,18 @@ const defaultSettings = {
         daylightSavings: true,
         textSize: 100
       }
+    },
+    {
+      type: 'date',
+      x: 5,
+      y: 0,
+      w: 4,
+      h: 2,
+      settings: {
+        format: 'MM/DD/YYYY',
+        separator: '/',
+        locale: 'auto'
+      }
     }
   ]
 };
