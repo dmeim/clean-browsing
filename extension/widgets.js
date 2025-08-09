@@ -96,6 +96,7 @@ function saveAndRender() {
   renderWidgets();
 }
 
+
 function getWidgetAppearance(widget) {
   // Merge global appearance with widget-specific overrides
   const global = settings.globalWidgetAppearance || {};
@@ -292,6 +293,7 @@ function renderSearchWidget(widget, index) {
   const input = document.createElement('input');
   input.type = 'text';
   input.className = 'search-input';
+  input.id = `search-input-${index}`; // Add unique ID for direct selection
   
   // Capitalize search engine name for placeholder
   const getCapitalizedEngineName = (engine) => {
@@ -409,10 +411,6 @@ function renderSearchWidget(widget, index) {
 
   widgetGrid.appendChild(container);
 
-  // Auto-focus the input if configured
-  if (widget.settings?.autoFocus) {
-    setTimeout(() => input.focus(), 0);
-  }
 
   // Return the input element for global keyboard handling
   return input;
@@ -513,8 +511,7 @@ function addSearchWidget(options) {
       customUrl: options.customUrl,
       customImageUrl: options.customImageUrl,
       target: options.target,
-      clearAfterSearch: options.clearAfterSearch,
-      autoFocus: options.autoFocus
+      clearAfterSearch: options.clearAfterSearch
     }
   };
   settings.widgets.push(widget);
@@ -784,9 +781,6 @@ function openSearchConfig(existing, index) {
     <div class="input-group checkbox-group">
       <label><input type="checkbox" id="search-clear" ${existing && existing.settings.clearAfterSearch ? 'checked' : ''}> Clear input after search</label>
     </div>
-    <div class="input-group checkbox-group">
-      <label><input type="checkbox" id="search-autofocus" ${existing && existing.settings.autoFocus ? 'checked' : ''}> Auto-focus on new tab</label>
-    </div>
     <div class="widget-config-buttons">
       <button id="search-save">${isEdit ? 'Save' : 'Add'}</button>
       <button id="search-cancel">${isEdit ? 'Exit' : 'Cancel'}</button>
@@ -827,8 +821,7 @@ function openSearchConfig(existing, index) {
       customUrl: document.getElementById('search-custom-url').value.trim(),
       customImageUrl: document.getElementById('search-image-url').value.trim(),
       target: document.getElementById('search-target').value,
-      clearAfterSearch: document.getElementById('search-clear').checked,
-      autoFocus: document.getElementById('search-autofocus').checked
+      clearAfterSearch: document.getElementById('search-clear').checked
     };
     
     if (!options.customUrl) {
