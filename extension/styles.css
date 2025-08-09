@@ -158,14 +158,13 @@ body::before {
     0 0 0 1px rgba(120, 119, 198, 0.3);
 }
 
-.clock-widget {
+.clock-widget, .date-widget {
   font-weight: 200;
   letter-spacing: -0.02em;
   color: #ffffff;
   text-shadow: 
     0 2px 8px rgba(0, 0, 0, 0.8),
     0 1px 0 rgba(255, 255, 255, 0.3);
-  font-size: min(12cqw, 8cqh);
   text-align: center;
   line-height: 1.1;
   white-space: normal;
@@ -173,42 +172,7 @@ body::before {
   overflow-wrap: break-word;
   width: 100%;
   max-width: 100%;
-}
-
-/* Date widget responsive text styling */
-.date-widget {
-  font-weight: 200;
-  letter-spacing: -0.02em;
-  color: #ffffff;
-  text-shadow: 
-    0 2px 8px rgba(0, 0, 0, 0.8),
-    0 1px 0 rgba(255, 255, 255, 0.3);
-  font-size: min(10cqw, 6cqh);
-  text-align: center;
-  line-height: 1.2;
-  white-space: normal;
-  word-break: break-word;
-  overflow-wrap: break-word;
-  width: 100%;
-  max-width: 100%;
-}
-
-/* Adjust for very small widgets - reduce font size slightly */
-@container (max-width: 150px) {
-  .clock-widget {
-    font-size: min(10cqw, 6cqh);
-  }
-  .date-widget {
-    font-size: min(8cqw, 5cqh);
-  }
-}
-
-/* Adjust for very short widgets */
-@container (max-height: 80px) {
-  .clock-widget, .date-widget {
-    font-size: min(15cqw, 4cqh);
-    line-height: 1;
-  }
+  /* Font size will be set dynamically by JavaScript - no CSS font-size rules */
 }
 
 #action-buttons {

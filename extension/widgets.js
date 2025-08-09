@@ -141,40 +141,30 @@ function calculateOptimalFontSize(textElement, container, appearance) {
   
   // If container hasn't been laid out yet, return a default size
   if (availableWidth <= 0 || availableHeight <= 0) {
-    return 24;
+    return 16;
   }
   
-  // Calculate aspect ratio and container size to adjust scaling behavior
+  // Simple, reliable formula: take a percentage of the smaller dimension
+  // This ensures text always fits within bounds while scaling with container size
+  const smallerDimension = Math.min(availableWidth, availableHeight);
+  const largerDimension = Math.max(availableWidth, availableHeight);
+  
+  // Base font size as percentage of smaller dimension
+  let fontSize = smallerDimension * 0.35;
+  
+  // For very wide containers, allow some additional scaling based on width
   const aspectRatio = availableWidth / availableHeight;
-  const containerArea = availableWidth * availableHeight;
-  
-  // Scale aggressiveness based on container size - larger containers get more aggressive scaling
-  const sizeMultiplier = Math.min(2.0, Math.max(1.0, containerArea / 20000)); // Scale from 1.0 to 2.0
-  
-  let fontSize;
   if (aspectRatio > 2) {
-    // Wide widget: scale much more aggressively for larger containers
-    const heightFactor = 0.6 * sizeMultiplier;
-    const widthFactor = 0.08 * sizeMultiplier;
-    fontSize = Math.min(availableHeight * heightFactor, availableWidth * widthFactor);
-  } else if (aspectRatio < 0.8) {
-    // Tall widget: prioritize height scaling with size-based scaling
-    const heightFactor = 0.3 * sizeMultiplier;
-    const widthFactor = 0.25 * sizeMultiplier;
-    fontSize = Math.min(availableHeight * heightFactor, availableWidth * widthFactor);
-  } else {
-    // Square-ish widget: balanced approach with more aggressive scaling for larger widgets
-    const heightFactor = 0.4 * sizeMultiplier;
-    const widthFactor = 0.15 * sizeMultiplier;
-    fontSize = Math.min(availableHeight * heightFactor, availableWidth * widthFactor);
+    // Wide widget: add some width-based scaling but cap it to prevent overflow
+    const widthBonus = Math.min(availableWidth * 0.05, smallerDimension * 0.2);
+    fontSize += widthBonus;
   }
   
   // Apply user's font size preference
   fontSize *= (appearance.fontSize / 100);
   
-  // Clamp to reasonable bounds, with higher max for larger containers
-  const maxFontSize = Math.min(200, 120 + (containerArea / 1000));
-  fontSize = Math.max(12, Math.min(fontSize, maxFontSize));
+  // Clamp to reasonable bounds
+  fontSize = Math.max(12, Math.min(fontSize, 150));
   
   return fontSize;
 }
