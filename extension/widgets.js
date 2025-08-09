@@ -391,12 +391,14 @@ function renderSearchWidget(widget, index) {
   container.appendChild(logo);
   container.appendChild(searchContainer);
   
-  // Add click handler to focus input when clicking anywhere on the search widget
-  container.addEventListener('click', (e) => {
-    // Don't interfere if clicking directly on the input or button
+  // Focus the input when interacting with the search widget
+  // Using pointerdown ensures the input is focused even on the first click
+  // when the browser's address bar still has focus
+  container.addEventListener('pointerdown', (e) => {
+    // Don't interfere if interacting directly with the input or button
     if (e.target === input || e.target === button) return;
-    
-    // Focus the input and ensure cursor is visible
+
+    // Focus the input so typing can begin immediately
     input.focus();
     e.preventDefault();
     e.stopPropagation();
