@@ -392,8 +392,8 @@ function handleDragOver(e) {
   // Provide visual feedback during drag
   if (dragIndex !== null && e.currentTarget === widgetGrid) {
     const rect = widgetGrid.getBoundingClientRect();
-    const colSize = rect.width / 20;
-    const rowSize = rect.height / 12;
+    const colSize = rect.width / 40;
+    const rowSize = rect.height / 24;
     const widget = settings.widgets[dragIndex];
     
     // Calculate where widget center would be (mouse + offset)
@@ -405,8 +405,8 @@ function handleDragOver(e) {
     let row = Math.round(relativeY / rowSize - (widget.h || 3) / 2);
     
     // Ensure within bounds
-    col = Math.max(0, Math.min(20 - (widget.w || 4), col));
-    row = Math.max(0, Math.min(12 - (widget.h || 3), row));
+    col = Math.max(0, Math.min(40 - (widget.w || 4), col));
+    row = Math.max(0, Math.min(24 - (widget.h || 3), row));
     
     // Create or update preview indicator
     let previewElement = document.getElementById('drag-preview-indicator');
@@ -461,8 +461,8 @@ function handleGridDrop(e) {
   
   if (dragIndex === null) return;
   const rect = widgetGrid.getBoundingClientRect();
-  const colSize = rect.width / 20; // Fixed 20 columns
-  const rowSize = rect.height / 12; // Fixed 12 rows
+  const colSize = rect.width / 40; // Fixed 40 columns
+  const rowSize = rect.height / 24; // Fixed 24 rows
   const widget = settings.widgets[dragIndex];
   
   // Calculate where widget center would be (mouse + offset)
@@ -474,8 +474,8 @@ function handleGridDrop(e) {
   let row = Math.round(relativeY / rowSize - (widget.h || 3) / 2);
   
   // Ensure widget stays within grid bounds
-  col = Math.max(0, Math.min(20 - (widget.w || 4), col));
-  row = Math.max(0, Math.min(12 - (widget.h || 3), row));
+  col = Math.max(0, Math.min(40 - (widget.w || 4), col));
+  row = Math.max(0, Math.min(24 - (widget.h || 3), row));
   
   // Only update position if it actually changed
   if (widget.x !== col || widget.y !== row) {
@@ -529,8 +529,8 @@ function addResizeListeners(container, index, resizeHandleSE, resizeHandleS, res
     const deltaY = e.clientY - startY;
     
     const gridRect = widgetGrid.getBoundingClientRect();
-    const colSize = gridRect.width / 20; // Fixed 20 columns
-    const rowSize = gridRect.height / 12; // Fixed 12 rows
+    const colSize = gridRect.width / 40; // Fixed 40 columns
+    const rowSize = gridRect.height / 24; // Fixed 24 rows
     
     let newWidth = startWidth;
     let newHeight = startHeight;
@@ -547,8 +547,8 @@ function addResizeListeners(container, index, resizeHandleSE, resizeHandleS, res
     const newGridH = Math.max(1, Math.round(newHeight / rowSize));
     
     // Ensure widget doesn't exceed grid bounds
-    const maxW = 20 - startGridX; // Fixed 20 columns
-    const maxH = 12 - startGridY; // Fixed 12 rows
+    const maxW = 40 - startGridX; // Fixed 40 columns
+    const maxH = 24 - startGridY; // Fixed 24 rows
     const clampedW = Math.min(newGridW, maxW);
     const clampedH = Math.min(newGridH, maxH);
     
