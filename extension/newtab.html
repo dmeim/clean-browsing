@@ -19,7 +19,8 @@
     </div>
     <div class="settings-tabs">
       <button data-tab="config" class="active">Configuration</button>
-      <button data-tab="appearance">Appearance</button>
+      <button data-tab="page-appearance">Page Appearance</button>
+      <button data-tab="widget-appearance">Widget Appearance</button>
     </div>
     <div class="modal-content">
       <div id="config-tab" class="tab-content">
@@ -45,23 +46,8 @@
             </div>
           </div>
         </div>
-        <div class="settings-section">
-          <h3 class="section-title">Grid Layout</h3>
-          <div class="settings-group">
-            <div class="input-row">
-              <div class="input-group">
-                <label for="grid-columns">Columns</label>
-                <input type="number" id="grid-columns" min="1" max="8">
-              </div>
-              <div class="input-group">
-                <label for="grid-rows">Rows</label>
-                <input type="number" id="grid-rows" min="1" max="8">
-              </div>
-            </div>
-          </div>
-        </div>
       </div>
-      <div id="appearance-tab" class="tab-content hidden">
+      <div id="page-appearance-tab" class="tab-content hidden">
         <div class="settings-section">
           <h3 class="section-title">Background</h3>
           <div class="settings-group">
@@ -79,6 +65,103 @@
           </div>
         </div>
       </div>
+      <div id="widget-appearance-tab" class="tab-content hidden">
+        <div class="settings-section">
+          <h3 class="section-title">Global Widget Text Styling</h3>
+          <div class="settings-group">
+            <div class="input-group">
+              <label for="global-widget-font-size">Font Size (%)</label>
+              <input type="range" id="global-widget-font-size" min="50" max="200" step="10" value="100">
+              <span id="global-widget-font-size-value">100%</span>
+            </div>
+            <div class="input-group">
+              <label for="global-widget-font-weight">Font Weight</label>
+              <select id="global-widget-font-weight">
+                <option value="300">Light</option>
+                <option value="400" selected>Normal</option>
+                <option value="500">Medium</option>
+                <option value="700">Bold</option>
+                <option value="900">Extra Bold</option>
+              </select>
+            </div>
+            <div class="input-group checkbox-group">
+              <label><input type="checkbox" id="global-widget-italic"> Italic</label>
+              <label><input type="checkbox" id="global-widget-underline"> Underline</label>
+            </div>
+            <div class="input-group">
+              <label for="global-widget-text-color">Text Color</label>
+              <input type="color" id="global-widget-text-color" value="#ffffff">
+            </div>
+            <div class="input-group">
+              <label for="global-widget-text-opacity">Text Opacity (%)</label>
+              <input type="range" id="global-widget-text-opacity" min="10" max="100" step="5" value="100">
+              <span id="global-widget-text-opacity-value">100%</span>
+            </div>
+          </div>
+        </div>
+        <div class="settings-section">
+          <h3 class="section-title">Global Widget Background & Effects</h3>
+          <div class="settings-group">
+            <div class="input-group">
+              <label for="global-widget-bg-color">Background Color</label>
+              <input type="color" id="global-widget-bg-color" value="#000000">
+            </div>
+            <div class="input-group">
+              <label for="global-widget-bg-opacity">Background Opacity (%)</label>
+              <input type="range" id="global-widget-bg-opacity" min="0" max="100" step="5" value="20">
+              <span id="global-widget-bg-opacity-value">20%</span>
+            </div>
+            <div class="input-group">
+              <label for="global-widget-blur">Background Blur (px)</label>
+              <input type="range" id="global-widget-blur" min="0" max="20" step="1" value="10">
+              <span id="global-widget-blur-value">10px</span>
+            </div>
+            <div class="input-group">
+              <label for="global-widget-border-radius">Border Radius (px)</label>
+              <input type="range" id="global-widget-border-radius" min="0" max="30" step="1" value="12">
+              <span id="global-widget-border-radius-value">12px</span>
+            </div>
+            <div class="input-group">
+              <label for="global-widget-opacity">Widget Opacity (%)</label>
+              <input type="range" id="global-widget-opacity" min="10" max="100" step="5" value="100">
+              <span id="global-widget-opacity-value">100%</span>
+            </div>
+          </div>
+        </div>
+        <div class="settings-section">
+          <h3 class="section-title">Global Widget Layout</h3>
+          <div class="settings-group">
+            <div class="input-group">
+              <label for="global-widget-text-align">Text Alignment</label>
+              <select id="global-widget-text-align">
+                <option value="left">Left</option>
+                <option value="center" selected>Center</option>
+                <option value="right">Right</option>
+                <option value="justify">Justify</option>
+              </select>
+            </div>
+            <div class="input-group">
+              <label for="global-widget-vertical-align">Vertical Alignment</label>
+              <select id="global-widget-vertical-align">
+                <option value="flex-start">Top</option>
+                <option value="center" selected>Center</option>
+                <option value="flex-end">Bottom</option>
+              </select>
+            </div>
+            <div class="input-group">
+              <label for="global-widget-padding">Padding (px)</label>
+              <input type="range" id="global-widget-padding" min="0" max="40" step="2" value="16">
+              <span id="global-widget-padding-value">16px</span>
+            </div>
+          </div>
+        </div>
+        <div class="settings-section">
+          <h3 class="section-title">Actions</h3>
+          <div class="settings-group">
+            <button id="reset-global-widget-appearance" class="secondary-button">Reset to Defaults</button>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
   <div id="widgets-panel" class="hidden">
@@ -86,8 +169,14 @@
       <h2 class="modal-title">Widgets</h2>
       <button id="close-widgets" class="close-button">&times;</button>
     </div>
+    <div id="widget-tabs" class="settings-tabs hidden">
+      <button data-tab="widget-settings" class="active">Settings</button>
+      <button data-tab="widget-appearance">Appearance</button>
+    </div>
     <div class="modal-content">
       <div id="widget-list"></div>
+      <div id="widget-settings-tab" class="tab-content"></div>
+      <div id="widget-appearance-tab-content" class="tab-content hidden"></div>
     </div>
   </div>
   <script src="settings.js"></script>
