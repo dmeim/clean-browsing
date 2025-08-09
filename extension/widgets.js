@@ -8,7 +8,6 @@ let widgetGrid;
 let jiggleMode = false;
 let dragIndex = null;
 let activeIntervals = [];
-let globalKeyHandler = null;
 
 function initWidgetsUI() {
   widgetsButton = document.getElementById('widgets-button');
@@ -75,16 +74,6 @@ if (document.readyState === 'loading') {
   initWidgetsUI();
 }
 
-// Additional auto-focus attempt when window is fully loaded
-window.addEventListener('load', () => {
-  // Single clean attempt after page is fully loaded
-  setTimeout(() => {
-    const autoFocusInput = document.querySelector('.search-input[data-auto-focus="true"]');
-    if (autoFocusInput && document.activeElement !== autoFocusInput) {
-      autoFocusInput.focus();
-    }
-  }, 50);
-});
 
 function initializeWidgets() {
   // Ensure settings is available
@@ -176,76 +165,15 @@ function renderWidgets() {
   
   widgetGrid.innerHTML = '';
   
-  // Track if any search widgets have autoFocus enabled
-  let autoFocusSearchInput = null;
-  
   (settings.widgets || []).forEach((widget, index) => {
     if (widget.type === 'clock') {
       renderClockWidget(widget, index);
     } else if (widget.type === 'search') {
-      const searchWidget = renderSearchWidget(widget, index);
-      if (widget.settings?.autoFocus) {
-        autoFocusSearchInput = searchWidget;
-      }
+      renderSearchWidget(widget, index);
     }
   });
-  
-  // Auto-focus any search inputs that have the auto-focus setting enabled
-  const attemptAutoFocus = () => {
-    const autoFocusInput = document.querySelector('.search-input[data-auto-focus="true"]');
-    if (autoFocusInput) {
-      // Ensure the input is ready for interaction
-      autoFocusInput.style.pointerEvents = 'auto';
-      autoFocusInput.style.userSelect = 'text';
-      autoFocusInput.removeAttribute('readonly');
-      
-      // Single clean focus attempt
-      autoFocusInput.focus();
-      
-      // Set up global keyboard capture for this input
-      setupGlobalKeyboardHandler(autoFocusInput);
-    }
-  };
-  
-  // Use a single delayed focus attempt to avoid Chrome URL bar conflicts
-  setTimeout(attemptAutoFocus, 100);
 }
 
-function setupGlobalKeyboardHandler(input) {
-  // Remove any existing global key handler
-  if (globalKeyHandler) {
-    document.removeEventListener('keydown', globalKeyHandler, true);
-  }
-  
-  globalKeyHandler = (e) => {
-    // Only intercept if no input is currently focused and it's a printable character or backspace
-    const activeElement = document.activeElement;
-    const isInputFocused = activeElement && (
-      activeElement.tagName === 'INPUT' || 
-      activeElement.tagName === 'TEXTAREA' ||
-      activeElement.contentEditable === 'true'
-    );
-    
-    // If no input is focused and it's a regular character key, focus the search input
-    if (!isInputFocused && 
-        !e.ctrlKey && !e.altKey && !e.metaKey && // Not a modifier combo
-        (e.key.length === 1 || e.key === 'Backspace')) { // Printable character or backspace
-      
-      input.focus();
-      
-      // If it's a printable character, add it to the input
-      if (e.key.length === 1) {
-        input.value += e.key;
-        // Trigger input event for any listeners
-        input.dispatchEvent(new Event('input', { bubbles: true }));
-        e.preventDefault();
-      }
-    }
-  };
-  
-  // Add the handler with capture = true to catch events before they reach other elements
-  document.addEventListener('keydown', globalKeyHandler, true);
-}
 
 function renderClockWidget(widget, index) {
   const container = document.createElement('div');
@@ -427,26 +355,6 @@ function renderSearchWidget(widget, index) {
     }
   });
   
-  // Auto-focus the input if autoFocus setting is enabled
-  if (widget.settings?.autoFocus) {
-    // Mark this input for auto-focus
-    input.setAttribute('data-auto-focus', 'true');
-    input.setAttribute('tabindex', '0');
-    
-    // Ensure input is immediately focusable
-    input.style.pointerEvents = 'auto';
-    input.style.userSelect = 'text';
-    input.removeAttribute('readonly');
-    
-    // Try immediate focus
-    setTimeout(() => {
-      input.focus();
-      input.click();
-      try {
-        input.setSelectionRange(0, 0);
-      } catch (e) {}
-    }, 10);
-  }
 
   if (jiggleMode) {
     const removeBtn = document.createElement('button');
@@ -600,8 +508,7 @@ function addSearchWidget(options) {
       customUrl: options.customUrl,
       customImageUrl: options.customImageUrl,
       target: options.target,
-      clearAfterSearch: options.clearAfterSearch,
-      autoFocus: options.autoFocus
+      clearAfterSearch: options.clearAfterSearch
     }
   };
   settings.widgets.push(widget);
@@ -871,9 +778,6 @@ function openSearchConfig(existing, index) {
     <div class="input-group checkbox-group">
       <label><input type="checkbox" id="search-clear" ${existing && existing.settings.clearAfterSearch ? 'checked' : ''}> Clear input after search</label>
     </div>
-    <div class="input-group checkbox-group">
-      <label><input type="checkbox" id="search-auto-focus" ${existing && existing.settings.autoFocus ? 'checked' : ''}> Auto-focus search input when page loads</label>
-    </div>
     <div class="widget-config-buttons">
       <button id="search-save">${isEdit ? 'Save' : 'Add'}</button>
       <button id="search-cancel">${isEdit ? 'Exit' : 'Cancel'}</button>
@@ -914,8 +818,7 @@ function openSearchConfig(existing, index) {
       customUrl: document.getElementById('search-custom-url').value.trim(),
       customImageUrl: document.getElementById('search-image-url').value.trim(),
       target: document.getElementById('search-target').value,
-      clearAfterSearch: document.getElementById('search-clear').checked,
-      autoFocus: document.getElementById('search-auto-focus').checked
+      clearAfterSearch: document.getElementById('search-clear').checked
     };
     
     if (!options.customUrl) {
