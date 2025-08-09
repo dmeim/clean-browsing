@@ -395,3 +395,222 @@ if (document.readyState === 'loading') {
   initGlobalWidgetControls();
 }
 
+// Modal drag and resize functionality
+class ModalDragResize {
+  constructor(modal) {
+    this.modal = modal;
+    this.header = modal.querySelector('.modal-header');
+    this.isDragging = false;
+    this.isResizing = false;
+    this.dragOffset = { x: 0, y: 0 };
+    this.resizeStart = { x: 0, y: 0, width: 0, height: 0 };
+    
+    this.init();
+  }
+  
+  init() {
+    // Make modal draggable by header
+    this.header.addEventListener('mousedown', this.startDrag.bind(this));
+    
+    // Create custom resize handle
+    this.createResizeHandle();
+    
+    // Global mouse events
+    document.addEventListener('mousemove', this.handleMouseMove.bind(this));
+    document.addEventListener('mouseup', this.handleMouseUp.bind(this));
+    
+    // Observe modal visibility to reset position
+    this.observer = new MutationObserver(this.handleVisibilityChange.bind(this));
+    this.observer.observe(this.modal, { attributes: true, attributeFilter: ['class'] });
+  }
+  
+  createResizeHandle() {
+    this.resizeHandle = document.createElement('div');
+    this.resizeHandle.className = 'modal-resize-handle';
+    this.resizeHandle.style.cssText = `
+      position: absolute;
+      bottom: 0;
+      right: 0;
+      width: 20px;
+      height: 20px;
+      cursor: se-resize;
+      z-index: 11;
+    `;
+    this.resizeHandle.addEventListener('mousedown', this.startResize.bind(this));
+    this.modal.appendChild(this.resizeHandle);
+  }
+  
+  startDrag(e) {
+    // Don't drag if clicking on close button or other interactive elements
+    if (e.target.closest('.close-button') || e.target.closest('button') || e.target.closest('input') || e.target.closest('select')) {
+      return;
+    }
+    
+    this.isDragging = true;
+    this.modal.classList.add('modal-dragging');
+    
+    const rect = this.modal.getBoundingClientRect();
+    this.dragOffset = {
+      x: e.clientX - rect.left,
+      y: e.clientY - rect.top
+    };
+    
+    e.preventDefault();
+  }
+  
+  startResize(e) {
+    this.isResizing = true;
+    this.modal.classList.add('modal-resizing');
+    
+    const rect = this.modal.getBoundingClientRect();
+    this.resizeStart = {
+      x: e.clientX,
+      y: e.clientY,
+      width: rect.width,
+      height: rect.height
+    };
+    
+    e.preventDefault();
+    e.stopPropagation();
+  }
+  
+  handleMouseMove(e) {
+    if (this.isDragging) {
+      const newX = e.clientX - this.dragOffset.x;
+      const newY = e.clientY - this.dragOffset.y;
+      
+      // Keep modal within viewport bounds
+      const maxX = window.innerWidth - this.modal.offsetWidth;
+      const maxY = window.innerHeight - this.modal.offsetHeight;
+      
+      const clampedX = Math.max(0, Math.min(newX, maxX));
+      const clampedY = Math.max(0, Math.min(newY, maxY));
+      
+      this.modal.style.left = clampedX + 'px';
+      this.modal.style.top = clampedY + 'px';
+      this.modal.style.transform = 'none';
+    }
+    
+    if (this.isResizing) {
+      const deltaX = e.clientX - this.resizeStart.x;
+      const deltaY = e.clientY - this.resizeStart.y;
+      
+      const newWidth = Math.max(300, this.resizeStart.width + deltaX);
+      const newHeight = Math.max(400, this.resizeStart.height + deltaY);
+      
+      // Keep within viewport bounds
+      const maxWidth = window.innerWidth - this.modal.offsetLeft;
+      const maxHeight = window.innerHeight - this.modal.offsetTop;
+      
+      this.modal.style.width = Math.min(newWidth, maxWidth) + 'px';
+      this.modal.style.height = Math.min(newHeight, maxHeight) + 'px';
+      
+      // Update content layout
+      this.updateContentLayout();
+    }
+  }
+  
+  handleMouseUp() {
+    if (this.isDragging) {
+      this.isDragging = false;
+      this.modal.classList.remove('modal-dragging');
+    }
+    
+    if (this.isResizing) {
+      this.isResizing = false;
+      this.modal.classList.remove('modal-resizing');
+    }
+  }
+  
+  updateContentLayout() {
+    const content = this.modal.querySelector('.modal-content');
+    if (!content) return;
+    
+    const modalRect = this.modal.getBoundingClientRect();
+    const aspectRatio = modalRect.width / modalRect.height;
+    
+    // Remove existing layout classes
+    content.classList.remove('layout-wide', 'layout-narrow');
+    
+    // Update settings sections
+    const sections = content.querySelectorAll('.settings-section');
+    const groups = content.querySelectorAll('.settings-group');
+    const tabContent = content.querySelectorAll('.tab-content');
+    
+    if (aspectRatio > 1.3 && modalRect.width > 600) {
+      // Wide layout
+      content.classList.add('layout-wide');
+      sections.forEach(section => section.classList.add('compact'));
+      groups.forEach(group => group.classList.add('horizontal'));
+      
+      // Special handling for settings modal tabs
+      if (this.modal.id === 'settings-modal') {
+        tabContent.forEach(tab => {
+          if (!tab.classList.contains('hidden')) {
+            tab.classList.add('layout-wide');
+            tab.classList.remove('layout-narrow');
+          }
+        });
+      }
+    } else {
+      // Narrow layout
+      content.classList.add('layout-narrow');
+      sections.forEach(section => section.classList.remove('compact'));
+      groups.forEach(group => group.classList.remove('horizontal'));
+      
+      // Special handling for settings modal tabs
+      if (this.modal.id === 'settings-modal') {
+        tabContent.forEach(tab => {
+          tab.classList.remove('layout-wide');
+          tab.classList.add('layout-narrow');
+        });
+      }
+    }
+  }
+  
+  handleVisibilityChange(mutations) {
+    mutations.forEach(mutation => {
+      if (mutation.attributeName === 'class') {
+        const isHidden = this.modal.classList.contains('hidden');
+        if (!isHidden) {
+          // Reset position when modal becomes visible
+          this.resetPosition();
+          this.updateContentLayout();
+        }
+      }
+    });
+  }
+  
+  resetPosition() {
+    this.modal.style.left = '';
+    this.modal.style.top = '';
+    this.modal.style.transform = '';
+    this.modal.style.width = '';
+    this.modal.style.height = '';
+  }
+  
+  destroy() {
+    this.observer.disconnect();
+    if (this.resizeHandle) {
+      this.resizeHandle.remove();
+    }
+  }
+}
+
+// Initialize drag and resize for both modals
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initModalDragResize);
+} else {
+  initModalDragResize();
+}
+
+function initModalDragResize() {
+  try {
+    const settingsModalDragResize = new ModalDragResize(settingsModal);
+    const widgetsModal = document.getElementById('widgets-panel');
+    const widgetsModalDragResize = new ModalDragResize(widgetsModal);
+  } catch (error) {
+    console.error('Error initializing modal drag/resize:', error);
+  }
+}
+

@@ -7,6 +7,7 @@ let editButton;
 let widgetGrid;
 let jiggleMode = false;
 let dragIndex = null;
+let dragOffset = { x: 0, y: 0 };
 let activeIntervals = [];
 
 // Widget registry - stores widget type definitions
@@ -189,18 +190,90 @@ function handleDragStart(e) {
   dragIndex = +e.currentTarget.dataset.index;
   e.dataTransfer.effectAllowed = 'move';
   e.dataTransfer.setData('text/plain', '');
+  
+  // Calculate the offset from the mouse to the widget's center
+  const widgetRect = e.currentTarget.getBoundingClientRect();
+  const gridRect = widgetGrid.getBoundingClientRect();
+  
+  // Calculate widget center relative to grid
+  const widgetCenterX = widgetRect.left + widgetRect.width / 2 - gridRect.left;
+  const widgetCenterY = widgetRect.top + widgetRect.height / 2 - gridRect.top;
+  
+  // Calculate mouse position relative to grid
+  const mouseX = e.clientX - gridRect.left;
+  const mouseY = e.clientY - gridRect.top;
+  
+  // Store offset from mouse to widget center
+  dragOffset.x = widgetCenterX - mouseX;
+  dragOffset.y = widgetCenterY - mouseY;
+  
+  // Add dragend listener to clean up if drag is cancelled
+  const draggedElement = e.currentTarget;
+  const cleanup = () => {
+    const previewElement = document.getElementById('drag-preview-indicator');
+    if (previewElement) {
+      previewElement.remove();
+    }
+    dragIndex = null;
+    dragOffset = { x: 0, y: 0 };
+    if (draggedElement) {
+      draggedElement.removeEventListener('dragend', cleanup);
+    }
+  };
+  draggedElement.addEventListener('dragend', cleanup);
 }
 
 function handleDragOver(e) {
   e.preventDefault();
+  
+  // Provide visual feedback during drag
+  if (dragIndex !== null && e.currentTarget === widgetGrid) {
+    const rect = widgetGrid.getBoundingClientRect();
+    const colSize = rect.width / 20;
+    const rowSize = rect.height / 12;
+    const widget = settings.widgets[dragIndex];
+    
+    // Calculate where widget center would be (mouse + offset)
+    const relativeX = e.clientX - rect.left + dragOffset.x;
+    const relativeY = e.clientY - rect.top + dragOffset.y;
+    
+    // Convert to grid coordinates - center the widget on the calculated position
+    let col = Math.round(relativeX / colSize - (widget.w || 4) / 2);
+    let row = Math.round(relativeY / rowSize - (widget.h || 3) / 2);
+    
+    // Ensure within bounds
+    col = Math.max(0, Math.min(20 - (widget.w || 4), col));
+    row = Math.max(0, Math.min(12 - (widget.h || 3), row));
+    
+    // Create or update preview indicator
+    let previewElement = document.getElementById('drag-preview-indicator');
+    if (!previewElement) {
+      previewElement = document.createElement('div');
+      previewElement.id = 'drag-preview-indicator';
+      previewElement.className = 'drag-preview-indicator';
+      widgetGrid.appendChild(previewElement);
+    }
+    
+    // Position the preview element
+    previewElement.style.gridColumn = `${col + 1} / span ${widget.w || 4}`;
+    previewElement.style.gridRow = `${row + 1} / span ${widget.h || 3}`;
+  }
 }
 
 function handleDrop(e) {
   e.preventDefault();
   e.stopPropagation();
+  
+  // Clean up drag preview
+  const previewElement = document.getElementById('drag-preview-indicator');
+  if (previewElement) {
+    previewElement.remove();
+  }
+  
   const targetIndex = +e.currentTarget.dataset.index;
   if (dragIndex === null || dragIndex === targetIndex) {
     dragIndex = null;
+    dragOffset = { x: 0, y: 0 };
     return;
   }
   const tempX = settings.widgets[targetIndex].x;
@@ -210,24 +283,46 @@ function handleDrop(e) {
   settings.widgets[dragIndex].x = tempX;
   settings.widgets[dragIndex].y = tempY;
   dragIndex = null;
+  dragOffset = { x: 0, y: 0 };
   saveAndRender();
 }
 
 function handleGridDrop(e) {
   e.preventDefault();
+  
+  // Clean up drag preview
+  const previewElement = document.getElementById('drag-preview-indicator');
+  if (previewElement) {
+    previewElement.remove();
+  }
+  
   if (dragIndex === null) return;
   const rect = widgetGrid.getBoundingClientRect();
   const colSize = rect.width / 20; // Fixed 20 columns
   const rowSize = rect.height / 12; // Fixed 12 rows
   const widget = settings.widgets[dragIndex];
-  let col = Math.floor((e.clientX - rect.left) / colSize);
-  let row = Math.floor((e.clientY - rect.top) / rowSize);
+  
+  // Calculate where widget center would be (mouse + offset)
+  const relativeX = e.clientX - rect.left + dragOffset.x;
+  const relativeY = e.clientY - rect.top + dragOffset.y;
+  
+  // Convert to grid coordinates - center the widget on the calculated position
+  let col = Math.round(relativeX / colSize - (widget.w || 4) / 2);
+  let row = Math.round(relativeY / rowSize - (widget.h || 3) / 2);
+  
+  // Ensure widget stays within grid bounds
   col = Math.max(0, Math.min(20 - (widget.w || 4), col));
   row = Math.max(0, Math.min(12 - (widget.h || 3), row));
-  widget.x = col;
-  widget.y = row;
+  
+  // Only update position if it actually changed
+  if (widget.x !== col || widget.y !== row) {
+    widget.x = col;
+    widget.y = row;
+    saveAndRender();
+  }
+  
   dragIndex = null;
-  saveAndRender();
+  dragOffset = { x: 0, y: 0 };
 }
 
 function addResizeListeners(container, index, resizeHandleSE, resizeHandleS, resizeHandleE) {
