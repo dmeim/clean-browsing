@@ -57,6 +57,10 @@
     container.addEventListener('pointerdown', (e) => {
       // Don't interfere if interacting directly with the input or button
       if (e.target === input || e.target === button) return;
+      
+      // Don't interfere with resize handles or widget action buttons
+      if (e.target.classList.contains('resize-handle') || 
+          e.target.classList.contains('widget-action')) return;
 
       // Focus the input so typing can begin immediately
       input.focus();
