@@ -160,27 +160,23 @@
     targetContainer.innerHTML = `
       <h3>${isEdit ? 'Edit Date Widget' : 'Date Widget'}</h3>
       <div class="input-group">
-        <label for="date-format">Date Format</label>
+        <label for="date-format">Date Format <a href="https://datetimecalculator.net/date-formatter" target="_blank" style="font-size: 0.8em; color: #7877c6; text-decoration: none; margin-left: 8px;">Format Options</a></label>
         <select id="date-format">
-          <option value="MM/DD/YYYY" ${currentFormat === 'MM/DD/YYYY' ? 'selected' : ''}>MM/DD/YYYY (12/25/2024)</option>
-          <option value="DD/MM/YYYY" ${currentFormat === 'DD/MM/YYYY' ? 'selected' : ''}>DD/MM/YYYY (25/12/2024)</option>
-          <option value="YYYY/MM/DD" ${currentFormat === 'YYYY/MM/DD' ? 'selected' : ''}>YYYY/MM/DD (2024/12/25)</option>
-          <option value="MM/DD/YY" ${currentFormat === 'MM/DD/YY' ? 'selected' : ''}>MM/DD/YY (12/25/24)</option>
-          <option value="DD/MM/YY" ${currentFormat === 'DD/MM/YY' ? 'selected' : ''}>DD/MM/YY (25/12/24)</option>
-          <option value="Month D, YYYY" ${currentFormat === 'Month D, YYYY' ? 'selected' : ''}>Month D, YYYY (December 25, 2024)</option>
-          <option value="D Month YYYY" ${currentFormat === 'D Month YYYY' ? 'selected' : ''}>D Month YYYY (25 December 2024)</option>
-          <option value="MMM D, YYYY" ${currentFormat === 'MMM D, YYYY' ? 'selected' : ''}>MMM D, YYYY (Dec 25, 2024)</option>
-          <option value="D MMM YYYY" ${currentFormat === 'D MMM YYYY' ? 'selected' : ''}>D MMM YYYY (25 Dec 2024)</option>
-          <option value="Month D" ${currentFormat === 'Month D' ? 'selected' : ''}>Month D (December 25)</option>
-          <option value="D Month" ${currentFormat === 'D Month' ? 'selected' : ''}>D Month (25 December)</option>
-          <option value="weekday-date" ${currentFormat === 'weekday-date' ? 'selected' : ''}>Weekday Date (Wed Dec 25)</option>
+          <option value="MM/DD/YYYY" ${currentFormat === 'MM/DD/YYYY' ? 'selected' : ''}>12/25/2024 (US)</option>
+          <option value="DD/MM/YYYY" ${currentFormat === 'DD/MM/YYYY' ? 'selected' : ''}>25/12/2024 (EU)</option>
+          <option value="YYYY-MM-DD" ${currentFormat === 'YYYY-MM-DD' ? 'selected' : ''}>2024-12-25 (ISO)</option>
+          <option value="Month D, YYYY" ${currentFormat === 'Month D, YYYY' ? 'selected' : ''}>December 25, 2024</option>
+          <option value="MMM D, YYYY" ${currentFormat === 'MMM D, YYYY' ? 'selected' : ''}>Dec 25, 2024</option>
           <option value="locale-default" ${currentFormat === 'locale-default' ? 'selected' : ''}>Locale Default</option>
-          <option value="locale-full" ${currentFormat === 'locale-full' ? 'selected' : ''}>Locale Full (Wednesday, December 25, 2024)</option>
-          <option value="locale-short" ${currentFormat === 'locale-short' ? 'selected' : ''}>Locale Short</option>
-          <option value="iso" ${currentFormat === 'iso' ? 'selected' : ''}>ISO Format (2024-12-25)</option>
+          <option value="custom" ${!['MM/DD/YYYY', 'DD/MM/YYYY', 'YYYY-MM-DD', 'Month D, YYYY', 'MMM D, YYYY', 'locale-default'].includes(currentFormat) ? 'selected' : ''}>Custom Format</option>
         </select>
       </div>
-      <div class="input-group" id="separator-group" style="display: ${['MM/DD/YYYY', 'DD/MM/YYYY', 'YYYY/MM/DD', 'MM/DD/YY', 'DD/MM/YY'].includes(currentFormat) ? 'block' : 'none'}">
+      <div class="input-group" id="custom-format-group" style="display: ${!['MM/DD/YYYY', 'DD/MM/YYYY', 'YYYY-MM-DD', 'Month D, YYYY', 'MMM D, YYYY', 'locale-default'].includes(currentFormat) ? 'block' : 'none'}">
+        <label for="custom-date-format">Custom Format</label>
+        <input type="text" id="custom-date-format" placeholder="Enter custom format" value="${!['MM/DD/YYYY', 'DD/MM/YYYY', 'YYYY-MM-DD', 'Month D, YYYY', 'MMM D, YYYY', 'locale-default'].includes(currentFormat) ? currentFormat : ''}">
+        <small>Use format codes like YYYY, MM, DD, Month, MMM, etc.</small>
+      </div>
+      <div class="input-group" id="separator-group" style="display: ${['MM/DD/YYYY', 'DD/MM/YYYY'].includes(currentFormat) ? 'block' : 'none'}">
         <label for="date-separator">Separator</label>
         <select id="date-separator">
           <option value="/" ${currentSeparator === '/' ? 'selected' : ''}>/</option>
@@ -210,12 +206,19 @@
       const separator = document.getElementById('date-separator').value;
       const locale = document.getElementById('date-locale').value.trim() || 'auto';
       const separatorGroup = document.getElementById('separator-group');
+      const customFormatGroup = document.getElementById('custom-format-group');
       
-      // Show/hide separator selection based on format
-      if (['MM/DD/YYYY', 'DD/MM/YYYY', 'YYYY/MM/DD', 'MM/DD/YY', 'DD/MM/YY'].includes(format)) {
+      // Show/hide separator and custom format groups
+      if (['MM/DD/YYYY', 'DD/MM/YYYY'].includes(format)) {
         separatorGroup.style.display = 'block';
       } else {
         separatorGroup.style.display = 'none';
+      }
+      
+      if (format === 'custom') {
+        customFormatGroup.style.display = 'block';
+      } else {
+        customFormatGroup.style.display = 'none';
       }
       
       // Generate preview
@@ -227,8 +230,8 @@
       let monthNames, monthNamesShort;
       
       try {
-        monthNames = now.toLocaleDateString(previewLocale, { month: 'long' }).split(' ')[0];
-        monthNamesShort = now.toLocaleDateString(previewLocale, { month: 'short' }).split(' ')[0];
+        monthNames = now.toLocaleDateString(previewLocale, { month: 'long' });
+        monthNamesShort = now.toLocaleDateString(previewLocale, { month: 'short' });
       } catch (e) {
         monthNames = now.toLocaleDateString('en-US', { month: 'long' });
         monthNamesShort = now.toLocaleDateString('en-US', { month: 'short' });
@@ -244,32 +247,14 @@
         case 'DD/MM/YYYY':
           preview = `${day.toString().padStart(2, '0')}${sep}${month.toString().padStart(2, '0')}${sep}${year}`;
           break;
-        case 'YYYY/MM/DD':
-          preview = `${year}${sep}${month.toString().padStart(2, '0')}${sep}${day.toString().padStart(2, '0')}`;
-          break;
-        case 'MM/DD/YY':
-          preview = `${month.toString().padStart(2, '0')}${sep}${day.toString().padStart(2, '0')}${sep}${year.toString().slice(-2)}`;
-          break;
-        case 'DD/MM/YY':
-          preview = `${day.toString().padStart(2, '0')}${sep}${month.toString().padStart(2, '0')}${sep}${year.toString().slice(-2)}`;
+        case 'YYYY-MM-DD':
+          preview = `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
           break;
         case 'Month D, YYYY':
           preview = `${monthNames} ${day}, ${year}`;
           break;
-        case 'D Month YYYY':
-          preview = `${day} ${monthNames} ${year}`;
-          break;
         case 'MMM D, YYYY':
           preview = `${monthNamesShort} ${day}, ${year}`;
-          break;
-        case 'D MMM YYYY':
-          preview = `${day} ${monthNamesShort} ${year}`;
-          break;
-        case 'Month D':
-          preview = `${monthNames} ${day}`;
-          break;
-        case 'D Month':
-          preview = `${day} ${monthNames}`;
           break;
         case 'locale-default':
           try {
@@ -278,29 +263,13 @@
             preview = now.toLocaleDateString();
           }
           break;
-        case 'locale-full':
-          try {
-            preview = now.toLocaleDateString(previewLocale, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-          } catch (e) {
-            preview = now.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+        case 'custom':
+          const customFormat = document.getElementById('custom-date-format').value;
+          if (customFormat) {
+            preview = `Custom: ${customFormat} (example output will vary)`;
+          } else {
+            preview = 'Enter custom format above';
           }
-          break;
-        case 'locale-short':
-          try {
-            preview = now.toLocaleDateString(previewLocale, { year: 'numeric', month: 'short', day: 'numeric' });
-          } catch (e) {
-            preview = now.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
-          }
-          break;
-        case 'weekday-date':
-          try {
-            preview = now.toLocaleDateString(previewLocale, { weekday: 'short', month: 'short', day: 'numeric' });
-          } catch (e) {
-            preview = now.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
-          }
-          break;
-        case 'iso':
-          preview = now.toISOString().split('T')[0];
           break;
         default:
           try {
@@ -317,43 +286,37 @@
     document.getElementById('date-format').addEventListener('change', updatePreview);
     document.getElementById('date-separator').addEventListener('change', updatePreview);
     document.getElementById('date-locale').addEventListener('input', updatePreview);
+    document.getElementById('custom-date-format').addEventListener('input', updatePreview);
     
     // Initial preview
     updatePreview();
 
     document.getElementById('date-save').addEventListener('click', () => {
+      const formatValue = document.getElementById('date-format').value;
+      const customFormat = document.getElementById('custom-date-format').value;
+      
       const options = {
-        format: document.getElementById('date-format').value,
+        format: formatValue === 'custom' ? customFormat : formatValue,
         separator: document.getElementById('date-separator').value,
         locale: document.getElementById('date-locale').value.trim() || 'auto'
       };
       if (isEdit) {
         settings.widgets[index].settings = options;
         saveAndRender();
+        // For edit mode, just save and stay in settings view
+        // Don't change the view - keep the settings visible
       } else {
         addDateWidget(options);
-      }
-      if (isEdit) {
-        widgetsPanel.classList.add('hidden');
-        widgetsButton.classList.remove('hidden');
-        document.getElementById('widget-tabs').classList.add('hidden');
-        document.getElementById('widget-list').classList.remove('hidden');
-      } else {
+        // For add mode, close the modal
         widgetsPanel.classList.add('hidden');
         widgetsButton.classList.remove('hidden');
       }
       buildWidgetList();
     });
     document.getElementById('date-cancel').addEventListener('click', () => {
-      if (isEdit) {
-        widgetsPanel.classList.add('hidden');
-        widgetsButton.classList.remove('hidden');
-        document.getElementById('widget-tabs').classList.add('hidden');
-        document.getElementById('widget-list').classList.remove('hidden');
-      } else {
-        widgetsPanel.classList.add('hidden');
-        widgetsButton.classList.remove('hidden');
-      }
+      // Both edit and add mode should close the modal completely
+      widgetsPanel.classList.add('hidden');
+      widgetsButton.classList.remove('hidden');
       buildWidgetList();
     });
   }
