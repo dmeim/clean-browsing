@@ -3,11 +3,7 @@
   'use strict';
 
   function renderClockWidget(widget, index) {
-    const container = document.createElement('div');
-    container.className = 'widget clock-widget';
-    container.style.gridColumn = `${(widget.x || 0) + 1} / span ${widget.w || 1}`;
-    container.style.gridRow = `${(widget.y || 0) + 1} / span ${widget.h || 1}`;
-    container.dataset.index = index;
+    const container = createWidgetContainer(widget, index, 'clock-widget');
 
     const span = document.createElement('span');
     container.appendChild(span);
@@ -15,56 +11,8 @@
     // Apply appearance styling (includes text size and all other appearance settings)
     applyWidgetAppearance(container, widget);
 
-    if (jiggleMode) {
-      const removeBtn = document.createElement('button');
-      removeBtn.className = 'widget-action widget-remove';
-      removeBtn.innerHTML = '&times;';
-      removeBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        settings.widgets.splice(index, 1);
-        saveAndRender();
-      });
-      const settingsBtn = document.createElement('button');
-      settingsBtn.className = 'widget-action widget-settings';
-      settingsBtn.innerHTML = '&#9881;';
-      settingsBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        openWidgetSettings(widget, index);
-      });
-      container.appendChild(removeBtn);
-      container.appendChild(settingsBtn);
-      
-      // Create resize handles
-      const resizeHandleSE = document.createElement('div');
-      resizeHandleSE.className = 'resize-handle resize-handle-se';
-      const resizeHandleS = document.createElement('div');
-      resizeHandleS.className = 'resize-handle resize-handle-s';
-      const resizeHandleE = document.createElement('div');
-      resizeHandleE.className = 'resize-handle resize-handle-e';
-      
-      container.appendChild(resizeHandleSE);
-      container.appendChild(resizeHandleS);
-      container.appendChild(resizeHandleE);
-      
-      container.draggable = true;
-      container.addEventListener('dragstart', handleDragStart);
-      container.addEventListener('dragover', handleDragOver);
-      container.addEventListener('drop', handleDrop);
-      
-      // Add resize event listeners
-      addResizeListeners(container, index, resizeHandleSE, resizeHandleS, resizeHandleE);
-      
-      // Prevent dragging when interacting with resize handles
-      [resizeHandleSE, resizeHandleS, resizeHandleE].forEach(handle => {
-        handle.addEventListener('mousedown', (e) => {
-          e.stopPropagation();
-          container.draggable = false;
-        });
-        handle.addEventListener('mouseup', () => {
-          container.draggable = true;
-        });
-      });
-    }
+    // Set up jiggle mode controls
+    setupJiggleModeControls(container, widget, index);
 
     widgetGrid.appendChild(container);
 
@@ -143,33 +91,14 @@
         <button id="clock-cancel">${isEdit ? 'Exit' : 'Cancel'}</button>
       </div>
     `;
-    document.getElementById('clock-save').addEventListener('click', () => {
-      const options = {
-        showSeconds: document.getElementById('clock-show-seconds').checked,
-        flashing: document.getElementById('clock-flashing').checked,
-        use24h: document.getElementById('clock-use-24h').checked,
-        daylightSavings: document.getElementById('clock-daylight').checked,
-        locale: document.getElementById('clock-locale').value.trim() || 'auto'
-      };
-      if (isEdit) {
-        settings.widgets[index].settings = options;
-        saveAndRender();
-        // For edit mode, just save and stay in settings view
-        // Don't change the view - keep the settings visible
-      } else {
-        addClockWidget(options);
-        // For add mode, close the modal
-        widgetsPanel.classList.add('hidden');
-        widgetsButton.classList.remove('hidden');
-      }
-      buildWidgetList();
-    });
-    document.getElementById('clock-cancel').addEventListener('click', () => {
-      // Both edit and add mode should close the modal completely
-      widgetsPanel.classList.add('hidden');
-      widgetsButton.classList.remove('hidden');
-      buildWidgetList();
-    });
+    // Use helper function for save/cancel logic
+    setupWidgetConfigButtons(isEdit, 'clock', index, addClockWidget, () => ({
+      showSeconds: document.getElementById('clock-show-seconds').checked,
+      flashing: document.getElementById('clock-flashing').checked,
+      use24h: document.getElementById('clock-use-24h').checked,
+      daylightSavings: document.getElementById('clock-daylight').checked,
+      locale: document.getElementById('clock-locale').value.trim() || 'auto'
+    }));
   }
 
   // Register the clock widget

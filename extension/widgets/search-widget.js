@@ -3,11 +3,10 @@
   'use strict';
 
   function renderSearchWidget(widget, index) {
-    const container = document.createElement('div');
-    container.className = 'widget search-widget';
+    const container = createWidgetContainer(widget, index, 'search-widget');
+    // Override default sizing for search widgets
     container.style.gridColumn = `${(widget.x || 0) + 1} / span ${widget.w || 6}`;
     container.style.gridRow = `${(widget.y || 0) + 1} / span ${widget.h || 2}`;
-    container.dataset.index = index;
 
     // Search engine logo
     const logo = document.createElement('img');
@@ -92,56 +91,8 @@
     });
     
 
-    if (jiggleMode) {
-      const removeBtn = document.createElement('button');
-      removeBtn.className = 'widget-action widget-remove';
-      removeBtn.innerHTML = '&times;';
-      removeBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        settings.widgets.splice(index, 1);
-        saveAndRender();
-      });
-      const settingsBtn = document.createElement('button');
-      settingsBtn.className = 'widget-action widget-settings';
-      settingsBtn.innerHTML = '&#9881;';
-      settingsBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        openWidgetSettings(widget, index);
-      });
-      container.appendChild(removeBtn);
-      container.appendChild(settingsBtn);
-      
-      // Create resize handles
-      const resizeHandleSE = document.createElement('div');
-      resizeHandleSE.className = 'resize-handle resize-handle-se';
-      const resizeHandleS = document.createElement('div');
-      resizeHandleS.className = 'resize-handle resize-handle-s';
-      const resizeHandleE = document.createElement('div');
-      resizeHandleE.className = 'resize-handle resize-handle-e';
-      
-      container.appendChild(resizeHandleSE);
-      container.appendChild(resizeHandleS);
-      container.appendChild(resizeHandleE);
-      
-      container.draggable = true;
-      container.addEventListener('dragstart', handleDragStart);
-      container.addEventListener('dragover', handleDragOver);
-      container.addEventListener('drop', handleDrop);
-      
-      // Add resize event listeners
-      addResizeListeners(container, index, resizeHandleSE, resizeHandleS, resizeHandleE);
-      
-      // Prevent dragging when interacting with resize handles
-      [resizeHandleSE, resizeHandleS, resizeHandleE].forEach(handle => {
-        handle.addEventListener('mousedown', (e) => {
-          e.stopPropagation();
-          container.draggable = false;
-        });
-        handle.addEventListener('mouseup', () => {
-          container.draggable = true;
-        });
-      });
-    }
+    // Set up jiggle mode controls
+    setupJiggleModeControls(container, widget, index);
 
     widgetGrid.appendChild(container);
 
@@ -316,7 +267,8 @@
       }
     });
     
-    document.getElementById('search-save').addEventListener('click', () => {
+    // Use helper function for save/cancel logic
+    setupWidgetConfigButtons(isEdit, 'search', index, addSearchWidget, () => {
       const options = {
         engine: document.getElementById('search-engine').value,
         customUrl: document.getElementById('search-custom-url').value.trim(),
@@ -327,28 +279,10 @@
       
       if (!options.customUrl) {
         alert('Please enter a search URL');
-        return;
+        return null; // Return null to prevent saving
       }
       
-      if (isEdit) {
-        settings.widgets[index].settings = options;
-        saveAndRender();
-        // For edit mode, just save and stay in settings view
-        // Don't change the view - keep the settings visible
-      } else {
-        addSearchWidget(options);
-        // For add mode, close the modal
-        widgetsPanel.classList.add('hidden');
-        widgetsButton.classList.remove('hidden');
-      }
-      buildWidgetList();
-    });
-    
-    document.getElementById('search-cancel').addEventListener('click', () => {
-      // Both edit and add mode should close the modal completely
-      widgetsPanel.classList.add('hidden');
-      widgetsButton.classList.remove('hidden');
-      buildWidgetList();
+      return options;
     });
   }
 

@@ -255,6 +255,100 @@ function renderWidgets() {
   });
 }
 
+// Helper function to create basic widget container
+function createWidgetContainer(widget, index, className) {
+  const container = document.createElement('div');
+  container.className = `widget ${className}`;
+  container.style.gridColumn = `${(widget.x || 0) + 1} / span ${widget.w || 4}`;
+  container.style.gridRow = `${(widget.y || 0) + 1} / span ${widget.h || 3}`;
+  container.dataset.index = index;
+  return container;
+}
+
+// Helper function to set up jiggle mode controls
+function setupJiggleModeControls(container, widget, index) {
+  if (!jiggleMode) return;
+  
+  // Remove button
+  const removeBtn = document.createElement('button');
+  removeBtn.className = 'widget-action widget-remove';
+  removeBtn.innerHTML = '&times;';
+  removeBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    settings.widgets.splice(index, 1);
+    saveAndRender();
+  });
+  
+  // Settings button
+  const settingsBtn = document.createElement('button');
+  settingsBtn.className = 'widget-action widget-settings';
+  settingsBtn.innerHTML = '&#9881;';
+  settingsBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    openWidgetSettings(widget, index);
+  });
+  
+  container.appendChild(removeBtn);
+  container.appendChild(settingsBtn);
+  
+  // Create resize handles
+  const resizeHandleSE = document.createElement('div');
+  resizeHandleSE.className = 'resize-handle resize-handle-se';
+  const resizeHandleS = document.createElement('div');
+  resizeHandleS.className = 'resize-handle resize-handle-s';
+  const resizeHandleE = document.createElement('div');
+  resizeHandleE.className = 'resize-handle resize-handle-e';
+  
+  container.appendChild(resizeHandleSE);
+  container.appendChild(resizeHandleS);
+  container.appendChild(resizeHandleE);
+  
+  // Set up drag and drop
+  container.draggable = true;
+  container.addEventListener('dragstart', handleDragStart);
+  container.addEventListener('dragover', handleDragOver);
+  container.addEventListener('drop', handleDrop);
+  
+  // Add resize event listeners
+  addResizeListeners(container, index, resizeHandleSE, resizeHandleS, resizeHandleE);
+  
+  // Prevent dragging when interacting with resize handles
+  [resizeHandleSE, resizeHandleS, resizeHandleE].forEach(handle => {
+    handle.addEventListener('mousedown', (e) => {
+      e.stopPropagation();
+      container.draggable = false;
+    });
+    handle.addEventListener('mouseup', () => {
+      container.draggable = true;
+    });
+  });
+}
+
+// Helper function for common widget config save/cancel logic
+function setupWidgetConfigButtons(isEdit, widgetType, index, addWidgetFunction, getOptionsFunction) {
+  document.getElementById(`${widgetType}-save`).addEventListener('click', () => {
+    const options = getOptionsFunction();
+    // Allow validation functions to return null to prevent saving
+    if (options === null) return;
+    
+    if (isEdit) {
+      settings.widgets[index].settings = options;
+      saveAndRender();
+    } else {
+      addWidgetFunction(options);
+      widgetsPanel.classList.add('hidden');
+      widgetsButton.classList.remove('hidden');
+    }
+    buildWidgetList();
+  });
+  
+  document.getElementById(`${widgetType}-cancel`).addEventListener('click', () => {
+    widgetsPanel.classList.add('hidden');
+    widgetsButton.classList.remove('hidden');
+    buildWidgetList();
+  });
+}
+
 function handleDragStart(e) {
   dragIndex = +e.currentTarget.dataset.index;
   e.dataTransfer.effectAllowed = 'move';
