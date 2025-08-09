@@ -34,18 +34,24 @@
 
 ## Planned Core Widget Types ⭕
 
-### 2. Calculator Widget ⭕
-**Status**: Not Started  
-**Description**: Basic and scientific calculator functionality
+### 2. Calculator Widget ✅
+**Status**: Completed  
+**Description**: Basic calculator functionality with customizable appearance
 **Features**:
 - Basic arithmetic operations (+, -, ×, ÷)
+- Keyboard input support
+- Clear and backspace functionality
+- Decimal point support
+- Persistent display state
+- Customizable button styling (round vs rounded rectangle)
+- Color-coded button types (operators, equals, clear)
+**Settings**: Keyboard support, button styling, color options
+**Future Enhancements**: 
+- Horizontal layout mode (display on top, buttons in 6x3 grid)
 - Scientific functions (sin, cos, tan, log, etc.)
 - Memory functions (M+, M-, MC, MR)
-- Keyboard input support
 - Expression evaluation
 - History/previous calculations
-**Settings**: Basic vs Scientific mode, decimal places, keyboard shortcuts
-**Dependencies**: Math expression parser
 
 ### 3. Notes Widget ⭕
 **Status**: Not Started

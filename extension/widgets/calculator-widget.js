@@ -17,10 +17,7 @@ function renderCalculatorWidget(widget, index) {
   const buttonStyle = widget.settings.roundButtons !== false ? ' round-buttons' : ' rounded-buttons';
   container.classList.add(buttonStyle.trim());
   
-  // Layout class
-  if (widget.settings.horizontalLayout) {
-    container.classList.add('horizontal-layout');
-  }
+
   
   container.innerHTML = `
     <div class="calc-display">
@@ -191,9 +188,7 @@ function openCalculatorConfig(widget = null, index = null) {
     <div class="input-group checkbox-group">
       <label><input type="checkbox" id="calc-keyboard" ${settings.keyboardSupport ? 'checked' : ''}> Enable keyboard support</label>
     </div>
-    <div class="input-group checkbox-group">
-      <label><input type="checkbox" id="calc-horizontal-layout" ${settings.horizontalLayout ? 'checked' : ''}> Horizontal layout (display on top, buttons in 6x3 grid)</label>
-    </div>
+
     <div class="input-group checkbox-group">
       <label><input type="checkbox" id="calc-round-buttons" ${settings.roundButtons !== false ? 'checked' : ''}> Round buttons (unchecked = rounded rectangle)</label>
     </div>
@@ -217,7 +212,7 @@ function openCalculatorConfig(widget = null, index = null) {
   setupWidgetConfigButtons(isEdit, 'calculator', index, addCalculatorWidget, () => {
     return {
       keyboardSupport: document.getElementById('calc-keyboard').checked,
-      horizontalLayout: document.getElementById('calc-horizontal-layout').checked,
+
       roundButtons: document.getElementById('calc-round-buttons').checked,
       colorOperators: document.getElementById('calc-color-operators').checked,
       colorEquals: document.getElementById('calc-color-equals').checked,
