@@ -154,30 +154,20 @@
       if (isEdit) {
         settings.widgets[index].settings = options;
         saveAndRender();
+        // For edit mode, just save and stay in settings view
+        // Don't change the view - keep the settings visible
       } else {
         addClockWidget(options);
-      }
-      if (isEdit) {
-        widgetsPanel.classList.add('hidden');
-        widgetsButton.classList.remove('hidden');
-        document.getElementById('widget-tabs').classList.add('hidden');
-        document.getElementById('widget-list').classList.remove('hidden');
-      } else {
+        // For add mode, close the modal
         widgetsPanel.classList.add('hidden');
         widgetsButton.classList.remove('hidden');
       }
       buildWidgetList();
     });
     document.getElementById('clock-cancel').addEventListener('click', () => {
-      if (isEdit) {
-        widgetsPanel.classList.add('hidden');
-        widgetsButton.classList.remove('hidden');
-        document.getElementById('widget-tabs').classList.add('hidden');
-        document.getElementById('widget-list').classList.remove('hidden');
-      } else {
-        widgetsPanel.classList.add('hidden');
-        widgetsButton.classList.remove('hidden');
-      }
+      // Both edit and add mode should close the modal completely
+      widgetsPanel.classList.add('hidden');
+      widgetsButton.classList.remove('hidden');
       buildWidgetList();
     });
   }

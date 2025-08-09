@@ -109,7 +109,7 @@ body::before {
   backdrop-filter: blur(20px) saturate(1.2);
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 16px;
-  padding: 1.5rem;
+  padding: clamp(0.5rem, 2cqw, 1.5rem);
   position: relative;
   overflow: hidden;
   transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
@@ -121,6 +121,14 @@ body::before {
   container-type: size;
   box-sizing: border-box;
   z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  hyphens: auto;
+  min-width: 0;
+  min-height: 0;
 }
 
 .widget::before {
@@ -157,21 +165,50 @@ body::before {
   text-shadow: 
     0 2px 8px rgba(0, 0, 0, 0.8),
     0 1px 0 rgba(255, 255, 255, 0.3);
-  transition: all 0.3s ease;
-  position: relative;
-  z-index: 1;
-  backdrop-filter: none;
-  filter: none;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 100%;
-  width: 100%;
-  box-sizing: border-box;
-  overflow: hidden;
-  font-size: clamp(2rem, 15cqw, 8rem);
+  font-size: min(12cqw, 8cqh);
   text-align: center;
+  line-height: 1.1;
+  white-space: normal;
   word-break: break-word;
+  overflow-wrap: break-word;
+  width: 100%;
+  max-width: 100%;
+}
+
+/* Date widget responsive text styling */
+.date-widget {
+  font-weight: 200;
+  letter-spacing: -0.02em;
+  color: #ffffff;
+  text-shadow: 
+    0 2px 8px rgba(0, 0, 0, 0.8),
+    0 1px 0 rgba(255, 255, 255, 0.3);
+  font-size: min(10cqw, 6cqh);
+  text-align: center;
+  line-height: 1.2;
+  white-space: normal;
+  word-break: break-word;
+  overflow-wrap: break-word;
+  width: 100%;
+  max-width: 100%;
+}
+
+/* Adjust for very small widgets - reduce font size slightly */
+@container (max-width: 150px) {
+  .clock-widget {
+    font-size: min(10cqw, 6cqh);
+  }
+  .date-widget {
+    font-size: min(8cqw, 5cqh);
+  }
+}
+
+/* Adjust for very short widgets */
+@container (max-height: 80px) {
+  .clock-widget, .date-widget {
+    font-size: min(15cqw, 4cqh);
+    line-height: 1;
+  }
 }
 
 #action-buttons {
@@ -318,16 +355,42 @@ body::before {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: clamp(0.8rem, 3cqw, 2rem);
-  gap: 12px;
+  gap: clamp(6px, 2cqw, 12px);
+  width: 100%;
+  height: 100%;
 }
 
 .search-logo {
   width: auto;
-  height: 44px;
+  height: clamp(24px, 8cqw, 44px);
   flex-shrink: 0;
   object-fit: contain;
   display: block;
+}
+
+/* Responsive layout for small widgets */
+@container (max-width: 300px) {
+  .search-widget {
+    flex-direction: column;
+    gap: 8px;
+    padding: 0.5rem;
+  }
+  
+  .search-logo {
+    height: clamp(20px, 6cqw, 32px);
+  }
+}
+
+@container (max-height: 120px) {
+  .search-widget {
+    flex-direction: row;
+    gap: 4px;
+    padding: 0.3rem;
+  }
+  
+  .search-logo {
+    height: clamp(16px, 4cqw, 24px);
+  }
 }
 
 .search-input-container {
@@ -356,7 +419,7 @@ body::before {
   outline: none;
   padding: clamp(10px, 3cqw, 14px) 12px clamp(10px, 3cqw, 14px) 0;
   color: #fff;
-  font-size: clamp(16px, 5cqw, 20px);
+  font-size: min(5cqw, 4cqh);
   font-family: inherit;
   min-width: 0;
   border-radius: 0 !important;
@@ -383,7 +446,7 @@ body::before {
   padding: 12px 0;
   color: rgba(255, 255, 255, 0.8);
   cursor: pointer;
-  font-size: 18px;
+  font-size: min(4cqw, 3cqh);
   transition: color 0.3s ease !important;
   flex-shrink: 0;
   backdrop-filter: none !important;
@@ -527,6 +590,10 @@ body::before {
   transform: translate(-50%, -50%) scale(1);
 }
 
+#settings-modal.modal-positioned {
+  transform: none;
+}
+
 #settings-modal::before {
   content: '';
   position: absolute;
@@ -576,6 +643,10 @@ body::before {
 #widgets-panel:not(.hidden) {
   opacity: 1;
   transform: translate(-50%, -50%) scale(1);
+}
+
+#widgets-panel.modal-positioned {
+  transform: none;
 }
 
 #widgets-panel::before {

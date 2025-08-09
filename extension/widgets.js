@@ -132,6 +132,72 @@ function getWidgetAppearance(widget) {
   };
 }
 
+function calculateOptimalFontSize(textElement, container, appearance) {
+  // Get container dimensions accounting for padding
+  const containerRect = container.getBoundingClientRect();
+  const padding = appearance.padding || 0;
+  const availableWidth = containerRect.width - (padding * 2);
+  const availableHeight = containerRect.height - (padding * 2);
+  
+  // If container hasn't been laid out yet, return a default size
+  if (availableWidth <= 0 || availableHeight <= 0) {
+    return 24;
+  }
+  
+  // Calculate aspect ratio and container size to adjust scaling behavior
+  const aspectRatio = availableWidth / availableHeight;
+  const containerArea = availableWidth * availableHeight;
+  
+  // Scale aggressiveness based on container size - larger containers get more aggressive scaling
+  const sizeMultiplier = Math.min(2.0, Math.max(1.0, containerArea / 20000)); // Scale from 1.0 to 2.0
+  
+  let fontSize;
+  if (aspectRatio > 2) {
+    // Wide widget: scale much more aggressively for larger containers
+    const heightFactor = 0.6 * sizeMultiplier;
+    const widthFactor = 0.08 * sizeMultiplier;
+    fontSize = Math.min(availableHeight * heightFactor, availableWidth * widthFactor);
+  } else if (aspectRatio < 0.8) {
+    // Tall widget: prioritize height scaling with size-based scaling
+    const heightFactor = 0.3 * sizeMultiplier;
+    const widthFactor = 0.25 * sizeMultiplier;
+    fontSize = Math.min(availableHeight * heightFactor, availableWidth * widthFactor);
+  } else {
+    // Square-ish widget: balanced approach with more aggressive scaling for larger widgets
+    const heightFactor = 0.4 * sizeMultiplier;
+    const widthFactor = 0.15 * sizeMultiplier;
+    fontSize = Math.min(availableHeight * heightFactor, availableWidth * widthFactor);
+  }
+  
+  // Apply user's font size preference
+  fontSize *= (appearance.fontSize / 100);
+  
+  // Clamp to reasonable bounds, with higher max for larger containers
+  const maxFontSize = Math.min(200, 120 + (containerArea / 1000));
+  fontSize = Math.max(12, Math.min(fontSize, maxFontSize));
+  
+  return fontSize;
+}
+
+function applyOptimalFontSize(textElement, container, appearance) {
+  const optimalSize = calculateOptimalFontSize(textElement, container, appearance);
+  textElement.style.setProperty('font-size', `${optimalSize}px`, 'important');
+}
+
+function setupDynamicTextSizing(textElement, container, widget) {
+  // Set up ResizeObserver to recalculate font size when widget is resized
+  if (window.ResizeObserver) {
+    const resizeObserver = new ResizeObserver(() => {
+      const appearance = getWidgetAppearance(widget);
+      applyOptimalFontSize(textElement, container, appearance);
+    });
+    resizeObserver.observe(container);
+    
+    // Store observer reference to clean up later if needed
+    container._resizeObserver = resizeObserver;
+  }
+}
+
 function applyWidgetAppearance(container, widget) {
   const appearance = getWidgetAppearance(widget);
   
@@ -143,24 +209,7 @@ function applyWidgetAppearance(container, widget) {
     return `rgba(${r}, ${g}, ${b}, ${opacity / 100})`;
   };
   
-  // Apply text styling
-  const textElement = container.querySelector('span') || container.querySelector('.search-input');
-  if (textElement) {
-    if (textElement.classList.contains('search-input')) {
-      // For search inputs, use a different font size calculation
-      textElement.style.fontSize = `calc(clamp(16px, 5cqw, 20px) * ${appearance.fontSize / 100})`;
-    } else {
-      // For clock widgets and other text elements
-      textElement.style.fontSize = `calc(clamp(2rem, 15cqw, 8rem) * ${appearance.fontSize / 100})`;
-    }
-    textElement.style.fontWeight = appearance.fontWeight;
-    textElement.style.fontStyle = appearance.italic ? 'italic' : 'normal';
-    textElement.style.textDecoration = appearance.underline ? 'underline' : 'none';
-    textElement.style.color = hexToRgba(appearance.textColor, appearance.textOpacity);
-    textElement.style.textAlign = appearance.textAlign;
-  }
-  
-  // Apply container styling
+  // Apply container styling first
   container.style.background = hexToRgba(appearance.backgroundColor, appearance.backgroundOpacity);
   container.style.backdropFilter = `blur(${appearance.blur}px)`;
   container.style.borderRadius = `${appearance.borderRadius}px`;
@@ -169,12 +218,42 @@ function applyWidgetAppearance(container, widget) {
   container.style.display = 'flex';
   container.style.alignItems = appearance.verticalAlign;
   container.style.justifyContent = appearance.textAlign;
+  
+  // Apply text styling
+  const textElement = container.querySelector('span') || container.querySelector('.search-input');
+  if (textElement) {
+    if (textElement.classList.contains('search-input')) {
+      // For search inputs, use a different font size calculation
+      textElement.style.fontSize = `calc(clamp(16px, 5cqw, 20px) * ${appearance.fontSize / 100})`;
+    } else {
+      // For clock widgets and other text elements, calculate optimal size after layout
+      // Use requestAnimationFrame to ensure container is properly laid out
+      requestAnimationFrame(() => {
+        applyOptimalFontSize(textElement, container, appearance);
+        setupDynamicTextSizing(textElement, container, widget);
+      });
+    }
+    textElement.style.fontWeight = appearance.fontWeight;
+    textElement.style.fontStyle = appearance.italic ? 'italic' : 'normal';
+    textElement.style.textDecoration = appearance.underline ? 'underline' : 'none';
+    textElement.style.color = hexToRgba(appearance.textColor, appearance.textOpacity);
+    textElement.style.textAlign = appearance.textAlign;
+  }
 }
 
 function renderWidgets() {
   // Clear existing intervals to prevent memory leaks
   activeIntervals.forEach(clearInterval);
   activeIntervals = [];
+  
+  // Clean up existing ResizeObserver instances
+  const existingWidgets = widgetGrid.querySelectorAll('.widget');
+  existingWidgets.forEach(widget => {
+    if (widget._resizeObserver) {
+      widget._resizeObserver.disconnect();
+      widget._resizeObserver = null;
+    }
+  });
   
   widgetGrid.innerHTML = '';
   

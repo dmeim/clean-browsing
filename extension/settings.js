@@ -28,6 +28,7 @@ tabButtons.forEach(btn => {
 const defaultSettings = {
   background: { type: 'color', value: '#222222' },
   lastColor: '#222222',
+  resetModalPosition: true,
   globalWidgetAppearance: {
     fontSize: 100,
     fontWeight: 400,
@@ -164,6 +165,17 @@ removeImageBtn.addEventListener('click', () => {
   saveSettings(settings);
   imagePicker.value = '';
   updateBackgroundControls();
+});
+
+// Modal behavior controls
+const resetModalPositionCheckbox = document.getElementById('reset-modal-position');
+
+// Initialize checkbox state
+resetModalPositionCheckbox.checked = settings.resetModalPosition !== false;
+
+resetModalPositionCheckbox.addEventListener('change', (e) => {
+  settings.resetModalPosition = e.target.checked;
+  saveSettings(settings);
 });
 
 // Grid controls removed - using fixed responsive grid
@@ -402,6 +414,8 @@ class ModalDragResize {
     this.header = modal.querySelector('.modal-header');
     this.isDragging = false;
     this.isResizing = false;
+    this.hasBeenCustomized = false;
+    this.wasHidden = true;
     this.dragOffset = { x: 0, y: 0 };
     this.resizeStart = { x: 0, y: 0, width: 0, height: 0 };
     
@@ -447,6 +461,7 @@ class ModalDragResize {
     }
     
     this.isDragging = true;
+    this.hasBeenCustomized = true;
     this.modal.classList.add('modal-dragging');
     
     const rect = this.modal.getBoundingClientRect();
@@ -460,6 +475,7 @@ class ModalDragResize {
   
   startResize(e) {
     this.isResizing = true;
+    this.hasBeenCustomized = true;
     this.modal.classList.add('modal-resizing');
     
     const rect = this.modal.getBoundingClientRect();
@@ -488,7 +504,7 @@ class ModalDragResize {
       
       this.modal.style.left = clampedX + 'px';
       this.modal.style.top = clampedY + 'px';
-      this.modal.style.transform = 'none';
+      this.modal.classList.add('modal-positioned');
     }
     
     if (this.isResizing) {
@@ -504,6 +520,7 @@ class ModalDragResize {
       
       this.modal.style.width = Math.min(newWidth, maxWidth) + 'px';
       this.modal.style.height = Math.min(newHeight, maxHeight) + 'px';
+      this.modal.classList.add('modal-positioned');
       
       // Update content layout
       this.updateContentLayout();
@@ -572,11 +589,17 @@ class ModalDragResize {
     mutations.forEach(mutation => {
       if (mutation.attributeName === 'class') {
         const isHidden = this.modal.classList.contains('hidden');
-        if (!isHidden) {
-          // Reset position when modal becomes visible
-          this.resetPosition();
+        const wasJustShown = this.wasHidden && !isHidden;
+        
+        if (wasJustShown) {
+          // Check if we should reset position based on user setting
+          if (settings.resetModalPosition) {
+            this.resetPosition();
+          }
           this.updateContentLayout();
         }
+        
+        this.wasHidden = isHidden;
       }
     });
   }
@@ -584,9 +607,10 @@ class ModalDragResize {
   resetPosition() {
     this.modal.style.left = '';
     this.modal.style.top = '';
-    this.modal.style.transform = '';
     this.modal.style.width = '';
     this.modal.style.height = '';
+    this.modal.classList.remove('modal-positioned');
+    this.hasBeenCustomized = false;
   }
   
   destroy() {
