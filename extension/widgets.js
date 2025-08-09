@@ -229,6 +229,7 @@ function applyWidgetAppearance(container, widget) {
     textElement.style.color = hexToRgba(appearance.textColor, appearance.textOpacity);
     textElement.style.textAlign = appearance.textAlign;
   }
+  
 }
 
 function renderWidgets() {
@@ -890,3 +891,5 @@ function setupWidgetAppearanceControls(widget, index) {
     setupWidgetAppearanceTab(widget, index);
   });
 }
+
+

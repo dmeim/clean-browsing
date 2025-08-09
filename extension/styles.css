@@ -1337,3 +1337,230 @@ select option {
   background: rgba(16, 16, 30, 0.95);
   color: #fff;
 }
+
+/* Calculator Widget - Clean Start */
+.calculator-widget {
+  /* Fill entire widget card, no extra padding since widget has padding */
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  box-sizing: border-box;
+  
+  /* Two row layout: display at top, buttons below */
+  display: grid !important;
+  grid-template-rows: auto 1fr;
+  gap: clamp(4px, 1cqw, 8px);
+  
+  /* Override the default widget center alignment */
+  align-items: unset;
+  justify-content: unset;
+}
+
+/* Display area - AT THE TOP, aligned with button grid */
+.calc-display {
+  /* Perfect alignment with button grid using container queries */
+  width: 100%;
+  height: clamp(40px, 8cqh, 80px);
+  margin: 0;
+  
+  /* Dark background */
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: clamp(4px, 1.5cqw, 8px);
+  
+  /* Right-align the text */
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 0 clamp(8px, 2cqw, 16px);
+  box-sizing: border-box;
+}
+
+/* Display text - right aligned */
+.calc-text {
+  font-size: clamp(1rem, 4cqw, 2rem);
+  font-weight: 300;
+  color: inherit;
+  text-align: right;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+/* Button area - fills remaining space */
+.calc-buttons {
+  /* Fill remaining space, no extra margin since calculator-widget has padding */
+  width: 100%;
+  height: 100%;
+  
+  /* 4x5 grid of buttons */
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  grid-template-rows: repeat(5, 1fr);
+  gap: 4px;
+}
+
+/* Individual buttons */
+.calc-btn {
+  /* Maintain aspect ratio instead of stretching */
+  width: 100%;
+  min-height: 0;
+  min-width: 0;
+  aspect-ratio: 1;
+  max-height: 100%;
+  
+  /* Basic styling */
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  color: inherit;
+  font-size: clamp(1rem, 2.5vw, 1.8rem) !important;
+  font-weight: 500 !important;
+  cursor: pointer;
+  
+  /* Center text */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  
+  /* No text selection */
+  user-select: none;
+  -webkit-user-select: none;
+  
+  /* Smooth interactions */
+  transition: all 0.15s ease;
+}
+
+/* Button interactions */
+.calc-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.calc-btn:active {
+  background: rgba(255, 255, 255, 0.3);
+  transform: scale(0.95);
+}
+
+/* Button shapes */
+.round-buttons .calc-btn {
+  border-radius: 50%;
+}
+
+.rounded-buttons .calc-btn {
+  border-radius: 8px;
+}
+
+/* Button positions - explicit grid placement */
+.calc-clear { grid-area: 1 / 1; }
+.calc-backspace { grid-area: 1 / 2; }
+.calc-btn[data-key="/"] { grid-area: 1 / 3; }
+.calc-btn[data-key="*"] { grid-area: 1 / 4; }
+
+.calc-btn[data-key="7"] { grid-area: 2 / 1; }
+.calc-btn[data-key="8"] { grid-area: 2 / 2; }
+.calc-btn[data-key="9"] { grid-area: 2 / 3; }
+.calc-btn[data-key="-"] { grid-area: 2 / 4; }
+
+.calc-btn[data-key="4"] { grid-area: 3 / 1; }
+.calc-btn[data-key="5"] { grid-area: 3 / 2; }
+.calc-btn[data-key="6"] { grid-area: 3 / 3; }
+.calc-btn[data-key="+"] { grid-area: 3 / 4; }
+
+.calc-btn[data-key="1"] { grid-area: 4 / 1; }
+.calc-btn[data-key="2"] { grid-area: 4 / 2; }
+.calc-btn[data-key="3"] { grid-area: 4 / 3; }
+.calc-equals { 
+  grid-area: 4 / 4 / 6 / 5; /* Spans 2 rows */
+  aspect-ratio: auto; /* Override aspect ratio for tall button */
+  height: 100%;
+}
+
+.calc-zero { 
+  grid-area: 5 / 1 / 6 / 3; /* Spans 2 columns */
+  justify-content: flex-start;
+  padding-left: 20px;
+  aspect-ratio: auto; /* Override aspect ratio for wide button */
+  height: 100%;
+}
+.calc-btn[data-key="."] { grid-area: 5 / 3; }
+
+/* Zero button shapes */
+.round-buttons .calc-zero {
+  border-radius: 40px;
+}
+
+.rounded-buttons .calc-zero {
+  border-radius: 8px;
+}
+
+/* Horizontal layout - display still at top, buttons in 6x3 grid */
+.horizontal-layout .calc-display {
+  /* Same responsive alignment as normal layout */
+  width: 100%;
+  margin: 0;
+}
+
+.horizontal-layout .calc-buttons {
+  grid-template-columns: repeat(6, 1fr);
+  grid-template-rows: repeat(3, 1fr);
+}
+
+/* Horizontal layout button positions */
+.horizontal-layout .calc-clear { grid-area: 1 / 1; }
+.horizontal-layout .calc-backspace { grid-area: 1 / 2; }
+.horizontal-layout .calc-btn[data-key="/"] { grid-area: 1 / 3; }
+.horizontal-layout .calc-btn[data-key="*"] { grid-area: 1 / 4; }
+.horizontal-layout .calc-btn[data-key="-"] { grid-area: 1 / 5; }
+.horizontal-layout .calc-btn[data-key="+"] { grid-area: 1 / 6; }
+
+.horizontal-layout .calc-btn[data-key="7"] { grid-area: 2 / 1; }
+.horizontal-layout .calc-btn[data-key="8"] { grid-area: 2 / 2; }
+.horizontal-layout .calc-btn[data-key="9"] { grid-area: 2 / 3; }
+.horizontal-layout .calc-btn[data-key="4"] { grid-area: 2 / 4; }
+.horizontal-layout .calc-btn[data-key="5"] { grid-area: 2 / 5; }
+.horizontal-layout .calc-btn[data-key="6"] { grid-area: 2 / 6; }
+
+.horizontal-layout .calc-btn[data-key="1"] { grid-area: 3 / 1; }
+.horizontal-layout .calc-btn[data-key="2"] { grid-area: 3 / 2; }
+.horizontal-layout .calc-btn[data-key="3"] { grid-area: 3 / 3; }
+.horizontal-layout .calc-zero { 
+  grid-area: 3 / 4;
+  justify-content: center;
+  padding-left: 0;
+  aspect-ratio: 1; /* Back to square in horizontal layout */
+  height: auto;
+}
+.horizontal-layout .calc-btn[data-key="."] { grid-area: 3 / 5; }
+.horizontal-layout .calc-equals { 
+  grid-area: 3 / 6; 
+  aspect-ratio: 1; /* Back to square in horizontal layout */
+  height: auto;
+}
+
+/* Button colors - optional */
+.calc-operator.colored {
+  background: rgba(120, 119, 198, 0.3);
+}
+
+.calc-operator.colored:hover {
+  background: rgba(120, 119, 198, 0.4);
+}
+
+.calc-equals.colored {
+  background: rgba(255, 119, 198, 0.3);
+}
+
+.calc-equals.colored:hover {
+  background: rgba(255, 119, 198, 0.4);
+}
+
+.calc-clear.colored,
+.calc-backspace.colored {
+  background: rgba(255, 99, 99, 0.3);
+}
+
+.calc-clear.colored:hover,
+.calc-backspace.colored:hover {
+  background: rgba(255, 99, 99, 0.4);
+}
+
+
