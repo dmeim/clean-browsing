@@ -11,7 +11,6 @@ An open-source, next-generation new tab page for Chrome that aims to rival leadi
 - **Custom backgrounds** – set a single image, cycle through images from albums or provide URLs for dynamic backgrounds.
 - **Purely local** – no subscriptions, no backend infrastructure. The extension reads and writes JSON configuration on the user's machine.
 - **Extensible defaults** – ships with a set of default widgets in JSON that can be tweaked or replaced entirely.
-- **Search widget autofocus** – optionally focus the search box as soon as a new tab opens so you can start typing right away.
 
 ## Philosophy
 The project embraces privacy and flexibility. All configuration is kept locally, and the widget system allows power users to exchange JSON configurations to extend or remix the default setup. If a widget needs external data (like weather or news), it fetches it directly from the web without passing through any server controlled by this project.
