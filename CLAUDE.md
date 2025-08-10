@@ -8,31 +8,20 @@ This is a Chrome extension that provides a customizable new tab page with a tile
 
 ## Architecture
 
-The codebase follows a modular architecture with clear separation of concerns:
+The codebase follows a modular architecture with clear separation of concerns. For detailed architectural information, see the comprehensive [Documentation](docs/README.md).
 
-- **`newtab.html`** - Main entry point that defines the DOM structure for the new tab page
-- **`settings.js`** - Handles all settings management, background customization, grid configuration, and import/export functionality. Defines the global `settings` object and persistence layer
-- **`widgets.js`** - Manages widget lifecycle, rendering, positioning, and user interactions. Depends on `settings.js` being loaded first
-- **`styles.css`** - Complete styling including glassmorphism effects, animations, and responsive grid system
+**Core Files:**
+- **`newtab.html`** - Main entry point that defines the DOM structure
+- **`settings.js`** - Global settings management and persistence layer
+- **`widgets.js`** - Core widget system and grid management
+- **`styles.css`** - Complete styling with glassmorphism design system
+- **`widgets/`** - Individual widget implementations (separate files)
 
-## Key Components
-
-### Settings System
-- All configuration stored in localStorage as JSON
-- Default settings defined in `settings.js` with clock widget and 4x4 grid
-- Settings include background (color/image), grid dimensions, and widget configurations
-- Import/export supports both text and file formats
-
-### Widget System
-- Widgets are JSON objects with position (x, y), size (w, h), type, and settings
-- Currently supports clock widgets with customizable locale, time format, and display options
-- Widget editing requires "jiggle mode" which enables drag-drop positioning and resize handles
-- New widgets added through the widgets panel modal
-
-### Grid Layout
-- CSS Grid-based system with dynamic column/row counts
-- Grid dimensions controlled by `--cols` and `--rows` CSS custom properties
-- Widgets positioned using `grid-column` and `grid-row` spanning
+**Documentation:**
+- **[`docs/STYLING_GUIDE.md`](docs/STYLING_GUIDE.md)** - Complete design system and CSS patterns
+- **[`docs/WIDGET_DEVELOPMENT.md`](docs/WIDGET_DEVELOPMENT.md)** - Widget creation guide and templates
+- **[`docs/COMPONENT_RULES.md`](docs/COMPONENT_RULES.md)** - Architecture patterns and conventions
+- **[`docs/UI_BEHAVIOR.md`](docs/UI_BEHAVIOR.md)** - Interaction patterns and UX standards
 
 ## Development Workflow
 
@@ -49,23 +38,11 @@ Scripts must be loaded in this order in `newtab.html`:
 
 ### Common Development Tasks
 
-**Adding New Widget Types:**
-- Extend the `renderWidgets()` function in `widgets.js`
-- Add corresponding render function (like `renderClockWidget`)
-- Update `buildWidgetList()` and add configuration function
-- Add default settings to `defaultSettings.widgets` in `settings.js`
-
-**Modal/Panel Management:**
-- Panels use `.hidden` class for visibility
-- Settings panel slides in from right
-- Widgets panel appears as centered modal
-- Always pair panel visibility with corresponding button visibility
-
-### Critical Dependencies
-
-- The `widgetGrid` variable must be defined in `widgets.js` for grid operations
-- Settings panel tabs require `data-tab` attributes matching `*-tab` element IDs
-- Widget drag-and-drop requires `dataset.index` attributes on widget containers
+For detailed development workflows and patterns, refer to:
+- **Widget Development**: See [`docs/WIDGET_DEVELOPMENT.md`](docs/WIDGET_DEVELOPMENT.md)
+- **Styling Patterns**: See [`docs/STYLING_GUIDE.md`](docs/STYLING_GUIDE.md) 
+- **Architecture Rules**: See [`docs/COMPONENT_RULES.md`](docs/COMPONENT_RULES.md)
+- **UI Behaviors**: See [`docs/UI_BEHAVIOR.md`](docs/UI_BEHAVIOR.md)
 
 ## Extension Metadata
 
@@ -128,33 +105,14 @@ When the user asks for release preparation (major, beta, or alpha), follow these
 
 **IMPORTANT: Every new widget MUST have its own separate JavaScript file in the `widgets/` directory.**
 
-### Widget File Structure
-- **Location**: `widgets/{widget-name}-widget.js`
-- **Naming**: Always use kebab-case with `-widget.js` suffix
-- **Examples**: 
-  - `widgets/clock-widget.js`
-  - `widgets/calculator-widget.js` 
-  - `widgets/search-widget.js`
+### Quick Reference
+- **Location**: `widgets/{widget-name}-widget.js` (kebab-case with `-widget.js` suffix)
+- **HTML Integration**: Add `<script src="widgets/{widget-name}-widget.js"></script>` to `newtab.html` after `widgets.js`
+- **Required Functions**: `render{Name}Widget()`, `open{Name}Config()`, `add{Name}Widget()`, `registerWidget()` call
 
-### Required Widget Structure
-Each widget file must contain:
-1. **registerWidget()** call with name, render function, and openConfig function
-2. **render{WidgetName}Widget()** function that creates the widget UI
-3. **setup{WidgetName}Logic()** function for widget-specific functionality (if needed)
-4. **open{WidgetName}Config()** function for configuration UI
-5. **add{WidgetName}Widget()** function to create new widget instances
-
-### HTML Integration
-- **ALL widget files must be loaded in `newtab.html`** after `widgets.js`
-- Add script tag: `<script src="widgets/{widget-name}-widget.js"></script>`
-- **Load order**: widgets.js → individual widget files → other scripts
-
-### Widget Development Workflow
-1. Create new `widgets/{name}-widget.js` file
-2. Add script tag to `newtab.html` 
-3. Follow existing widget patterns for consistency
-4. Test widget registration and functionality
-5. Never put widget code directly in `widgets.js`
+### Complete Development Guide
+For comprehensive widget development instructions, templates, and best practices, see:
+**[`docs/WIDGET_DEVELOPMENT.md`](docs/WIDGET_DEVELOPMENT.md)**
 
 ## Version Management Rules
 
