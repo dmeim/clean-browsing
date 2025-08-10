@@ -128,6 +128,37 @@ function updateBackgroundControls() {
   } else {
     colorPicker.value = settings.background.value;
     removeImageBtn.classList.add('hidden');
+    imagePicker.value = '';
+  }
+  updateImagePickerDisplay();
+}
+
+function updateImagePickerDisplay() {
+  // Always remove existing custom display first
+  const existingDisplay = document.querySelector('.bg-image-display');
+  if (existingDisplay) {
+    existingDisplay.remove();
+  }
+  
+  // Create a custom display for the file input when an image is set
+  if (settings.background.type === 'image') {
+    const customDisplay = document.createElement('div');
+    customDisplay.className = 'bg-image-display';
+    customDisplay.textContent = 'Background image is set';
+    customDisplay.style.cssText = `
+      font-size: 12px;
+      color: rgba(255, 255, 255, 0.7);
+      margin-top: 4px;
+      font-style: italic;
+      margin-left: 0;
+    `;
+    
+    // Insert after the image wrapper
+    const imageWrapper = imagePicker.parentNode;
+    imageWrapper.parentNode.insertBefore(customDisplay, imageWrapper.nextSibling);
+    imagePicker.style.opacity = '0.6';
+  } else {
+    imagePicker.style.opacity = '1';
   }
 }
 
@@ -137,6 +168,8 @@ const imagePicker = document.getElementById('bg-image-picker');
 const removeImageBtn = document.getElementById('remove-bg-image');
 
 updateBackgroundControls();
+// Ensure image picker display is updated on page load
+setTimeout(() => updateImagePickerDisplay(), 100);
 
 colorPicker.addEventListener('input', (e) => {
   settings.background = { type: 'color', value: e.target.value };
