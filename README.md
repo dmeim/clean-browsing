@@ -1,149 +1,115 @@
 # NewTab PlusProMaxUltra
 
-[![Version](https://img.shields.io/badge/version-0.1.0--beta-orange)](https://github.com/DimitriMeimaridis/newtab-pluspromaxultra/releases)
+[![Version](https://img.shields.io/badge/version-0.2.0-blue)](https://github.com/DimitriMeimaridis/newtab-pluspromaxultra/releases)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Chrome Extension](https://img.shields.io/badge/platform-Chrome%20Extension-brightgreen)](https://chromewebstore.google.com)
 
-**The PRO PREMIUM MAXED-OUT ULTRA new tab experience** – A next-generation customizable new tab page for Chrome that puts you in complete control of your browsing dashboard.
+**The PRO PREMIUM MAXED-OUT ULTRA new tab experience** – Transform your new tab into a powerful, customizable dashboard with zero subscriptions and unlimited personalization.
 
 ## 🌟 Overview
 
-NewTab PlusProMaxUltra is an open-source Chrome extension that transforms your new tab page into a powerful, customizable dashboard. Built around a flexible tile-based grid system, it offers unlimited customization while keeping all your data local and private.
+A privacy-first Chrome extension that replaces your new tab page with a flexible tile-based grid system. Built with vanilla web technologies, offering complete customization while keeping all your data local.
 
 ### ✨ Key Highlights
 - 🎯 **Zero Subscriptions** - Completely free and open source
-- 🔒 **Privacy First** - All data stored locally, no external services
+- 🔒 **Privacy First** - All data stored locally, no external services  
 - 🎨 **Infinite Customization** - Personalize every aspect of your dashboard
-- 🧩 **Extensible Widget System** - Modular architecture for future expansion
+- 🧩 **Extensible Widgets** - Calculator, clock, search, date, and more
 - ⚡ **Performance Optimized** - Lightweight with no external dependencies
 
-## 🚀 Features
+## 🚀 Current Features
 
-### 🏗️ **Advanced Grid System**
-- **Dynamic 40x24 grid** with customizable dimensions
-- **Drag & drop positioning** with precision controls
-- **Smart resize handles** for perfect widget sizing
-- **Visual grid overlay** for accurate placement
+### 🎛️ **Available Widgets**
+| Widget | Description | Size | Documentation |
+|--------|-------------|------|---------------|
+| **🕒 Clock** | Real-time clock with locale & format options | 4×3 | [Details](docs/features/clock-widget.md) |
+| **🧮 Calculator** | Full-featured calculator with keyboard support | 4×5 | [Details](docs/features/calculator-widget.md) |
+| **🔍 Search** | Multi-engine search with custom targeting | 6×2 | [Details](docs/features/search-widget.md) |
+| **📅 Date** | Customizable date display with 17 formats | 4×2 | [Details](docs/features/date-widget.md) |
 
-### 🎛️ **Widget Ecosystem**
-| Widget Type | Features |
-|-------------|----------|
-| **🕒 Clock** | Multiple locales, 12/24h format, seconds display, flashing separators, DST support |
-| **🔍 Search** | Google, Bing, DuckDuckGo, Yahoo + custom engines, multiple target options |
+### 🏗️ **Core Capabilities**
+- **40×24 Grid System** - Drag & drop positioning with visual overlay
+- **Glassmorphism Design** - Modern blur effects and transparency
+- **Global Appearance** - Unified styling with per-widget overrides  
+- **Import/Export** - Save and share configurations as JSON
+- **Responsive Scaling** - Container queries for all widget sizes
 
-### 🎨 **Appearance Engine**
-- **Background Customization**:
-  - Solid colors with full color picker
-  - Custom image uploads
-  - Built-in gradient overlays
-- **Typography Control**:
-  - Auto-scaling text system
-  - Font weight and style options
-  - Color and opacity controls
-- **Visual Effects**:
-  - Glassmorphism blur effects
-  - Customizable border radius
-  - Opacity and padding controls
-- **Inheritance System**: Global settings with per-widget overrides
+📋 **[View All Features & Roadmap](docs/features/README.md)**
 
-### ⚙️ **Advanced Settings**
-- **Import/Export**: Save and share configurations as JSON
-- **Jiggle Mode**: Visual editing with handles and grid overlay
-- **Real-time Preview**: See changes instantly
-- **Container Queries**: Responsive scaling at all widget sizes
+## 📦 Quick Start
 
-## 📦 Installation
-
-### For Users
-1. Download the latest release from [Releases](./releases/)
-2. Open Chrome and navigate to `chrome://extensions`
-3. Enable **Developer mode** (top-right toggle)
-4. Click **Load unpacked** and select the `extension` folder
-5. Open a new tab to start customizing!
+### 5-Minute Setup
+1. **Download**: Get the latest release from [Releases](./releases/)
+2. **Install**: Load unpacked extension in Chrome (`chrome://extensions` → Developer mode → Load unpacked → select `extension` folder)
+3. **Customize**: Open new tab and start adding widgets!
 
 ### For Developers
 ```bash
 git clone https://github.com/DimitriMeimaridis/newtab-pluspromaxultra.git
-cd newtab-pluspromaxultra/extension
-# Load the extension/ folder as an unpacked extension in Chrome
+cd newtab-pluspromaxultra
+# Load extension/ folder in Chrome extensions
 ```
 
-## 🛠️ Development
+🛠️ **[Full Development Setup](docs/README.md#getting-started)**
+
+## 📚 Documentation Hub
+
+### For Users
+- **[Feature Documentation](docs/features/README.md)** - Complete widget guides and roadmap
+- **[Release Notes](release-notes/)** - Version history and changes
+
+### For Developers  
+- **[Development Guide](docs/README.md)** - Architecture, setup, and workflows
+- **[Widget Development](docs/WIDGET_DEVELOPMENT.md)** - Create new widgets step-by-step
+- **[Styling Guide](docs/STYLING_GUIDE.md)** - Design system and CSS patterns
+- **[Component Rules](docs/COMPONENT_RULES.md)** - Architecture standards
 
 ### Project Structure
 ```
 extension/
 ├── newtab.html          # Main entry point
-├── settings.js          # Settings management & persistence
-├── widgets.js           # Widget system core
-├── styles.css           # Complete styling system
-├── widgets/             # Individual widget implementations
-│   ├── clock-widget.js
-│   └── search-widget.js
-├── resources/           # Search engine logos & assets
-└── manifest.json        # Chrome extension manifest
+├── settings.js          # Settings & persistence  
+├── widgets.js           # Core widget system
+├── styles.css           # Complete styling
+├── widgets/             # Individual widgets
+└── manifest.json        # Extension config
 ```
 
-### Architecture
-- **Modular Widget System**: Extensible plugin-like architecture
-- **Zero Build Process**: Pure HTML/CSS/JavaScript
-- **Local Storage**: All settings persisted locally
-- **Container Queries**: Modern responsive design
-- **Manifest V3**: Latest Chrome extension standards
+## 📊 Project Status
 
-### Adding New Widgets
-Widgets are registered using the simple plugin system:
-```javascript
-registerWidget('mywidget', {
-  name: 'My Widget',
-  render: renderMyWidget,
-  openConfig: openMyWidgetConfig
-});
-```
+**Current Version**: v0.2.0 - Calculator & Enhanced Features  
+**Development Stage**: Active development with regular releases  
+**Widget Count**: 4 shipped, 3+ planned for next release
 
-## 📋 Versioning
+### Recent Highlights
+- ✅ **Calculator Widget** - Full-featured calculator with keyboard support
+- ✅ **Enhanced Documentation** - Comprehensive guides and feature specs  
+- ✅ **Improved Grid System** - Better drag & drop with visual feedback
 
-We follow semantic versioning with the format `x.y.z`:
-- **x** - Major release (significant features or breaking changes)
-- **y** - Minor/beta release (new features, improvements)
-- **z** - Alpha/testing release (bug fixes, experimental features)
+### Coming Next
+- 🚧 **Notes Widget** - Rich text note-taking with auto-save
+- ⭕ **Weather Widget** - Local weather with NWS API integration
+- ⭕ **Enhanced Calculator** - Scientific functions and memory operations
 
-Current version: **v0.1.0-beta** (First public beta)
-
-## 🗺️ Roadmap
-
-- [ ] **Weather Widget** - Local weather with multiple providers
-- [ ] **Bookmark Widget** - Visual bookmark management
-- [ ] **Notes Widget** - Quick note-taking capabilities
-- [ ] **RSS/News Widget** - Feed aggregation
-- [ ] **Calendar Widget** - Event display and management
-- [ ] **System Info Widget** - Browser and system statistics
-- [ ] **Custom Widget Creator** - Visual widget builder
-
-## 📝 Release Notes
-
-Detailed release notes for each version can be found in the [releases](./releases/) directory.
+📋 **[Full Roadmap & Status](docs/features/README.md)**  
+📝 **[Release Notes](release-notes/)**
 
 ## 🤝 Contributing
 
-We welcome contributions! Please see our [Contributing Guidelines](CONTRIBUTING.md) for details on:
-- Code style and standards
-- Pull request process
-- Widget development guidelines
-- Testing procedures
+We welcome contributions! Whether you're fixing bugs, adding features, or improving documentation:
+
+- **[Contributing Guidelines](CONTRIBUTING.md)** - Code standards and pull request process
+- **[Widget Development Guide](docs/WIDGET_DEVELOPMENT.md)** - Create new widgets step-by-step  
+- **[Architecture Rules](docs/COMPONENT_RULES.md)** - Follow established patterns
+
+**Quick Start**: Fork → Create widget → Test → Submit PR
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 🙏 Acknowledgments
-
-- Built with modern web standards and Chrome Extension Manifest V3
-- Inspired by the need for privacy-focused browser customization
-- Community-driven development approach
+MIT License - see [LICENSE](LICENSE) for details.
 
 ---
 
-**Ready to maximize your new tab experience?** Install NewTab PlusProMaxUltra and transform your browser into a personalized command center – with zero subscriptions and unlimited customization power.
+**Ready to maximize your new tab experience?** Transform your browser into a personalized command center with zero subscriptions and unlimited customization.
 
-[📥 Download Latest Release](./releases/) | [🐛 Report Issues](../../issues) | [💡 Request Features](../../issues)
+[📥 Download Latest](./releases/) | [🐛 Report Issues](../../issues) | [💡 Request Features](../../issues) | [📚 Full Documentation](docs/README.md)
