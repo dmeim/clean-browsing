@@ -995,24 +995,45 @@ label {
 }
 
 .image-wrapper {
-  position: relative;
-  display: inline-block;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+}
+
+.image-wrapper input[type="file"] {
+  flex: 1;
 }
 
 .remove-image {
-  position: absolute;
-  top: 4px;
-  right: 4px;
-  width: 20px;
-  height: 20px;
+  width: 24px;
+  height: 24px;
+  min-width: 24px;
+  min-height: 24px;
+  max-width: 24px;
+  max-height: 24px;
   border: none;
   border-radius: 50%;
-  background: rgba(0, 0, 0, 0.6);
+  background: rgba(220, 53, 69, 0.9);
   color: #fff;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
+  font-size: 16px;
+  font-weight: bold;
+  line-height: 1;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+  flex-grow: 0;
+  aspect-ratio: 1;
+  padding: 0 !important;
+  box-sizing: border-box;
+}
+
+.remove-image:hover {
+  background: rgba(220, 53, 69, 1);
+  transform: scale(1.1);
 }
 
 button {
