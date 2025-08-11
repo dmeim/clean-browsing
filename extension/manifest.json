@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "NewTab PlusProMaxUltra",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "The PRO PREMIUM MAXED-OUT ULTRA new tab experience",
   "chrome_url_overrides": {
     "newtab": "newtab.html"

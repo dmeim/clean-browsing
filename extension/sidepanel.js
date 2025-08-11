@@ -127,68 +127,84 @@ function openInIframe(website) {
   iframeTitle.textContent = website.name;
   currentWebsiteUrl = website.url;
   
-  // IMPORTANT: Just load the URL directly - let the browser handle it
-  // Most sites will work, and we'll only intervene if there's a real problem
-  iframe.src = website.url;
-  
-  // We'll use a different approach - monitor for navigation errors
-  // Sites that block iframes will typically show an error page or blank content
-  
-  // Remove any existing event listeners to avoid duplicates
+  // Clear any existing event handlers to avoid duplicates
   iframe.onerror = null;
   iframe.onload = null;
   
-  // Only handle network errors (site doesn't exist, connection refused, etc.)
-  iframe.onerror = () => {
-    console.log('Network error loading iframe');
-    handleIframeError(website);
+  // Set up a loading timeout with better detection
+  let loadTimeout;
+  let hasLoadedSuccessfully = false;
+  
+  // Handle successful loads
+  iframe.onload = () => {
+    hasLoadedSuccessfully = true;
+    clearTimeout(loadTimeout);
+    console.log(`Successfully loaded ${website.name} in iframe`);
   };
   
-  // For sites that block with X-Frame-Options, we need a different approach
-  // We'll check if the iframe navigated away or shows an error page
-  let checkAttempts = 0;
-  const maxChecks = 3;
+  // Handle actual network errors only
+  iframe.onerror = () => {
+    if (!hasLoadedSuccessfully) {
+      console.log(`Network error loading ${website.name} in iframe`);
+      clearTimeout(loadTimeout);
+      handleIframeError(website, 'network_error');
+    }
+  };
   
-  const checkIframeStatus = () => {
-    checkAttempts++;
-    
-    try {
-      // Try to check if iframe loaded something
-      // This will throw for CORS, which is fine - it means content loaded
-      const iframeDoc = iframe.contentDocument || iframe.contentWindow?.document;
+  // Set a reasonable timeout for loading
+  loadTimeout = setTimeout(() => {
+    if (!hasLoadedSuccessfully) {
+      // Check if iframe appears to have blocked content
+      let shouldFallback = false;
       
-      // If we can access the document and it's empty or shows an error, it's blocked
-      if (iframeDoc && (iframeDoc.body.innerHTML === '' || 
-          iframeDoc.body.textContent.includes('refused to connect') ||
-          iframeDoc.body.textContent.includes('blocked'))) {
-        console.log('Site appears to block iframe embedding');
-        handleIframeError(website);
-        return;
+      try {
+        const iframeDoc = iframe.contentDocument || iframe.contentWindow?.document;
+        
+        // Only treat as blocked if we can access the document AND it's clearly an error
+        if (iframeDoc) {
+          const body = iframeDoc.body;
+          const bodyText = body ? body.textContent.toLowerCase().trim() : '';
+          
+          // Look for explicit blocking messages
+          const blockingIndicators = [
+            'refused to connect',
+            'this site can\'t be reached',
+            'x-frame-options',
+            'refused to frame',
+            'frame denied'
+          ];
+          
+          shouldFallback = blockingIndicators.some(indicator => bodyText.includes(indicator)) ||
+                           (bodyText === '' && body && body.innerHTML.trim() === '');
+        }
+        
+        // If we get a CORS error, that's actually good - it means the site loaded
+        // We'll assume it worked and let it be
+        
+      } catch (e) {
+        // CORS error - this is normal and expected for most sites that work in iframes
+        // Don't fallback, the site is working fine
+        shouldFallback = false;
+        console.log(`${website.name} loaded successfully (CORS protection is normal)`);
       }
       
-      // If we can access it and it has content, it's working!
-      console.log('Iframe loaded successfully with accessible content');
-      
-    } catch (e) {
-      // CORS error - this is GOOD! It means the site loaded but we can't access it
-      // This is the normal case for most external sites that allow iframes
-      console.log('Iframe loaded (CORS blocks access, which is normal and expected)');
+      if (shouldFallback) {
+        console.log(`${website.name} appears to block iframe embedding`);
+        handleIframeError(website, 'frame_blocked');
+      } else {
+        hasLoadedSuccessfully = true;
+        console.log(`${website.name} loaded successfully`);
+      }
     }
-    
-    // Check a few times in case of slow loading
-    if (checkAttempts < maxChecks) {
-      setTimeout(checkIframeStatus, 1500);
-    }
-  };
+  }, 5000); // Give sites 5 seconds to load
   
-  // Start checking after a short delay to allow initial load
-  setTimeout(checkIframeStatus, 1500);
+  // Load the URL
+  iframe.src = website.url;
 }
 
 // Handle iframe loading errors
-function handleIframeError(website) {
-  // Automatically open in new tab without asking - better UX
-  console.log(`${website.name} cannot be embedded, opening in new tab instead`);
+function handleIframeError(website, errorType = 'unknown') {
+  console.log(`${website.name} cannot be embedded (${errorType}), opening in new tab instead`);
   
   // Open in new tab
   chrome.runtime.sendMessage({ 
@@ -196,24 +212,33 @@ function handleIframeError(website) {
     url: website.url 
   });
   
-  // Update the website's openMode for future use (silently)
-  const websiteIndex = sidebarSettings.sidebarWebsites.findIndex(w => w.id === website.id);
-  if (websiteIndex !== -1) {
-    sidebarSettings.sidebarWebsites[websiteIndex].openMode = 'newtab';
-    saveSidebarSettings();
-  }
+  // DO NOT permanently change the openMode - just fallback this time
+  // This prevents permanent mode switching from temporary issues or false positives
+  // Users can still try iframe mode again later
   
-  // Show a brief notification instead of confirm dialog
+  // Show a brief notification with more helpful messaging
   const iframeTitle = document.getElementById('iframe-title');
   if (iframeTitle) {
     const originalText = iframeTitle.textContent;
-    iframeTitle.textContent = 'Opening in new tab...';
+    const errorMessage = errorType === 'network_error' 
+      ? 'Connection failed - opening in tab...'
+      : 'Site blocks embedding - opening in tab...';
+    
+    iframeTitle.textContent = errorMessage;
+    
     setTimeout(() => {
       iframeTitle.textContent = originalText;
       backToList();
-    }, 1500);
+    }, 2000); // Show message a bit longer for better UX
   } else {
     backToList();
+  }
+  
+  // Optionally close sidepanel if auto-close is enabled
+  if (sidebarSettings.sidebarBehavior.autoClose) {
+    setTimeout(() => {
+      window.close();
+    }, 2500);
   }
 }
 
