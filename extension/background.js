@@ -1,18 +1,18 @@
-// Background service worker for sidebar panel management
+// Background service worker for sidepanel panel management
 chrome.sidePanel
   .setPanelBehavior({ openPanelOnActionClick: true })
   .catch((error) => console.error(error));
 
-// Listen for messages from the sidebar and main extension
+// Listen for messages from the sidepanel and main extension
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === 'getSidebarSettings') {
-    // Get sidebar settings from storage
+    // Get sidepanel settings from storage
     chrome.storage.local.get(['sidebarSettings'], (result) => {
       sendResponse(result.sidebarSettings || getDefaultSidebarSettings());
     });
     return true; // Keep message channel open for async response
   } else if (request.action === 'saveSidebarSettings') {
-    // Save sidebar settings to storage
+    // Save sidepanel settings to storage
     chrome.storage.local.set({ sidebarSettings: request.settings }, () => {
       sendResponse({ success: true });
     });
@@ -24,7 +24,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   }
 });
 
-// Default sidebar settings
+// Default sidepanel settings
 function getDefaultSidebarSettings() {
   return {
     sidebarEnabled: true,

@@ -1,4 +1,4 @@
-# Sidebar Extension Feature
+# Sidepanel Extension Feature
 
 > **Status**: ✅ Implemented
 > 
@@ -8,45 +8,45 @@
 
 ## Overview
 
-A browser sidebar panel that provides quick access to user-configured websites through the Chrome extension icon. Users can toggle the sidebar open/closed by clicking the extension icon, providing instant access to frequently used sites like AI chat platforms, social media, productivity tools, or any custom websites without leaving their current tab.
+A browser sidepanel that provides quick access to user-configured websites through the Chrome extension icon. Users can toggle the sidepanel open/closed by clicking the extension icon, providing instant access to frequently used sites like AI chat platforms, social media, productivity tools, or any custom websites without leaving their current tab.
 
 ## Core Features
 
 ### Primary Functions
 - **Quick Website Access**: Launch user-configured websites in embedded iframes or new tabs
-- **Extension Icon Toggle**: Click extension icon to open/close sidebar panel
+- **Extension Icon Toggle**: Click extension icon to open/close sidepanel
 - **Website Management**: Add, edit, remove, and reorder quick-access websites
 - **Persistent Settings**: Website list and preferences stored with existing settings system
-- **Responsive Design**: Optimized layout for narrow sidebar width constraints
-- **Multiple Access Modes**: Open sites in sidebar iframe, new tab, or current tab
+- **Responsive Design**: Optimized layout for narrow sidepanel width constraints
+- **Multiple Access Modes**: Open sites in sidepanel iframe, new tab, or current tab
 
 ### Configuration Options
 - **Website List**: User-defined list of quick-access websites with custom names and URLs
 - **Display Mode**: Choose between iframe embedding, new tab opening, or current tab navigation
 - **Icon/Logo Display**: Custom icons or favicons for each website entry
-- **Sidebar Behavior**: Auto-close on link click, stay open, or user preference
+- **Sidepanel Behavior**: Auto-close on link click, stay open, or user preference
 - **Access Permissions**: Manage which sites can be embedded vs opened in new tabs
 - **Theme Integration**: Match main extension's glassmorphism design system
 
 ### User Interface
-- **Sidebar Panel**: Narrow vertical panel (typically 300-400px wide) with website list
+- **Sidepanel Panel**: Narrow vertical panel (typically 300-400px wide) with website list
 - **Website Tiles**: Clean, clickable tiles/buttons for each configured website
 - **Management Interface**: Add/edit forms integrated into main extension settings
 - **Header Section**: Extension branding and close button
 - **Quick Actions**: Icons for common operations (add, edit, remove websites)
-- **Responsive Layout**: Adapts to different browser window sizes and sidebar widths
+- **Responsive Layout**: Adapts to different browser window sizes and sidepanel widths
 
 ## Technical Specifications
 
 ### Dependencies
-- **Chrome sidePanel API**: Requires Chrome 114+ for sidebar functionality
+- **Chrome sidePanel API**: Requires Chrome 114+ for sidepanel functionality
 - **Extension Permissions**: sidePanel permission, optional host permissions for iframe embedding
 - **Settings Integration**: Uses existing settings.js storage and persistence system
 - **Background Script**: Service worker to handle extension icon clicks and panel behavior
 
 ### Implementation Details
 - **sidePanel API Integration**: Configure panel opening on extension icon click
-- **Message Passing**: Communication between sidebar, background script, and main extension
+- **Message Passing**: Communication between sidepanel, background script, and main extension
 - **iframe Security**: Content Security Policy considerations for embedded websites
 - **Host Permissions**: Dynamic permission requests for iframe-embedded sites
 - **Favicon Handling**: Fetch and display website favicons or custom icons

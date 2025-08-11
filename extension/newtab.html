@@ -24,7 +24,7 @@
       <button data-tab="config" class="active">Configuration</button>
       <button data-tab="page-appearance">Page Appearance</button>
       <button data-tab="widget-appearance">Widget Appearance</button>
-      <button data-tab="sidebar">Sidebar</button>
+      <button data-tab="sidepanel">Sidepanel</button>
     </div>
     <div class="modal-content">
       <div id="config-tab" class="tab-content">
@@ -174,66 +174,29 @@
           </div>
         </div>
       </div>
-      <div id="sidebar-tab" class="tab-content hidden">
+      <div id="sidepanel-tab" class="tab-content hidden">
         <div class="settings-section">
-          <h3 class="section-title">Sidebar Quick Access</h3>
+          <h3 class="section-title">Sidepanel Quick Access</h3>
           <div class="settings-group">
             <p class="settings-description">
-              The sidebar provides quick access to your favorite websites. Click the extension icon in your browser toolbar to open the sidebar panel.
+              The sidepanel provides quick access to your favorite websites. Click the extension icon in your browser toolbar to open the sidepanel.
             </p>
             <div class="input-group checkbox-group">
-              <label><input type="checkbox" id="sidebar-enabled" checked> Enable Sidebar Feature</label>
+              <label><input type="checkbox" id="sidepanel-enabled" checked> Enable Sidepanel Feature</label>
             </div>
           </div>
         </div>
         <div class="settings-section">
-          <h3 class="section-title">Add Website</h3>
-          <div class="settings-group">
-            <div class="input-group">
-              <label for="sidebar-website-name">Website Name</label>
-              <input type="text" id="sidebar-website-name" placeholder="e.g., ChatGPT">
-            </div>
-            <div class="input-group">
-              <label for="sidebar-website-url">Website URL</label>
-              <input type="url" id="sidebar-website-url" placeholder="https://example.com">
-            </div>
-            <div class="input-group">
-              <label for="sidebar-website-icon">Icon (emoji)</label>
-              <input type="text" id="sidebar-website-icon" placeholder="🌐" maxlength="2">
-            </div>
-            <div class="input-group">
-              <label for="sidebar-website-mode">Open Mode</label>
-              <select id="sidebar-website-mode">
-                <option value="iframe" selected>Embedded (auto-detect)</option>
-                <option value="newtab">Always New Tab</option>
-                <option value="currenttab">Current Tab</option>
-              </select>
-              <small style="color: rgba(255,255,255,0.6); display: block; margin-top: 4px; font-size: 12px;">
-                Tip: Use "Embedded" for most sites - it will auto-detect and fallback if needed.
-              </small>
-            </div>
-            <button id="sidebar-add-website" class="primary-button">Add Website</button>
-          </div>
-        </div>
-        <div class="settings-section">
-          <h3 class="section-title">Manage Websites</h3>
-          <div class="settings-group">
-            <div id="sidebar-websites-list" class="sidebar-websites-list">
-              <!-- Website items will be dynamically added here -->
-            </div>
-          </div>
-        </div>
-        <div class="settings-section">
-          <h3 class="section-title">Sidebar Behavior</h3>
+          <h3 class="section-title">Sidepanel Behavior</h3>
           <div class="settings-group">
             <div class="input-group checkbox-group">
-              <label><input type="checkbox" id="sidebar-auto-close"> Auto-close sidebar after opening link</label>
+              <label><input type="checkbox" id="sidepanel-auto-close"> Auto-close sidepanel after opening link</label>
             </div>
             <div class="input-group checkbox-group">
-              <label><input type="checkbox" id="sidebar-show-icons" checked> Show website icons</label>
+              <label><input type="checkbox" id="sidepanel-show-icons" checked> Show website icons</label>
             </div>
             <div class="input-group checkbox-group">
-              <label><input type="checkbox" id="sidebar-compact-mode"> Compact mode</label>
+              <label><input type="checkbox" id="sidepanel-compact-mode"> Compact mode</label>
             </div>
           </div>
         </div>
