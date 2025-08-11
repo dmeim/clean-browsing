@@ -45,6 +45,57 @@ const defaultSettings = {
     verticalAlign: 'center',
     padding: 16
   },
+  sidebarSettings: {
+    sidebarEnabled: true,
+    sidebarWebsites: [
+      {
+        id: 'wikipedia',
+        name: 'Wikipedia',
+        url: 'https://en.wikipedia.org',
+        icon: '📚',
+        openMode: 'iframe',  // Try iframe first for all sites
+        position: 0
+      },
+      {
+        id: 'archive',
+        name: 'Internet Archive',
+        url: 'https://archive.org',
+        icon: '📁',
+        openMode: 'iframe',  // Try iframe first for all sites
+        position: 1
+      },
+      {
+        id: 'chatgpt',
+        name: 'ChatGPT',
+        url: 'https://chat.openai.com',
+        icon: '🤖',
+        openMode: 'iframe',  // Try iframe first, will auto-fallback if blocked
+        position: 2
+      },
+      {
+        id: 'claude',
+        name: 'Claude',
+        url: 'https://claude.ai',
+        icon: '🧠',
+        openMode: 'iframe',  // Try iframe first, will auto-fallback if blocked
+        position: 3
+      },
+      {
+        id: 'github',
+        name: 'GitHub',
+        url: 'https://github.com',
+        icon: '💻',
+        openMode: 'iframe',  // Try iframe first, will auto-fallback if blocked
+        position: 4
+      }
+    ],
+    sidebarBehavior: {
+      autoClose: false,
+      defaultOpenMode: 'iframe',
+      showIcons: true,
+      compactMode: false
+    }
+  },
   widgets: [
     {
       type: 'clock',
@@ -91,6 +142,16 @@ function loadSettings() {
     }
     s.lastColor = normalizeColor(s.lastColor || defaultSettings.lastColor);
     s.globalWidgetAppearance = { ...defaultSettings.globalWidgetAppearance, ...(s.globalWidgetAppearance || {}) };
+    s.sidebarSettings = s.sidebarSettings || defaultSettings.sidebarSettings;
+    // Ensure sidebar settings structure is complete
+    if (s.sidebarSettings) {
+      s.sidebarSettings.sidebarWebsites = s.sidebarSettings.sidebarWebsites || defaultSettings.sidebarSettings.sidebarWebsites;
+      s.sidebarSettings.sidebarBehavior = { ...defaultSettings.sidebarSettings.sidebarBehavior, ...(s.sidebarSettings.sidebarBehavior || {}) };
+    }
+    // Also sync with chrome.storage for sidebar access
+    if (chrome.storage && chrome.storage.local) {
+      chrome.storage.local.set({ sidebarSettings: s.sidebarSettings });
+    }
     s.widgets = (s.widgets || defaultSettings.widgets).map(w => ({
       ...w,
       x: w.x || 0,
@@ -106,6 +167,10 @@ function loadSettings() {
 
 function saveSettings(s) {
   localStorage.setItem('settings', JSON.stringify(s));
+  // Also sync sidebar settings with chrome.storage for sidebar access
+  if (chrome.storage && chrome.storage.local && s.sidebarSettings) {
+    chrome.storage.local.set({ sidebarSettings: s.sidebarSettings });
+  }
 }
 
 function applyBackground(s) {
@@ -630,8 +695,207 @@ class ModalDragResize {
             this.resetPosition();
           }
           this.updateContentLayout();
-        }
-        
+}
+
+// Sidebar Settings Management
+function initSidebarSettings() {
+  // Load sidebar settings into UI
+  updateSidebarSettingsUI();
+  
+  // Enable/disable checkbox
+  const sidebarEnabled = document.getElementById('sidebar-enabled');
+  if (sidebarEnabled) {
+    sidebarEnabled.checked = settings.sidebarSettings?.sidebarEnabled !== false;
+    sidebarEnabled.addEventListener('change', (e) => {
+      if (!settings.sidebarSettings) settings.sidebarSettings = { ...defaultSettings.sidebarSettings };
+      settings.sidebarSettings.sidebarEnabled = e.target.checked;
+      saveSettings(settings);
+    });
+  }
+  
+  // Add website button
+  const addWebsiteBtn = document.getElementById('sidebar-add-website');
+  if (addWebsiteBtn) {
+    addWebsiteBtn.addEventListener('click', addSidebarWebsite);
+  }
+  
+  // Behavior checkboxes
+  const autoClose = document.getElementById('sidebar-auto-close');
+  const showIcons = document.getElementById('sidebar-show-icons');
+  const compactMode = document.getElementById('sidebar-compact-mode');
+  
+  if (autoClose) {
+    autoClose.checked = settings.sidebarSettings?.sidebarBehavior?.autoClose || false;
+    autoClose.addEventListener('change', (e) => {
+      if (!settings.sidebarSettings) settings.sidebarSettings = { ...defaultSettings.sidebarSettings };
+      settings.sidebarSettings.sidebarBehavior.autoClose = e.target.checked;
+      saveSettings(settings);
+    });
+  }
+  
+  if (showIcons) {
+    showIcons.checked = settings.sidebarSettings?.sidebarBehavior?.showIcons !== false;
+    showIcons.addEventListener('change', (e) => {
+      if (!settings.sidebarSettings) settings.sidebarSettings = { ...defaultSettings.sidebarSettings };
+      settings.sidebarSettings.sidebarBehavior.showIcons = e.target.checked;
+      saveSettings(settings);
+    });
+  }
+  
+  if (compactMode) {
+    compactMode.checked = settings.sidebarSettings?.sidebarBehavior?.compactMode || false;
+    compactMode.addEventListener('change', (e) => {
+      if (!settings.sidebarSettings) settings.sidebarSettings = { ...defaultSettings.sidebarSettings };
+      settings.sidebarSettings.sidebarBehavior.compactMode = e.target.checked;
+      saveSettings(settings);
+    });
+  }
+}
+
+function updateSidebarSettingsUI() {
+  const websitesList = document.getElementById('sidebar-websites-list');
+  if (!websitesList) return;
+  
+  websitesList.innerHTML = '';
+  
+  if (!settings.sidebarSettings || !settings.sidebarSettings.sidebarWebsites) {
+    websitesList.innerHTML = '<div class="empty-state">No websites added yet</div>';
+    return;
+  }
+  
+  // Sort websites by position
+  const sortedWebsites = [...settings.sidebarSettings.sidebarWebsites].sort((a, b) => a.position - b.position);
+  
+  sortedWebsites.forEach((website, index) => {
+    const item = document.createElement('div');
+    item.className = 'sidebar-website-item';
+    item.innerHTML = `
+      <div class="website-info">
+        <span class="website-icon">${website.icon || '🌐'}</span>
+        <span class="website-name">${website.name}</span>
+        <span class="website-mode">(${website.openMode})</span>
+      </div>
+      <div class="website-actions">
+        <button class="action-btn move-up" data-id="${website.id}" ${index === 0 ? 'disabled' : ''}>↑</button>
+        <button class="action-btn move-down" data-id="${website.id}" ${index === sortedWebsites.length - 1 ? 'disabled' : ''}>↓</button>
+        <button class="action-btn delete" data-id="${website.id}">🗑️</button>
+      </div>
+    `;
+    websitesList.appendChild(item);
+  });
+  
+  // Add event listeners for actions
+  websitesList.querySelectorAll('.move-up').forEach(btn => {
+    btn.addEventListener('click', (e) => moveSidebarWebsite(e.target.dataset.id, -1));
+  });
+  
+  websitesList.querySelectorAll('.move-down').forEach(btn => {
+    btn.addEventListener('click', (e) => moveSidebarWebsite(e.target.dataset.id, 1));
+  });
+  
+  websitesList.querySelectorAll('.delete').forEach(btn => {
+    btn.addEventListener('click', (e) => deleteSidebarWebsite(e.target.dataset.id));
+  });
+}
+
+function addSidebarWebsite() {
+  const nameInput = document.getElementById('sidebar-website-name');
+  const urlInput = document.getElementById('sidebar-website-url');
+  const iconInput = document.getElementById('sidebar-website-icon');
+  const modeSelect = document.getElementById('sidebar-website-mode');
+  
+  const name = nameInput.value.trim();
+  const url = urlInput.value.trim();
+  const icon = iconInput.value.trim() || '🌐';
+  const mode = modeSelect.value;
+  
+  if (!name || !url) {
+    alert('Please enter both name and URL');
+    return;
+  }
+  
+  // Validate URL
+  try {
+    new URL(url);
+  } catch {
+    alert('Please enter a valid URL');
+    return;
+  }
+  
+  // Initialize sidebar settings if needed
+  if (!settings.sidebarSettings) {
+    settings.sidebarSettings = { ...defaultSettings.sidebarSettings };
+  }
+  if (!settings.sidebarSettings.sidebarWebsites) {
+    settings.sidebarSettings.sidebarWebsites = [];
+  }
+  
+  // Generate unique ID
+  const id = 'website_' + Date.now();
+  
+  // Get next position
+  const maxPosition = Math.max(...settings.sidebarSettings.sidebarWebsites.map(w => w.position || 0), -1);
+  
+  // Add website
+  settings.sidebarSettings.sidebarWebsites.push({
+    id,
+    name,
+    url,
+    icon,
+    openMode: mode,
+    position: maxPosition + 1
+  });
+  
+  // Clear form
+  nameInput.value = '';
+  urlInput.value = '';
+  iconInput.value = '';
+  modeSelect.value = 'iframe';
+  
+  // Save and update UI
+  saveSettings(settings);
+  updateSidebarSettingsUI();
+}
+
+function moveSidebarWebsite(id, direction) {
+  if (!settings.sidebarSettings || !settings.sidebarSettings.sidebarWebsites) return;
+  
+  const website = settings.sidebarSettings.sidebarWebsites.find(w => w.id === id);
+  if (!website) return;
+  
+  // Sort websites by position
+  const sortedWebsites = [...settings.sidebarSettings.sidebarWebsites].sort((a, b) => a.position - b.position);
+  const currentIndex = sortedWebsites.findIndex(w => w.id === id);
+  const newIndex = currentIndex + direction;
+  
+  if (newIndex < 0 || newIndex >= sortedWebsites.length) return;
+  
+  // Swap positions
+  const otherWebsite = sortedWebsites[newIndex];
+  const tempPosition = website.position;
+  website.position = otherWebsite.position;
+  otherWebsite.position = tempPosition;
+  
+  // Save and update UI
+  saveSettings(settings);
+  updateSidebarSettingsUI();
+}
+
+function deleteSidebarWebsite(id) {
+  if (!settings.sidebarSettings || !settings.sidebarSettings.sidebarWebsites) return;
+  
+  if (confirm('Are you sure you want to delete this website?')) {
+    settings.sidebarSettings.sidebarWebsites = settings.sidebarSettings.sidebarWebsites.filter(w => w.id !== id);
+    saveSettings(settings);
+    updateSidebarSettingsUI();
+  }
+}
+
+// Initialize sidebar settings when DOM is ready
+document.addEventListener('DOMContentLoaded', () => {
+  setTimeout(initSidebarSettings, 100);
+});
+
         this.wasHidden = isHidden;
       }
     });
