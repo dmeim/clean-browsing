@@ -1,14 +1,30 @@
 {
   "manifest_version": 3,
   "name": "NewTab PlusProMaxUltra",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "The PRO PREMIUM MAXED-OUT ULTRA new tab experience",
   "chrome_url_overrides": {
     "newtab": "newtab.html"
   },
   "permissions": [
-    "windows"
+    "windows",
+    "sidePanel",
+    "storage"
   ],
+  "side_panel": {
+    "default_path": "sidepanel.html"
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_title": "Toggle Sidebar",
+    "default_icon": {
+      "16": "resources/logo.png",
+      "48": "resources/logo.png",
+      "128": "resources/logo.png"
+    }
+  },
   "icons": {
     "16": "resources/logo.png",
     "48": "resources/logo.png",
