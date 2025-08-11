@@ -1,11 +1,11 @@
-// Sidebar panel JavaScript
+// Sidepanel panel JavaScript
 let sidebarSettings = null;
 let currentWebsiteUrl = null;
 
-// Initialize sidebar on load
-document.addEventListener('DOMContentLoaded', initializeSidebar);
+// Initialize sidepanel on load
+document.addEventListener('DOMContentLoaded', initializeSidepanel);
 
-async function initializeSidebar() {
+async function initializeSidepanel() {
   // Load settings from background script
   sidebarSettings = await loadSidebarSettings();
   
@@ -235,7 +235,7 @@ function backToList() {
 // Set up all event listeners
 function setupEventListeners() {
   // Settings button
-  document.getElementById('sidebar-settings-btn').addEventListener('click', openSettings);
+  document.getElementById('sidepanel-settings-btn').addEventListener('click', openSettings);
   
   // Settings modal
   document.getElementById('close-settings').addEventListener('click', closeSettings);
