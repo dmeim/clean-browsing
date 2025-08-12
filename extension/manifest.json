@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "NewTab PlusProMaxUltra",
-  "version": "0.2.5",
+  "version": "0.2.9",
   "description": "The PRO PREMIUM MAXED-OUT ULTRA new tab experience",
   "chrome_url_overrides": {
     "newtab": "newtab.html"
@@ -43,5 +43,13 @@
         "path": "frame-rules.json"
       }
     ]
-  }
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["iframe-tracker.js"],
+      "run_at": "document_start",
+      "all_frames": true
+    }
+  ]
 }

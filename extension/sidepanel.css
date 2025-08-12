@@ -248,11 +248,66 @@ body {
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.iframe-title {
+.iframe-info {
   flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  min-width: 0;
+}
+
+.iframe-name {
   font-size: 14px;
   font-weight: 600;
+  color: #ffffff;
   text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: 100%;
+}
+
+.iframe-current-url {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.6);
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: 100%;
+  user-select: text;
+  cursor: pointer;
+  padding: 1px 4px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.iframe-current-url:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.iframe-current-url:active {
+  background: rgba(255, 255, 255, 0.2);
+  transform: scale(0.98);
+}
+
+.iframe-current-url.copied {
+  background: rgba(76, 175, 80, 0.3);
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.iframe-current-url.unavailable {
+  cursor: default;
+  font-style: italic;
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.iframe-current-url.unavailable:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: rgba(255, 255, 255, 0.5);
 }
 
 .website-iframe {
