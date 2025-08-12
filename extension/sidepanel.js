@@ -60,9 +60,8 @@ window.addEventListener('message', (event) => {
   
   // Handle navigation state updates
   else if (event.data.type === 'SIDEPANEL_NAVIGATION_STATE') {
-    navigationState.canGoBack = event.data.canGoBack || false;
-    updateNavigationButtons();
-    console.log('Navigation state updated:', navigationState);
+    // Back button is always enabled, no state management needed
+    console.log('Navigation state received (back button always enabled)');
   }
   
   // Handle navigation results
@@ -342,7 +341,7 @@ let navigationCheckInterval = null;
 
 // Navigation state tracking
 let navigationState = {
-  canGoBack: false
+  // Back button is always enabled, no state tracking needed
 };
 let pendingNavigationRequests = new Map();
 
@@ -655,11 +654,8 @@ function navigateIframe(command) {
 
 // Update navigation button states
 function updateNavigationButtons() {
-  const backBtn = document.getElementById('nav-back');
-  
-  if (backBtn) {
-    backBtn.disabled = !navigationState.canGoBack;
-  }
+  // Back button is now always enabled like refresh button
+  // No disabled state management needed
 }
 
 // Request navigation state from iframe content script
@@ -778,9 +774,7 @@ async function backToList() {
   iframe.src = '';
   currentWebsiteUrl = null;
   
-  // Reset navigation state
-  navigationState.canGoBack = false;
-  updateNavigationButtons();
+  // Back button is always enabled, no state reset needed
 }
 
 // Set up all event listeners
