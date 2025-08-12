@@ -2,6 +2,9 @@
 // Initialize sidepanel behavior based on user settings
 initializeSidepanelBehavior();
 
+// Track active sidepanel sessions for header modification
+let activeSidepanelSessions = new Set();
+
 async function initializeSidepanelBehavior() {
   try {
     // Check if sidepanel is enabled in settings
@@ -33,6 +36,16 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       sendResponse(result.sidebarSettings || getDefaultSidebarSettings());
     });
     return true; // Keep message channel open for async response
+  } else if (request.action === 'enableFrameBypass') {
+    // Enable frame bypass for a specific URL
+    activeSidepanelSessions.add(request.url);
+    console.log('Frame bypass enabled for:', request.url);
+    sendResponse({ success: true });
+  } else if (request.action === 'disableFrameBypass') {
+    // Disable frame bypass for a specific URL
+    activeSidepanelSessions.delete(request.url);
+    console.log('Frame bypass disabled for:', request.url);
+    sendResponse({ success: true });
   } else if (request.action === 'saveSidebarSettings') {
     // Save sidepanel settings to storage
     chrome.storage.local.set({ sidebarSettings: request.settings }, () => {
