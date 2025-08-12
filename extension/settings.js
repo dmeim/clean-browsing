@@ -311,6 +311,8 @@ importBtn.addEventListener('click', () => {
       applyBackground(settings);
       updateBackgroundControls();
       if (typeof renderWidgets === 'function') renderWidgets();
+      if (typeof initSidebarSettings === 'function') initSidebarSettings();
+      alert('Settings imported successfully!');
     } catch {
       alert('Invalid JSON');
     }
@@ -331,6 +333,8 @@ importFile.addEventListener('change', () => {
       applyBackground(settings);
       updateBackgroundControls();
       if (typeof renderWidgets === 'function') renderWidgets();
+      if (typeof initSidebarSettings === 'function') initSidebarSettings();
+      alert('Settings imported successfully from file!');
     } catch {
       alert('Invalid JSON file');
     }
