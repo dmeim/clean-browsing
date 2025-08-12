@@ -45,6 +45,7 @@
           <button data-tab="add-website" class="tab-btn active">Add Website</button>
           <button data-tab="manage-websites" class="tab-btn">Manage</button>
           <button data-tab="behavior" class="tab-btn">Behavior</button>
+          <button data-tab="appearance" class="tab-btn">Appearance</button>
         </div>
         
         <div class="modal-body">
@@ -120,6 +121,102 @@
               <div class="form-group checkbox-group">
                 <input type="checkbox" id="compact-mode">
                 <label for="compact-mode">Compact mode</label>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Appearance Tab -->
+          <div id="appearance-tab" class="tab-content hidden">
+            <div class="settings-section">
+              <h3>Background</h3>
+              <div class="form-group">
+                <label>Background Type:</label>
+                <div class="icon-type-selector">
+                  <label class="icon-type-option">
+                    <input type="radio" name="bg-type" value="gradient" checked>
+                    <span>Gradient</span>
+                  </label>
+                  <label class="icon-type-option">
+                    <input type="radio" name="bg-type" value="solid">
+                    <span>Solid Color</span>
+                  </label>
+                  <label class="icon-type-option">
+                    <input type="radio" name="bg-type" value="image">
+                    <span>Image</span>
+                  </label>
+                </div>
+              </div>
+              
+              <!-- Gradient Options -->
+              <div id="gradient-options" class="bg-options">
+                <div class="form-group">
+                  <label for="gradient-color1">Start Color:</label>
+                  <div class="color-input-wrapper">
+                    <input type="color" id="gradient-color1" value="#667eea">
+                    <input type="text" id="gradient-color1-text" value="#667eea" placeholder="#667eea">
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label for="gradient-color2">End Color:</label>
+                  <div class="color-input-wrapper">
+                    <input type="color" id="gradient-color2" value="#764ba2">
+                    <input type="text" id="gradient-color2-text" value="#764ba2" placeholder="#764ba2">
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label for="gradient-angle">Angle:</label>
+                  <div class="slider-wrapper">
+                    <input type="range" id="gradient-angle" min="0" max="360" value="135">
+                    <span id="gradient-angle-value">135°</span>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Solid Color Options -->
+              <div id="solid-options" class="bg-options hidden">
+                <div class="form-group">
+                  <label for="solid-color">Background Color:</label>
+                  <div class="color-input-wrapper">
+                    <input type="color" id="solid-color" value="#667eea">
+                    <input type="text" id="solid-color-text" value="#667eea" placeholder="#667eea">
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Image Options -->
+              <div id="image-options" class="bg-options hidden">
+                <div class="form-group">
+                  <label for="bg-image-upload">Background Image:</label>
+                  <div class="file-input-wrapper">
+                    <input type="file" id="bg-image-upload" accept="image/*">
+                    <button id="remove-bg-image" class="action-btn" style="display: none;">Remove Image</button>
+                  </div>
+                  <small style="color: rgba(255,255,255,0.6); display: block; margin-top: 4px;">
+                    Supported formats: JPG, PNG, GIF, WebP
+                  </small>
+                </div>
+                <div class="form-group">
+                  <label for="bg-image-opacity">Image Opacity:</label>
+                  <div class="slider-wrapper">
+                    <input type="range" id="bg-image-opacity" min="0" max="100" value="100">
+                    <span id="bg-image-opacity-value">100%</span>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Preset Gradients -->
+              <div class="form-group">
+                <label>Preset Gradients:</label>
+                <div class="preset-gradients">
+                  <button class="preset-gradient" data-gradient="135,#667eea,#764ba2" title="Purple Dream"></button>
+                  <button class="preset-gradient" data-gradient="135,#f093fb,#f5576c" title="Pink Sunset"></button>
+                  <button class="preset-gradient" data-gradient="135,#4facfe,#00f2fe" title="Ocean Blue"></button>
+                  <button class="preset-gradient" data-gradient="135,#43e97b,#38f9d7" title="Mint Fresh"></button>
+                  <button class="preset-gradient" data-gradient="135,#fa709a,#fee140" title="Warm Sunrise"></button>
+                  <button class="preset-gradient" data-gradient="135,#30cfd0,#330867" title="Deep Space"></button>
+                  <button class="preset-gradient" data-gradient="135,#a8edea,#fed6e3" title="Soft Pastel"></button>
+                  <button class="preset-gradient" data-gradient="135,#ff9a9e,#fecfef" title="Cotton Candy"></button>
+                </div>
               </div>
             </div>
           </div>
