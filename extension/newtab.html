@@ -56,14 +56,91 @@
           <h3 class="section-title">Background</h3>
           <div class="settings-group">
             <div class="input-group">
-              <label for="bg-color-picker">Background Color</label>
-              <input type="color" id="bg-color-picker">
+              <label>Background Type</label>
+              <div class="bg-type-selector">
+                <label class="bg-type-option">
+                  <input type="radio" name="main-bg-type" value="gradient" checked>
+                  <span>Gradient</span>
+                </label>
+                <label class="bg-type-option">
+                  <input type="radio" name="main-bg-type" value="solid">
+                  <span>Solid Color</span>
+                </label>
+                <label class="bg-type-option">
+                  <input type="radio" name="main-bg-type" value="image">
+                  <span>Image</span>
+                </label>
+              </div>
             </div>
+            
+            <!-- Gradient Options -->
+            <div id="main-gradient-options" class="bg-options-group">
+              <div class="input-row">
+                <div class="input-group">
+                  <label for="main-gradient-color1">Start Color</label>
+                  <div class="color-input-group">
+                    <input type="color" id="main-gradient-color1" value="#667eea">
+                    <input type="text" id="main-gradient-color1-text" value="#667eea" placeholder="#667eea" class="color-text-input">
+                  </div>
+                </div>
+                <div class="input-group">
+                  <label for="main-gradient-color2">End Color</label>
+                  <div class="color-input-group">
+                    <input type="color" id="main-gradient-color2" value="#764ba2">
+                    <input type="text" id="main-gradient-color2-text" value="#764ba2" placeholder="#764ba2" class="color-text-input">
+                  </div>
+                </div>
+              </div>
+              <div class="input-group">
+                <label for="main-gradient-angle">Gradient Angle</label>
+                <div class="slider-input-group">
+                  <input type="range" id="main-gradient-angle" min="0" max="360" value="135" class="slider-input">
+                  <span id="main-gradient-angle-value" class="slider-value">135°</span>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Solid Color Options -->
+            <div id="main-solid-options" class="bg-options-group hidden">
+              <div class="input-group">
+                <label for="main-solid-color">Background Color</label>
+                <div class="color-input-group">
+                  <input type="color" id="main-solid-color" value="#667eea">
+                  <input type="text" id="main-solid-color-text" value="#667eea" placeholder="#667eea" class="color-text-input">
+                </div>
+              </div>
+            </div>
+            
+            <!-- Image Options -->
+            <div id="main-image-options" class="bg-options-group hidden">
+              <div class="input-group">
+                <label for="main-bg-image-upload">Background Image</label>
+                <div class="image-wrapper">
+                  <input type="file" id="main-bg-image-upload" accept="image/*">
+                  <button id="main-remove-bg-image" class="remove-image hidden">&times;</button>
+                </div>
+              </div>
+              <div class="input-group">
+                <label for="main-bg-image-opacity">Image Opacity</label>
+                <div class="slider-input-group">
+                  <input type="range" id="main-bg-image-opacity" min="0" max="100" value="100" class="slider-input">
+                  <span id="main-bg-image-opacity-value" class="slider-value">100%</span>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Preset Gradients -->
             <div class="input-group">
-              <label for="bg-image-picker">Background Image</label>
-              <div class="image-wrapper">
-                <input type="file" id="bg-image-picker" accept="image/*">
-                <button id="remove-bg-image" class="remove-image hidden">&times;</button>
+              <label>Preset Gradients</label>
+              <div class="preset-gradients-grid">
+                <button class="preset-gradient-btn" data-gradient="135,#667eea,#764ba2" title="Purple Dream"></button>
+                <button class="preset-gradient-btn" data-gradient="135,#f093fb,#f5576c" title="Pink Sunset"></button>
+                <button class="preset-gradient-btn" data-gradient="135,#4facfe,#00f2fe" title="Ocean Blue"></button>
+                <button class="preset-gradient-btn" data-gradient="135,#43e97b,#38f9d7" title="Mint Fresh"></button>
+                <button class="preset-gradient-btn" data-gradient="135,#fa709a,#fee140" title="Warm Sunrise"></button>
+                <button class="preset-gradient-btn" data-gradient="135,#30cfd0,#330867" title="Deep Space"></button>
+                <button class="preset-gradient-btn" data-gradient="135,#a8edea,#fed6e3" title="Soft Pastel"></button>
+                <button class="preset-gradient-btn" data-gradient="135,#ff9a9e,#fecfef" title="Cotton Candy"></button>
               </div>
             </div>
           </div>
