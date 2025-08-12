@@ -87,6 +87,11 @@ body {
   transition: all 0.3s ease;
 }
 
+/* Adjust padding when URLs are shown for better visual balance */
+.website-item.show-urls:not(.compact) {
+  padding: 10px 16px;
+}
+
 .website-item:hover {
   background: rgba(255, 255, 255, 0.2);
   transform: translateX(4px);
@@ -101,6 +106,42 @@ body {
   font-size: 20px;
   width: 24px;
   text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+/* Icon wrapper for favicons */
+.website-icon-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+/* When URLs are shown, make icons bigger to match two-line height */
+.website-item.show-urls .website-icon {
+  font-size: 32px;
+  width: 32px;
+  height: 40px;
+}
+
+.website-item.show-urls .website-icon-wrapper {
+  width: 32px;
+  height: 40px;
+}
+
+/* Compact mode with URLs shown */
+.website-item.compact.show-urls .website-icon {
+  font-size: 20px;
+  width: 24px;
+  height: auto;
+}
+
+.website-item.compact.show-urls .website-icon-wrapper {
+  width: 24px;
+  height: auto;
 }
 
 .website-name {
@@ -113,8 +154,19 @@ body {
 .website-favicon {
   width: 16px;
   height: 16px;
-  margin-right: 4px;
   flex-shrink: 0;
+}
+
+/* When URLs are shown, make favicons bigger */
+.website-item.show-urls .website-favicon {
+  width: 32px;
+  height: 32px;
+}
+
+/* Compact mode favicon with URLs */
+.website-item.compact.show-urls .website-favicon {
+  width: 16px;
+  height: 16px;
 }
 
 .website-info {
@@ -149,6 +201,11 @@ body {
   margin-top: 0;
   font-size: 0.6em;
   flex-shrink: 1;
+}
+
+/* In compact mode, keep icons smaller even with URLs */
+.website-item.compact.show-urls {
+  align-items: center;
 }
 
 .empty-state {
@@ -587,11 +644,11 @@ body {
   align-items: center;
   gap: 8px;
   flex: 1;
-  margin-left: 16px;
+  margin-left: 8px;
 }
 
 .manage-icon {
-  font-size: 16px;
+  font-size: 24px;
 }
 
 .manage-name {
@@ -604,8 +661,8 @@ body {
 }
 
 .manage-favicon {
-  width: 14px;
-  height: 14px;
+  width: 24px;
+  height: 24px;
   flex-shrink: 0;
 }
 

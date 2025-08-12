@@ -17,8 +17,10 @@ function getWebsiteIcon(website) {
   if (website.iconType === 'none') {
     return '';
   } else if (website.iconType === 'favicon' && website.favicon) {
-    return `<img src="${website.favicon}" alt="" class="website-favicon" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';">
-            <span class="website-icon" style="display:none">${website.icon || '🌐'}</span>`;
+    return `<div class="website-icon-wrapper">
+              <img src="${website.favicon}" alt="" class="website-favicon" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+              <span class="website-icon" style="display:none">${website.icon || '🌐'}</span>
+            </div>`;
   } else if (website.iconType === 'emoji' || !website.iconType) {
     return `<span class="website-icon">${website.icon || '🌐'}</span>`;
   }
@@ -120,6 +122,11 @@ function createWebsiteItem(website) {
   
   const icon = getWebsiteIcon(website);
   const showUrls = sidebarSettings.sidebarBehavior.showUrls;
+  
+  // Add class when URLs are shown for proper icon sizing
+  if (showUrls) {
+    item.classList.add('show-urls');
+  }
   
   item.innerHTML = `
     ${icon}
