@@ -31,10 +31,12 @@ function getWebsiteIcon(website) {
 // Initialize sidepanel on load
 document.addEventListener('DOMContentLoaded', initializeSidepanel);
 
-// Listen for URL change messages from iframe content scripts
+// Listen for messages from iframe content scripts
 window.addEventListener('message', (event) => {
-  // Only process messages from our content script
-  if (event.data && event.data.type === 'SIDEPANEL_URL_CHANGE') {
+  if (!event.data) return;
+
+  // Handle URL change messages
+  if (event.data.type === 'SIDEPANEL_URL_CHANGE') {
     const newUrl = event.data.url;
     
     if (newUrl) {
@@ -52,6 +54,34 @@ window.addEventListener('message', (event) => {
         iframeCurrentUrl.title = 'Click to copy: ' + newUrl;
         iframeCurrentUrl.className = 'iframe-current-url';
         setupUrlClickHandler(iframeCurrentUrl, newUrl);
+      }
+    }
+  }
+  
+  // Handle navigation state updates
+  else if (event.data.type === 'SIDEPANEL_NAVIGATION_STATE') {
+    navigationState.canGoBack = event.data.canGoBack || false;
+    navigationState.canGoForward = event.data.canGoForward || false;
+    updateNavigationButtons();
+    console.log('Navigation state updated:', navigationState);
+  }
+  
+  // Handle navigation results
+  else if (event.data.type === 'SIDEPANEL_NAVIGATION_RESULT') {
+    const requestId = event.data.requestId;
+    const success = event.data.success;
+    const command = event.data.command;
+    const reason = event.data.reason;
+    
+    if (pendingNavigationRequests.has(requestId)) {
+      pendingNavigationRequests.delete(requestId);
+      
+      if (success) {
+        console.log(`Navigation ${command} succeeded`);
+        // Request updated navigation state after successful navigation
+        setTimeout(requestNavigationState, 200);
+      } else {
+        console.log(`Navigation ${command} failed:`, reason);
       }
     }
   }
@@ -286,6 +316,11 @@ async function openInIframe(website) {
     setTimeout(enableTracking, 500);
     setTimeout(enableTracking, 1500);
     setTimeout(enableTracking, 3000);
+    
+    // Request navigation state after iframe loads
+    setTimeout(() => {
+      requestNavigationState();
+    }, 2000);
   };
   
   // Set a reasonable timeout for slow-loading sites
@@ -305,6 +340,13 @@ async function openInIframe(website) {
 let urlTrackingInterval = null;
 let lastKnownUrl = null;
 let navigationCheckInterval = null;
+
+// Navigation state tracking
+let navigationState = {
+  canGoBack: false,
+  canGoForward: false
+};
+let pendingNavigationRequests = new Map();
 
 // Start tracking URL changes in iframe (enhanced approach)
 function startUrlTracking(iframe, urlElement) {
@@ -550,6 +592,93 @@ function removeUrlClickHandler(urlElement) {
   }
 }
 
+// Navigation control functions
+function navigateIframe(command) {
+  const iframe = document.getElementById('website-iframe');
+  if (!iframe || !iframe.src || iframe.src === 'about:blank') {
+    console.log('No iframe content available for navigation');
+    return;
+  }
+
+  // Handle refresh differently - reload iframe from parent context
+  if (command === 'refresh') {
+    const refreshBtn = document.getElementById('nav-refresh');
+    refreshBtn.classList.add('refreshing');
+    
+    // For refresh, we reload the iframe src directly
+    const currentSrc = iframe.src;
+    iframe.src = 'about:blank';
+    setTimeout(() => {
+      iframe.src = currentSrc;
+      setTimeout(() => {
+        refreshBtn.classList.remove('refreshing');
+      }, 1000);
+    }, 100);
+    return;
+  }
+
+  // For back/forward, send command to content script
+  const requestId = 'nav_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+  
+  // Store the request to track completion
+  pendingNavigationRequests.set(requestId, {
+    command: command,
+    timestamp: Date.now()
+  });
+
+  // Send navigation command to iframe content script
+  try {
+    iframe.contentWindow.postMessage({
+      type: 'SIDEPANEL_NAVIGATE',
+      command: command,
+      requestId: requestId
+    }, '*');
+
+    console.log(`Sent navigation command: ${command} with requestId: ${requestId}`);
+  } catch (e) {
+    console.log('Failed to send navigation command to iframe:', e);
+    pendingNavigationRequests.delete(requestId);
+  }
+
+  // Cleanup request after timeout
+  setTimeout(() => {
+    if (pendingNavigationRequests.has(requestId)) {
+      console.log(`Navigation request ${requestId} timed out`);
+      pendingNavigationRequests.delete(requestId);
+    }
+  }, 5000);
+}
+
+// Update navigation button states
+function updateNavigationButtons() {
+  const backBtn = document.getElementById('nav-back');
+  const forwardBtn = document.getElementById('nav-forward');
+  
+  if (backBtn) {
+    backBtn.disabled = !navigationState.canGoBack;
+  }
+  
+  if (forwardBtn) {
+    forwardBtn.disabled = !navigationState.canGoForward;
+  }
+}
+
+// Request navigation state from iframe content script
+function requestNavigationState() {
+  const iframe = document.getElementById('website-iframe');
+  if (!iframe || !iframe.src || iframe.src === 'about:blank') {
+    return;
+  }
+
+  try {
+    iframe.contentWindow.postMessage({
+      type: 'SIDEPANEL_GET_NAVIGATION_STATE'
+    }, '*');
+  } catch (e) {
+    console.log('Failed to request navigation state from iframe:', e);
+  }
+}
+
 // Handle iframe loading errors
 function handleIframeError(website, errorType = 'unknown') {
   console.log(`${website.name} cannot be embedded (${errorType}), opening in new tab instead`);
@@ -649,6 +778,11 @@ async function backToList() {
   // Clear iframe
   iframe.src = '';
   currentWebsiteUrl = null;
+  
+  // Reset navigation state
+  navigationState.canGoBack = false;
+  navigationState.canGoForward = false;
+  updateNavigationButtons();
 }
 
 // Set up all event listeners
@@ -720,6 +854,11 @@ function setupEventListeners() {
       console.error('No URL available to open in new tab');
     }
   });
+
+  // Navigation controls
+  document.getElementById('nav-back').addEventListener('click', () => navigateIframe('back'));
+  document.getElementById('nav-forward').addEventListener('click', () => navigateIframe('forward'));
+  document.getElementById('nav-refresh').addEventListener('click', () => navigateIframe('refresh'));
   
   // Behavior checkboxes
   document.getElementById('auto-close').addEventListener('change', updateBehaviorSettings);
