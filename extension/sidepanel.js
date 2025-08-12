@@ -2,6 +2,26 @@
 let sidebarSettings = null;
 let currentWebsiteUrl = null;
 
+// Utility function to get favicon URL from a website URL
+function getFaviconUrl(websiteUrl) {
+  try {
+    const url = new URL(websiteUrl);
+    return `${url.protocol}//${url.hostname}/favicon.ico`;
+  } catch (e) {
+    return null;
+  }
+}
+
+// Utility function to get website icon (favicon or emoji)
+function getWebsiteIcon(website) {
+  if (sidebarSettings.sidebarBehavior.useFavicons && website.favicon) {
+    return `<img src="${website.favicon}" alt="" class="website-favicon" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';">
+            <span class="website-icon" style="display:none">${website.icon || '🌐'}</span>`;
+  } else {
+    return `<span class="website-icon">${website.icon || '🌐'}</span>`;
+  }
+}
+
 // Initialize sidepanel on load
 document.addEventListener('DOMContentLoaded', initializeSidepanel);
 
@@ -19,22 +39,44 @@ async function initializeSidepanel() {
   applyBehaviorSettings();
 }
 
-// Load settings from background script
+// Load settings from main extension settings first, then fallback to background script
 function loadSidebarSettings() {
   return new Promise((resolve) => {
+    // First try to load from main extension settings (localStorage)
+    try {
+      const mainSettings = JSON.parse(localStorage.getItem('settings') || '{}');
+      if (mainSettings.sidebarSettings && mainSettings.sidebarSettings.sidebarWebsites) {
+        console.log('Loading sidepanel settings from main settings');
+        resolve(mainSettings.sidebarSettings);
+        return;
+      }
+    } catch (e) {
+      console.log('Could not load from main settings, trying background script:', e);
+    }
+    
+    // Fallback to background script storage
     chrome.runtime.sendMessage({ action: 'getSidebarSettings' }, (response) => {
+      console.log('Loading sidepanel settings from background script');
       resolve(response);
     });
   });
 }
 
-// Save settings to background script
+// Save settings to background script and sync with main extension settings
 function saveSidebarSettings() {
   return new Promise((resolve) => {
     chrome.runtime.sendMessage({ 
       action: 'saveSidebarSettings', 
       settings: sidebarSettings 
     }, (response) => {
+      // Also sync with main extension settings in localStorage for export/import
+      try {
+        const mainSettings = JSON.parse(localStorage.getItem('settings') || '{}');
+        mainSettings.sidebarSettings = sidebarSettings;
+        localStorage.setItem('settings', JSON.stringify(mainSettings));
+      } catch (e) {
+        console.log('Could not sync with main settings:', e);
+      }
       resolve(response);
     });
   });
@@ -73,12 +115,15 @@ function createWebsiteItem(website) {
     item.classList.add('compact');
   }
   
-  const icon = sidebarSettings.sidebarBehavior.showIcons ? 
-    `<span class="website-icon">${website.icon || '🌐'}</span>` : '';
+  const icon = sidebarSettings.sidebarBehavior.showIcons ? getWebsiteIcon(website) : '';
+  const showUrls = sidebarSettings.sidebarBehavior.showUrls;
   
   item.innerHTML = `
     ${icon}
-    <span class="website-name">${website.name}</span>
+    <div class="website-info">
+      <span class="website-name">${website.name}</span>
+      ${showUrls ? `<span class="website-url">${website.url}</span>` : ''}
+    </div>
   `;
   
   item.addEventListener('click', () => openWebsite(website));
@@ -127,76 +172,49 @@ function openInIframe(website) {
   iframeTitle.textContent = website.name;
   currentWebsiteUrl = website.url;
   
-  // Clear any existing event handlers to avoid duplicates
+  // Clear any existing handlers
   iframe.onerror = null;
   iframe.onload = null;
   
-  // Set up a loading timeout with better detection
+  // State tracking
+  let hasResolved = false;
   let loadTimeout;
-  let hasLoadedSuccessfully = false;
   
-  // Handle successful loads
-  iframe.onload = () => {
-    hasLoadedSuccessfully = true;
+  // Resolve function to avoid duplicate handling
+  const resolveLoad = (success, errorType = null) => {
+    if (hasResolved) return;
+    hasResolved = true;
     clearTimeout(loadTimeout);
-    console.log(`Successfully loaded ${website.name} in iframe`);
+    
+    if (success) {
+      console.log(`Successfully loaded ${website.name} in iframe`);
+    } else {
+      console.log(`Failed to load ${website.name} in iframe: ${errorType}`);
+      handleIframeError(website, errorType);
+    }
   };
   
-  // Handle actual network errors only
+  // Handle network errors (DNS failures, connection refused, etc.)
   iframe.onerror = () => {
-    if (!hasLoadedSuccessfully) {
-      console.log(`Network error loading ${website.name} in iframe`);
-      clearTimeout(loadTimeout);
-      handleIframeError(website, 'network_error');
+    resolveLoad(false, 'network_error');
+  };
+  
+  // Handle successful loads - keep it simple
+  iframe.onload = () => {
+    // Basic check: if contentWindow is accessible, assume it loaded something
+    // CSP/X-Frame-Options violations typically result in no contentWindow or immediate errors
+    if (iframe.contentWindow) {
+      resolveLoad(true);
+    } else {
+      resolveLoad(false, 'frame_blocked');
     }
   };
   
-  // Set a reasonable timeout for loading
+  // Aggressive timeout - CSP and X-Frame-Options blocks happen immediately
+  // If onload doesn't fire quickly, the site is likely blocking iframe embedding
   loadTimeout = setTimeout(() => {
-    if (!hasLoadedSuccessfully) {
-      // Check if iframe appears to have blocked content
-      let shouldFallback = false;
-      
-      try {
-        const iframeDoc = iframe.contentDocument || iframe.contentWindow?.document;
-        
-        // Only treat as blocked if we can access the document AND it's clearly an error
-        if (iframeDoc) {
-          const body = iframeDoc.body;
-          const bodyText = body ? body.textContent.toLowerCase().trim() : '';
-          
-          // Look for explicit blocking messages
-          const blockingIndicators = [
-            'refused to connect',
-            'this site can\'t be reached',
-            'x-frame-options',
-            'refused to frame',
-            'frame denied'
-          ];
-          
-          shouldFallback = blockingIndicators.some(indicator => bodyText.includes(indicator)) ||
-                           (bodyText === '' && body && body.innerHTML.trim() === '');
-        }
-        
-        // If we get a CORS error, that's actually good - it means the site loaded
-        // We'll assume it worked and let it be
-        
-      } catch (e) {
-        // CORS error - this is normal and expected for most sites that work in iframes
-        // Don't fallback, the site is working fine
-        shouldFallback = false;
-        console.log(`${website.name} loaded successfully (CORS protection is normal)`);
-      }
-      
-      if (shouldFallback) {
-        console.log(`${website.name} appears to block iframe embedding`);
-        handleIframeError(website, 'frame_blocked');
-      } else {
-        hasLoadedSuccessfully = true;
-        console.log(`${website.name} loaded successfully`);
-      }
-    }
-  }, 5000); // Give sites 5 seconds to load
+    resolveLoad(false, 'timeout');
+  }, 1500); // Very fast timeout - 1.5 seconds max
   
   // Load the URL
   iframe.src = website.url;
@@ -220,16 +238,28 @@ function handleIframeError(website, errorType = 'unknown') {
   const iframeTitle = document.getElementById('iframe-title');
   if (iframeTitle) {
     const originalText = iframeTitle.textContent;
-    const errorMessage = errorType === 'network_error' 
-      ? 'Connection failed - opening in tab...'
-      : 'Site blocks embedding - opening in tab...';
+    
+    let errorMessage;
+    switch (errorType) {
+      case 'network_error':
+        errorMessage = 'Connection failed - opening in tab...';
+        break;
+      case 'frame_blocked':
+        errorMessage = 'Site blocks embedding - opening in tab...';
+        break;
+      case 'timeout':
+        errorMessage = 'Site unavailable - opening in tab...';
+        break;
+      default:
+        errorMessage = 'Cannot embed - opening in tab...';
+    }
     
     iframeTitle.textContent = errorMessage;
     
     setTimeout(() => {
       iframeTitle.textContent = originalText;
       backToList();
-    }, 2000); // Show message a bit longer for better UX
+    }, 2500); // Show message longer for better readability
   } else {
     backToList();
   }
@@ -281,6 +311,8 @@ function setupEventListeners() {
   // Behavior checkboxes
   document.getElementById('auto-close').addEventListener('change', updateBehaviorSettings);
   document.getElementById('show-icons').addEventListener('change', updateBehaviorSettings);
+  document.getElementById('use-favicons').addEventListener('change', updateBehaviorSettings);
+  document.getElementById('show-urls').addEventListener('change', updateBehaviorSettings);
   document.getElementById('compact-mode').addEventListener('change', updateBehaviorSettings);
 }
 
@@ -292,6 +324,8 @@ function openSettings() {
   // Load current settings into form
   document.getElementById('auto-close').checked = sidebarSettings.sidebarBehavior.autoClose;
   document.getElementById('show-icons').checked = sidebarSettings.sidebarBehavior.showIcons;
+  document.getElementById('use-favicons').checked = sidebarSettings.sidebarBehavior.useFavicons || false;
+  document.getElementById('show-urls').checked = sidebarSettings.sidebarBehavior.showUrls || false;
   document.getElementById('compact-mode').checked = sidebarSettings.sidebarBehavior.compactMode;
   
   // Render manage websites list
@@ -344,12 +378,16 @@ function addWebsite() {
   // Get next position
   const maxPosition = Math.max(...sidebarSettings.sidebarWebsites.map(w => w.position), -1);
   
+  // Get favicon URL
+  const favicon = getFaviconUrl(url);
+  
   // Add website to settings
   sidebarSettings.sidebarWebsites.push({
     id,
     name,
     url,
     icon,
+    favicon,
     openMode: mode,
     position: maxPosition + 1
   });
@@ -375,11 +413,19 @@ function renderManageWebsitesList() {
   sortedWebsites.forEach((website, index) => {
     const item = document.createElement('div');
     item.className = 'manage-item';
+    const iconDisplay = sidebarSettings.sidebarBehavior.useFavicons && website.favicon 
+      ? `<img src="${website.favicon}" alt="" class="manage-favicon" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';">
+         <span class="manage-icon" style="display:none">${website.icon}</span>`
+      : `<span class="manage-icon">${website.icon}</span>`;
+    
     item.innerHTML = `
       <div class="manage-item-info">
-        <span class="manage-icon">${website.icon}</span>
-        <span class="manage-name">${website.name}</span>
-        <span class="manage-mode">(${website.openMode})</span>
+        ${iconDisplay}
+        <div class="manage-website-details">
+          <span class="manage-name">${website.name}</span>
+          <span class="manage-url">${website.url}</span>
+          <span class="manage-mode">(${website.openMode})</span>
+        </div>
       </div>
       <div class="manage-item-actions">
         <button class="action-btn move-up" data-id="${website.id}" ${index === 0 ? 'disabled' : ''}>↑</button>
@@ -443,6 +489,8 @@ function deleteWebsite(id) {
 function updateBehaviorSettings() {
   sidebarSettings.sidebarBehavior.autoClose = document.getElementById('auto-close').checked;
   sidebarSettings.sidebarBehavior.showIcons = document.getElementById('show-icons').checked;
+  sidebarSettings.sidebarBehavior.useFavicons = document.getElementById('use-favicons').checked;
+  sidebarSettings.sidebarBehavior.showUrls = document.getElementById('show-urls').checked;
   sidebarSettings.sidebarBehavior.compactMode = document.getElementById('compact-mode').checked;
 }
 

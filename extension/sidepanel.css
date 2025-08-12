@@ -109,6 +109,48 @@ body {
   font-weight: 500;
 }
 
+/* Website favicon styling */
+.website-favicon {
+  width: 16px;
+  height: 16px;
+  margin-right: 4px;
+  flex-shrink: 0;
+}
+
+.website-info {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  min-width: 0; /* Allow shrinking */
+}
+
+.website-info .website-name {
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.9);
+  margin: 0;
+}
+
+.website-url {
+  font-size: 0.7em;
+  color: rgba(255, 255, 255, 0.5);
+  margin-top: 2px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.website-item.compact .website-info {
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+}
+
+.website-item.compact .website-url {
+  margin-top: 0;
+  font-size: 0.6em;
+  flex-shrink: 1;
+}
+
 .empty-state {
   text-align: center;
   padding: 32px 16px;
@@ -340,6 +382,27 @@ body {
 .manage-mode {
   font-size: 12px;
   color: rgba(255, 255, 255, 0.5);
+}
+
+.manage-favicon {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+}
+
+.manage-website-details {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+
+.manage-url {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.4);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .manage-item-actions {
