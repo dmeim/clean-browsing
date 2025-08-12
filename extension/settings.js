@@ -894,59 +894,6 @@ class ModalDragResize {
           this.updateContentLayout();
 }
 
-// Sidepanel Settings Management
-function initSidebarSettings() {
-  // Load sidepanel settings into UI
-  
-  // Enable/disable checkbox
-  const sidebarEnabled = document.getElementById('sidepanel-enabled');
-  if (sidebarEnabled) {
-    sidebarEnabled.checked = settings.sidebarSettings?.sidebarEnabled !== false;
-    sidebarEnabled.addEventListener('change', (e) => {
-      if (!settings.sidebarSettings) settings.sidebarSettings = { ...defaultSettings.sidebarSettings };
-      settings.sidebarSettings.sidebarEnabled = e.target.checked;
-      saveSettings(settings);
-    });
-  }
-  
-  // Behavior checkboxes
-  const autoClose = document.getElementById('sidepanel-auto-close');
-  const showIcons = document.getElementById('sidepanel-show-icons');
-  const compactMode = document.getElementById('sidepanel-compact-mode');
-  
-  if (autoClose) {
-    autoClose.checked = settings.sidebarSettings?.sidebarBehavior?.autoClose || false;
-    autoClose.addEventListener('change', (e) => {
-      if (!settings.sidebarSettings) settings.sidebarSettings = { ...defaultSettings.sidebarSettings };
-      settings.sidebarSettings.sidebarBehavior.autoClose = e.target.checked;
-      saveSettings(settings);
-    });
-  }
-  
-  if (showIcons) {
-    showIcons.checked = settings.sidebarSettings?.sidebarBehavior?.showIcons !== false;
-    showIcons.addEventListener('change', (e) => {
-      if (!settings.sidebarSettings) settings.sidebarSettings = { ...defaultSettings.sidebarSettings };
-      settings.sidebarSettings.sidebarBehavior.showIcons = e.target.checked;
-      saveSettings(settings);
-    });
-  }
-  
-  if (compactMode) {
-    compactMode.checked = settings.sidebarSettings?.sidebarBehavior?.compactMode || false;
-    compactMode.addEventListener('change', (e) => {
-      if (!settings.sidebarSettings) settings.sidebarSettings = { ...defaultSettings.sidebarSettings };
-      settings.sidebarSettings.sidebarBehavior.compactMode = e.target.checked;
-      saveSettings(settings);
-    });
-  }
-}
-
-
-// Initialize sidepanel settings when DOM is ready
-document.addEventListener('DOMContentLoaded', () => {
-  setTimeout(initSidebarSettings, 100);
-});
 
         this.wasHidden = isHidden;
       }
