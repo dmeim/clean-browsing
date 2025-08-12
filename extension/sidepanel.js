@@ -31,6 +31,32 @@ function getWebsiteIcon(website) {
 // Initialize sidepanel on load
 document.addEventListener('DOMContentLoaded', initializeSidepanel);
 
+// Listen for URL change messages from iframe content scripts
+window.addEventListener('message', (event) => {
+  // Only process messages from our content script
+  if (event.data && event.data.type === 'SIDEPANEL_URL_CHANGE') {
+    const newUrl = event.data.url;
+    
+    if (newUrl) {
+      console.log('URL change detected from content script:', currentWebsiteUrl, '→', newUrl);
+      
+      // Always update the current URL, even if it seems the same
+      // This ensures we capture all navigation events
+      currentWebsiteUrl = newUrl;
+      lastKnownUrl = newUrl;
+      
+      // Update the display
+      const iframeCurrentUrl = document.getElementById('iframe-current-url');
+      if (iframeCurrentUrl && !iframeCurrentUrl.classList.contains('hidden')) {
+        iframeCurrentUrl.textContent = newUrl;
+        iframeCurrentUrl.title = 'Click to copy: ' + newUrl;
+        iframeCurrentUrl.className = 'iframe-current-url';
+        setupUrlClickHandler(iframeCurrentUrl, newUrl);
+      }
+    }
+  }
+});
+
 async function initializeSidepanel() {
   // Load settings from background script
   sidebarSettings = await loadSidebarSettings();
@@ -198,14 +224,21 @@ async function openInIframe(website) {
   const iframeContainer = document.getElementById('iframe-container');
   const iframe = document.getElementById('website-iframe');
   const iframeTitle = document.getElementById('iframe-title');
+  const iframeCurrentUrl = document.getElementById('iframe-current-url');
   
   // Hide website list, show iframe
   websiteList.classList.add('hidden');
   iframeContainer.classList.remove('hidden');
   
-  // Set title and current URL
+  // Set title and initialize current URL
   iframeTitle.textContent = website.name;
+  iframeCurrentUrl.textContent = website.url;
+  iframeCurrentUrl.title = 'Click to copy: ' + website.url;
+  iframeCurrentUrl.className = 'iframe-current-url';
   currentWebsiteUrl = website.url;
+  
+  // Set up click handler for URL copying
+  setupUrlClickHandler(iframeCurrentUrl, website.url);
   
   // Enable frame bypass for this URL
   await chrome.runtime.sendMessage({ 
@@ -234,6 +267,25 @@ async function openInIframe(website) {
   iframe.onload = () => {
     clearTimeout(loadTimeout);
     console.log(`Successfully loaded ${website.name} in iframe`);
+    
+    // Enable URL tracking in the iframe content script
+    // Send multiple times to ensure the message is received
+    const enableTracking = () => {
+      try {
+        iframe.contentWindow.postMessage({
+          type: 'SIDEPANEL_ENABLE_TRACKING',
+          enabled: true
+        }, '*');
+      } catch (e) {
+        console.log('Could not enable tracking in iframe (CORS expected)');
+      }
+    };
+    
+    // Send immediately and after delays to ensure content script receives it
+    enableTracking();
+    setTimeout(enableTracking, 500);
+    setTimeout(enableTracking, 1500);
+    setTimeout(enableTracking, 3000);
   };
   
   // Set a reasonable timeout for slow-loading sites
@@ -244,11 +296,266 @@ async function openInIframe(website) {
   
   // Load the URL
   iframe.src = website.url;
+  
+  // Start URL tracking with simplified approach
+  startUrlTracking(iframe, iframeCurrentUrl);
+}
+
+// URL tracking variables
+let urlTrackingInterval = null;
+let lastKnownUrl = null;
+let navigationCheckInterval = null;
+
+// Start tracking URL changes in iframe (enhanced approach)
+function startUrlTracking(iframe, urlElement) {
+  // Stop any existing tracking
+  stopUrlTracking();
+  
+  // Initial URL from iframe src
+  lastKnownUrl = iframe.src;
+  currentWebsiteUrl = iframe.src;
+  
+  // Enable tracking message sending to content script periodically
+  const enableTrackingPeriodically = () => {
+    try {
+      iframe.contentWindow.postMessage({
+        type: 'SIDEPANEL_ENABLE_TRACKING',
+        enabled: true
+      }, '*');
+    } catch (e) {
+      // Expected for CORS
+    }
+  };
+  
+  // Send enable message periodically to ensure content script stays active
+  navigationCheckInterval = setInterval(enableTrackingPeriodically, 5000);
+  
+  // Set up iframe load event detection to update the display
+  const originalOnload = iframe.onload;
+  iframe.onload = () => {
+    console.log('Iframe navigation detected via onload, src:', iframe.src);
+    if (originalOnload) originalOnload();
+    
+    // Update the URL immediately when iframe loads
+    if (iframe.src && iframe.src !== 'about:blank') {
+      currentWebsiteUrl = iframe.src;
+      lastKnownUrl = iframe.src;
+      urlElement.textContent = iframe.src;
+      urlElement.title = 'Click to copy: ' + iframe.src;
+      urlElement.className = 'iframe-current-url';
+      setupUrlClickHandler(urlElement, iframe.src);
+    }
+    
+    // Re-enable tracking after navigation
+    setTimeout(enableTrackingPeriodically, 100);
+    setTimeout(enableTrackingPeriodically, 500);
+    
+    // Try to set up enhanced navigation tracking
+    setupEnhancedNavTracking(iframe, urlElement);
+  };
+  
+  // Periodic check to ensure currentWebsiteUrl stays in sync 
+  urlTrackingInterval = setInterval(() => {
+    updateCurrentUrl(iframe, urlElement);
+  }, 2000); // Check every 2 seconds
+  
+  // Additional navigation monitoring using various detection methods
+  setupNavigationDetection(iframe, urlElement);
+}
+
+// Enhanced navigation tracking for same-origin or permissive sites
+function setupEnhancedNavTracking(iframe, urlElement) {
+  try {
+    // Try to access the iframe's window object (works for same-origin)
+    if (iframe.contentWindow) {
+      // Monitor hash changes
+      const originalHashchange = iframe.contentWindow.onhashchange;
+      iframe.contentWindow.onhashchange = () => {
+        if (originalHashchange) originalHashchange();
+        setTimeout(() => updateCurrentUrl(iframe, urlElement), 100);
+      };
+      
+      // Monitor popstate events (back/forward navigation)
+      const originalPopstate = iframe.contentWindow.onpopstate;
+      iframe.contentWindow.onpopstate = () => {
+        if (originalPopstate) originalPopstate();
+        setTimeout(() => updateCurrentUrl(iframe, urlElement), 100);
+      };
+    }
+  } catch (e) {
+    // CORS prevents access - this is expected for most external sites
+    console.log('Enhanced navigation tracking blocked by CORS (expected for external sites)');
+  }
+}
+
+// Set up multiple navigation detection methods
+function setupNavigationDetection(iframe, urlElement) {
+  // Monitor iframe attribute changes
+  const observer = new MutationObserver((mutations) => {
+    mutations.forEach((mutation) => {
+      if (mutation.type === 'attributes' && mutation.attributeName === 'src') {
+        console.log('Iframe src changed via mutation observer');
+        setTimeout(() => updateCurrentUrl(iframe, urlElement), 200);
+      }
+    });
+  });
+  
+  observer.observe(iframe, {
+    attributes: true,
+    attributeFilter: ['src']
+  });
+  
+  // Store observer reference for cleanup
+  iframe._urlMutationObserver = observer;
+}
+
+// Update the current URL display (enhanced and reliable)
+function updateCurrentUrl(iframe, urlElement) {
+  try {
+    let displayUrl = currentWebsiteUrl || iframe.src;
+    let urlSource = 'cached';
+    
+    // Try multiple methods to get the most current URL
+    
+    // Method 1: Try to get actual current URL for same-origin content 
+    try {
+      if (iframe.contentWindow && iframe.contentWindow.location && 
+          iframe.contentWindow.location.href && 
+          iframe.contentWindow.location.href !== 'about:blank') {
+        displayUrl = iframe.contentWindow.location.href;
+        urlSource = 'contentWindow';
+      }
+    } catch (e) {
+      // CORS blocked - this is expected for most external sites
+    }
+    
+    // Method 2: Check iframe src (reliable for initial load)
+    if (iframe.src && (!displayUrl || displayUrl === 'about:blank')) {
+      displayUrl = iframe.src;
+      urlSource = 'iframe.src';
+    }
+    
+    // Method 3: Use stored currentWebsiteUrl as fallback
+    if (!displayUrl || displayUrl === 'about:blank') {
+      displayUrl = currentWebsiteUrl || lastKnownUrl;
+      urlSource = 'fallback';
+    }
+    
+    // Ensure we have a valid URL to display
+    if (!displayUrl || displayUrl === 'about:blank') {
+      urlElement.textContent = 'Loading...';
+      urlElement.title = 'Loading website...';
+      urlElement.className = 'iframe-current-url unavailable';
+      removeUrlClickHandler(urlElement);
+      return;
+    }
+    
+    // Only update if URL actually changed to reduce noise
+    if (displayUrl !== lastKnownUrl) {
+      console.log(`URL updated (${urlSource}):`, lastKnownUrl, '→', displayUrl);
+      currentWebsiteUrl = displayUrl;
+      lastKnownUrl = displayUrl;
+      
+      // Update the display
+      urlElement.textContent = displayUrl;
+      urlElement.title = 'Click to copy: ' + displayUrl;
+      urlElement.className = 'iframe-current-url';
+      setupUrlClickHandler(urlElement, displayUrl);
+    }
+    
+  } catch (error) {
+    console.log('Error updating current URL:', error);
+    urlElement.textContent = 'Error loading URL';
+    urlElement.title = 'Unable to determine current URL';
+    urlElement.className = 'iframe-current-url unavailable';
+    removeUrlClickHandler(urlElement);
+  }
+}
+
+// Stop URL tracking
+function stopUrlTracking() {
+  // Clear intervals
+  if (urlTrackingInterval) {
+    clearInterval(urlTrackingInterval);
+    urlTrackingInterval = null;
+  }
+  
+  if (navigationCheckInterval) {
+    clearInterval(navigationCheckInterval);
+    navigationCheckInterval = null;
+  }
+  
+  // Clean up mutation observer
+  const iframe = document.getElementById('website-iframe');
+  if (iframe && iframe._urlMutationObserver) {
+    iframe._urlMutationObserver.disconnect();
+    delete iframe._urlMutationObserver;
+  }
+  
+  // Reset tracking variables
+  lastKnownUrl = null;
+}
+
+// Set up click handler for URL copying
+function setupUrlClickHandler(urlElement, url) {
+  // Remove any existing handler
+  removeUrlClickHandler(urlElement);
+  
+  // Create new handler
+  const clickHandler = async (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    try {
+      await navigator.clipboard.writeText(url);
+      
+      // Show visual feedback
+      const originalClass = urlElement.className;
+      const originalText = urlElement.textContent;
+      
+      urlElement.className = 'iframe-current-url copied';
+      urlElement.textContent = 'Copied!';
+      
+      // Restore after brief delay
+      setTimeout(() => {
+        urlElement.className = originalClass;
+        urlElement.textContent = originalText;
+      }, 1000);
+      
+    } catch (error) {
+      console.log('Failed to copy URL:', error);
+      
+      // Show error feedback
+      const originalClass = urlElement.className;
+      const originalText = urlElement.textContent;
+      
+      urlElement.textContent = 'Copy failed';
+      
+      setTimeout(() => {
+        urlElement.className = originalClass;
+        urlElement.textContent = originalText;
+      }, 1000);
+    }
+  };
+  
+  urlElement.addEventListener('click', clickHandler);
+  urlElement._urlClickHandler = clickHandler; // Store reference for cleanup
+}
+
+// Remove click handler for URL copying
+function removeUrlClickHandler(urlElement) {
+  if (urlElement._urlClickHandler) {
+    urlElement.removeEventListener('click', urlElement._urlClickHandler);
+    delete urlElement._urlClickHandler;
+  }
 }
 
 // Handle iframe loading errors
 function handleIframeError(website, errorType = 'unknown') {
   console.log(`${website.name} cannot be embedded (${errorType}), opening in new tab instead`);
+  
+  // Stop URL tracking when there's an error
+  stopUrlTracking();
   
   // Open in new tab
   chrome.runtime.sendMessage({ 
@@ -262,6 +569,7 @@ function handleIframeError(website, errorType = 'unknown') {
   
   // Show a brief notification with more helpful messaging
   const iframeTitle = document.getElementById('iframe-title');
+  const iframeCurrentUrl = document.getElementById('iframe-current-url');
   if (iframeTitle) {
     const originalText = iframeTitle.textContent;
     
@@ -281,6 +589,9 @@ function handleIframeError(website, errorType = 'unknown') {
     }
     
     iframeTitle.textContent = errorMessage;
+    if (iframeCurrentUrl) {
+      iframeCurrentUrl.textContent = 'Error occurred';
+    }
     
     setTimeout(() => {
       iframeTitle.textContent = originalText;
@@ -303,6 +614,25 @@ async function backToList() {
   const websiteList = document.getElementById('website-list');
   const iframeContainer = document.getElementById('iframe-container');
   const iframe = document.getElementById('website-iframe');
+  const iframeCurrentUrl = document.getElementById('iframe-current-url');
+  
+  // Stop URL tracking
+  stopUrlTracking();
+  
+  // Clean up URL click handler
+  if (iframeCurrentUrl) {
+    removeUrlClickHandler(iframeCurrentUrl);
+  }
+  
+  // Disable tracking in iframe content script
+  try {
+    iframe.contentWindow.postMessage({
+      type: 'SIDEPANEL_ENABLE_TRACKING',
+      enabled: false
+    }, '*');
+  } catch (e) {
+    // Expected for CORS protected content
+  }
   
   // Disable frame bypass if we had a URL loaded
   if (currentWebsiteUrl) {
@@ -370,11 +700,24 @@ function setupEventListeners() {
   // Iframe controls
   document.getElementById('back-to-list').addEventListener('click', backToList);
   document.getElementById('open-in-tab').addEventListener('click', () => {
-    if (currentWebsiteUrl) {
+    // Get the most current URL available
+    const iframe = document.getElementById('website-iframe');
+    let urlToOpen = currentWebsiteUrl || lastKnownUrl;
+    
+    // Try to get current iframe src as fallback
+    if ((!urlToOpen || urlToOpen === 'about:blank') && iframe && iframe.src && iframe.src !== 'about:blank') {
+      urlToOpen = iframe.src;
+    }
+    
+    console.log('Opening in new tab:', urlToOpen);
+    
+    if (urlToOpen && urlToOpen !== 'about:blank') {
       chrome.runtime.sendMessage({ 
         action: 'openInNewTab', 
-        url: currentWebsiteUrl 
+        url: urlToOpen 
       });
+    } else {
+      console.error('No URL available to open in new tab');
     }
   });
   

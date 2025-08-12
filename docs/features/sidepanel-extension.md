@@ -51,6 +51,7 @@ A browser sidepanel that provides quick access to user-configured websites throu
 - **Host Permissions**: Dynamic permission requests for iframe-embedded sites
 - **Favicon Handling**: Fetch and display website favicons or custom icons
 - **Error Handling**: Graceful fallbacks for sites that can't be embedded
+- **URL Tracking**: Real-time navigation tracking within embedded iframes
 
 ### File Structure
 ```
@@ -156,6 +157,7 @@ docs/features/sidebar-extension.md   (this file)
 ### Version History
 - v0.2.1: Initial sidebar implementation with basic website management
 - v0.2.2: Enhanced with iframe support and improved error handling
+- v0.2.9: Advanced URL tracking system with real-time navigation detection
 - v0.3.0: Advanced features like categories and keyboard shortcuts
 
 ---
@@ -613,6 +615,293 @@ The key to universal iframe loading:
 4. **Security Maintained**: Same-origin policy still protects data
 
 **The Result**: A truly universal sidepanel that can display ANY website without exceptions, configuration, or fallbacks.
+
+---
+
+## 🔍 Advanced URL Tracking System - Real-Time Navigation Detection
+
+### Overview
+The sidepanel implements a **comprehensive URL tracking system** that monitors and displays the current URL as users navigate within embedded iframes. This ensures the URL preview always shows the actual current page, and the "Open in Tab" button opens exactly what the user is viewing.
+
+### Core Features
+
+#### 1. **Real-Time URL Updates**
+- **Live URL Display**: Shows the current page URL, not just the initial website
+- **Navigation Detection**: Tracks all types of navigation (clicks, history, redirects)
+- **Instant Updates**: URL preview updates within 1.5 seconds of navigation
+- **Visual Feedback**: Click-to-copy functionality with visual confirmation
+
+#### 2. **Multi-Layer Tracking Architecture**
+
+The system uses multiple detection methods to ensure no navigation is missed:
+
+##### **Content Script Injection (iframe-tracker.js)**
+```javascript
+// Injected into all iframes to detect navigation
+// Monitors multiple navigation events:
+- history.pushState / replaceState (SPA navigation)
+- popstate events (back/forward buttons)
+- hashchange events (anchor navigation)
+- DOMContentLoaded (page loads)
+- Periodic polling (1.5s intervals as fallback)
+```
+
+##### **Message Passing System**
+```javascript
+// iframe content → sidepanel communication
+iframe.contentWindow.postMessage({
+  type: 'SIDEPANEL_URL_CHANGE',
+  url: currentUrl,
+  title: document.title,
+  timestamp: Date.now()
+}, '*');
+
+// Sidepanel receives and processes updates
+window.addEventListener('message', (event) => {
+  if (event.data.type === 'SIDEPANEL_URL_CHANGE') {
+    currentWebsiteUrl = event.data.url;
+    updateUrlDisplay(event.data.url);
+  }
+});
+```
+
+##### **Fallback Detection Methods**
+- **iframe.onload**: Captures full page navigations
+- **MutationObserver**: Watches for src attribute changes
+- **Periodic Verification**: Checks every 2 seconds for missed changes
+- **Enhanced Navigation Tracking**: Attempts direct access for same-origin content
+
+### Technical Implementation
+
+#### 3. **The Tracking Flow**
+
+```
+User clicks link in iframe
+         ↓
+Content script detects change (multiple methods)
+         ↓
+Posts message to parent (sidepanel)
+         ↓
+Sidepanel updates currentWebsiteUrl
+         ↓
+Updates URL display & click handler
+         ↓
+"Open in Tab" uses current URL
+```
+
+#### 4. **Key Components**
+
+##### **URL State Management**
+```javascript
+let currentWebsiteUrl = null;  // Current tracked URL
+let lastKnownUrl = null;       // Previous URL for comparison
+let urlTrackingInterval = null; // Periodic check timer
+```
+
+##### **Tracking Enablement**
+```javascript
+// Multiple attempts to ensure tracking is enabled
+const enableTracking = () => {
+  iframe.contentWindow.postMessage({
+    type: 'SIDEPANEL_ENABLE_TRACKING',
+    enabled: true
+  }, '*');
+};
+
+// Send at multiple intervals for reliability
+enableTracking();                // Immediate
+setTimeout(enableTracking, 500);  // After 0.5s
+setTimeout(enableTracking, 1500); // After 1.5s
+setTimeout(enableTracking, 3000); // After 3s
+```
+
+##### **Smart URL Resolution**
+```javascript
+// Hierarchical URL determination
+function getCurrentUrl() {
+  // 1. Use tracked URL from content script
+  if (currentWebsiteUrl) return currentWebsiteUrl;
+  
+  // 2. Try direct iframe access (same-origin)
+  try {
+    if (iframe.contentWindow.location.href) {
+      return iframe.contentWindow.location.href;
+    }
+  } catch (e) { /* CORS blocked */ }
+  
+  // 3. Fall back to iframe src
+  if (iframe.src) return iframe.src;
+  
+  // 4. Use last known URL
+  return lastKnownUrl;
+}
+```
+
+### User Experience Enhancements
+
+#### 5. **URL Display Features**
+
+##### **Click-to-Copy Functionality**
+- Click on URL to copy to clipboard
+- Visual feedback: "Copied!" confirmation
+- Automatic restoration after 1 second
+- Error handling for copy failures
+
+##### **Visual States**
+```css
+.iframe-current-url          /* Normal state - clickable */
+.iframe-current-url.copied   /* Success state - green */
+.iframe-current-url.unavailable /* Error state - grayed */
+```
+
+##### **Open in Tab Button**
+```javascript
+// Always uses the most current URL
+document.getElementById('open-in-tab').addEventListener('click', () => {
+  const urlToOpen = currentWebsiteUrl || lastKnownUrl || iframe.src;
+  if (urlToOpen && urlToOpen !== 'about:blank') {
+    chrome.runtime.sendMessage({ 
+      action: 'openInNewTab', 
+      url: urlToOpen  // Opens current page, not initial site
+    });
+  }
+});
+```
+
+### Cross-Origin Considerations
+
+#### 6. **CORS Limitations & Solutions**
+
+##### **What Works Everywhere**
+- ✅ Content script injection (all sites)
+- ✅ Message passing (all sites)
+- ✅ iframe.onload detection (all sites)
+- ✅ Periodic polling (all sites)
+
+##### **What Works Sometimes**
+- ⚠️ Direct location access (same-origin only)
+- ⚠️ Enhanced event listeners (same-origin only)
+
+##### **Our Solution**
+Multiple redundant tracking methods ensure URL updates work for:
+- **Same-origin content**: Full access, instant updates
+- **Cross-origin content**: Message-based updates, 1.5s max delay
+- **Restricted content**: Fallback polling ensures tracking
+
+### Performance Optimizations
+
+#### 7. **Efficient Resource Usage**
+
+##### **Smart Polling Intervals**
+```javascript
+// Content script (iframe-tracker.js)
+setInterval(reportUrlChange, 1500);  // 1.5s - responsive
+
+// Sidepanel (sidepanel.js)
+setInterval(updateCurrentUrl, 2000); // 2s - verification
+setInterval(enableTracking, 5000);   // 5s - keep-alive
+```
+
+##### **Cleanup on Navigation**
+```javascript
+function stopUrlTracking() {
+  clearInterval(urlTrackingInterval);
+  clearInterval(navigationCheckInterval);
+  if (iframe._urlMutationObserver) {
+    iframe._urlMutationObserver.disconnect();
+  }
+  lastKnownUrl = null;
+}
+```
+
+### Real-World Scenarios
+
+#### 8. **Navigation Examples**
+
+##### **Example 1: GitHub Repository Browsing**
+```
+1. User opens github.com/user/repo
+2. URL shows: "https://github.com/user/repo"
+3. User clicks on "Issues" tab
+4. Content script detects: pushState event
+5. Message sent to sidepanel
+6. URL updates to: "https://github.com/user/repo/issues"
+7. "Open in Tab" would open the Issues page
+```
+
+##### **Example 2: ChatGPT Conversation**
+```
+1. User opens chat.openai.com
+2. URL shows: "https://chat.openai.com"
+3. User navigates to specific chat
+4. URL updates to: "https://chat.openai.com/c/abc-123"
+5. User can open exact conversation in new tab
+```
+
+##### **Example 3: Documentation Site**
+```
+1. User opens docs.example.com
+2. Clicks through multiple pages
+3. Each navigation updates URL in real-time
+4. Copy URL at any point for current page
+5. "Open in Tab" always opens current article
+```
+
+### Browser Console Messages
+
+#### 9. **Debugging & Monitoring**
+
+```javascript
+// Successful tracking
+"Sidepanel URL tracking enabled for: https://example.com"
+"Iframe navigation detected and reported: https://example.com/page2"
+"URL change detected from content script: /page1 → /page2"
+
+// Tracking updates
+"URL updated (contentWindow): https://example.com/new-page"
+"URL updated (iframe.src): https://example.com/redirect"
+"URL updated (fallback): https://example.com/current"
+
+// Expected CORS messages (not errors)
+"Enhanced navigation tracking blocked by CORS (expected)"
+"Could not enable tracking in iframe (CORS expected)"
+```
+
+### Testing the URL Tracking
+
+#### 10. **Verification Checklist**
+
+- [ ] Open website in sidepanel iframe
+- [ ] Navigate to different pages within the site
+- [ ] Verify URL preview updates within 2 seconds
+- [ ] Click URL to test copy functionality
+- [ ] Use "Open in Tab" button - should open current page
+- [ ] Navigate using browser back/forward in iframe
+- [ ] Test with SPA sites (React, Angular, Vue apps)
+- [ ] Test with traditional multi-page sites
+- [ ] Verify tracking survives page refreshes
+- [ ] Check cleanup when returning to website list
+
+### Known Limitations
+
+#### 11. **Edge Cases**
+
+1. **PDF/Binary Files**: May not track properly
+2. **Download Links**: Trigger downloads instead of navigation
+3. **Popup Windows**: Not tracked (open in separate window)
+4. **Frame Busting**: Some sites may still break out
+5. **Service Workers**: May interfere with tracking
+
+### Future Enhancements
+
+#### 12. **Planned Improvements**
+
+1. **Navigation History**: Track and display back/forward history
+2. **URL Shortcuts**: Quick access to copied URLs
+3. **Smart Predictions**: Preload likely next pages
+4. **Session Restoration**: Remember last visited page per site
+5. **URL Patterns**: Detect and highlight important URL changes
+6. **Breadcrumb Trail**: Show navigation path within site
 
 ---
 
