@@ -874,7 +874,7 @@ class ModalDragResize {
     const groups = content.querySelectorAll('.settings-group');
     const tabContent = content.querySelectorAll('.tab-content');
     
-    if (aspectRatio > 1.3 && modalRect.width > 600) {
+    if (modalRect.width > 850) {
       // Wide layout
       content.classList.add('layout-wide');
       sections.forEach(section => section.classList.add('compact'));
