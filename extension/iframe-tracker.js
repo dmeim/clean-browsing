@@ -41,7 +41,6 @@
     try {
       window.parent.postMessage({
         type: 'SIDEPANEL_NAVIGATION_STATE',
-        canGoBack: window.history.length > 1 && window.history.state !== null,
         url: window.location.href,
         timestamp: Date.now()
       }, '*');
