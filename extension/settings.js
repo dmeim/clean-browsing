@@ -26,7 +26,21 @@ tabButtons.forEach(btn => {
 });
 
 const defaultSettings = {
-  background: { type: 'color', value: '#222222' },
+  background: { 
+    type: 'gradient',
+    gradient: {
+      color1: '#667eea',
+      color2: '#764ba2',
+      angle: 135
+    },
+    solid: {
+      color: '#222222'
+    },
+    image: {
+      url: null,
+      opacity: 100
+    }
+  },
   lastColor: '#222222',
   resetModalPosition: true,
   globalWidgetAppearance: {
@@ -174,10 +188,51 @@ function saveSettings(s) {
 }
 
 function applyBackground(s) {
-  if (s.background.type === 'color') {
-    document.body.style.background = s.background.value;
-  } else if (s.background.type === 'image') {
-    document.body.style.background = `url(${s.background.value}) center/cover no-repeat`;
+  // Handle legacy settings format
+  if (s.background.value) {
+    // Convert old format to new format
+    if (s.background.type === 'color') {
+      s.background = {
+        type: 'solid',
+        gradient: { color1: '#667eea', color2: '#764ba2', angle: 135 },
+        solid: { color: s.background.value },
+        image: { url: null, opacity: 100 }
+      };
+    } else if (s.background.type === 'image') {
+      s.background = {
+        type: 'image',
+        gradient: { color1: '#667eea', color2: '#764ba2', angle: 135 },
+        solid: { color: s.lastColor || '#222222' },
+        image: { url: s.background.value, opacity: 100 }
+      };
+    }
+    saveSettings(s);
+  }
+  
+  // Apply new format backgrounds
+  switch (s.background.type) {
+    case 'gradient':
+      const g = s.background.gradient;
+      document.body.style.background = `linear-gradient(${g.angle}deg, ${g.color1} 0%, ${g.color2} 100%)`;
+      break;
+    case 'solid':
+      document.body.style.background = s.background.solid.color;
+      break;
+    case 'image':
+      const img = s.background.image;
+      if (img.url) {
+        const opacity = (100 - img.opacity) / 100;
+        document.body.style.background = `linear-gradient(rgba(0,0,0,${opacity}), rgba(0,0,0,${opacity})), url('${img.url}') center/cover no-repeat`;
+      } else {
+        // Fallback to gradient if no image
+        const g = s.background.gradient;
+        document.body.style.background = `linear-gradient(${g.angle}deg, ${g.color1} 0%, ${g.color2} 100%)`;
+      }
+      break;
+    default:
+      // Fallback to gradient
+      const fallback = s.background.gradient || { color1: '#667eea', color2: '#764ba2', angle: 135 };
+      document.body.style.background = `linear-gradient(${fallback.angle}deg, ${fallback.color1} 0%, ${fallback.color2} 100%)`;
   }
 }
 
@@ -186,84 +241,222 @@ applyBackground(settings);
 
 // Grid is now fixed and responsive - no user configuration needed
 
+// Legacy function kept for compatibility but no longer used
 function updateBackgroundControls() {
-  if (settings.background.type === 'image') {
-    colorPicker.value = settings.lastColor || defaultSettings.lastColor;
-    removeImageBtn.classList.remove('hidden');
-  } else {
-    colorPicker.value = settings.background.value;
-    removeImageBtn.classList.add('hidden');
-    imagePicker.value = '';
-  }
-  updateImagePickerDisplay();
+  // This function is no longer needed with the new background system
 }
 
 function updateImagePickerDisplay() {
-  // Always remove existing custom display first
-  const existingDisplay = document.querySelector('.bg-image-display');
-  if (existingDisplay) {
-    existingDisplay.remove();
-  }
-  
-  // Create a custom display for the file input when an image is set
-  if (settings.background.type === 'image') {
-    const customDisplay = document.createElement('div');
-    customDisplay.className = 'bg-image-display';
-    customDisplay.textContent = 'Background image is set';
-    customDisplay.style.cssText = `
-      font-size: 12px;
-      color: rgba(255, 255, 255, 0.7);
-      margin-top: 4px;
-      font-style: italic;
-      margin-left: 0;
-    `;
-    
-    // Insert after the image wrapper
-    const imageWrapper = imagePicker.parentNode;
-    imageWrapper.parentNode.insertBefore(customDisplay, imageWrapper.nextSibling);
-    imagePicker.style.opacity = '0.6';
-  } else {
-    imagePicker.style.opacity = '1';
-  }
+  // This function is no longer needed with the new background system
 }
 
-// background controls
-const colorPicker = document.getElementById('bg-color-picker');
-const imagePicker = document.getElementById('bg-image-picker');
-const removeImageBtn = document.getElementById('remove-bg-image');
-
-updateBackgroundControls();
-// Ensure image picker display is updated on page load
-setTimeout(() => updateImagePickerDisplay(), 100);
-
-colorPicker.addEventListener('input', (e) => {
-  settings.background = { type: 'color', value: e.target.value };
-  settings.lastColor = e.target.value;
-  applyBackground(settings);
-  saveSettings(settings);
-  updateBackgroundControls();
-});
-
-imagePicker.addEventListener('change', (e) => {
-  const file = e.target.files[0];
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = () => {
-    settings.background = { type: 'image', value: reader.result };
+// Enhanced background controls
+function setupBackgroundControls() {
+  // Background type radio buttons
+  document.querySelectorAll('input[name="main-bg-type"]').forEach(radio => {
+    radio.addEventListener('change', (e) => {
+      const type = e.target.value;
+      settings.background.type = type;
+      
+      // Show/hide appropriate options
+      document.querySelectorAll('.bg-options-group').forEach(opt => opt.classList.add('hidden'));
+      document.getElementById(`main-${type}-options`).classList.remove('hidden');
+      
+      applyBackground(settings);
+      saveSettings(settings);
+    });
+  });
+  
+  // Gradient controls
+  const gradientColor1 = document.getElementById('main-gradient-color1');
+  const gradientColor1Text = document.getElementById('main-gradient-color1-text');
+  const gradientColor2 = document.getElementById('main-gradient-color2');
+  const gradientColor2Text = document.getElementById('main-gradient-color2-text');
+  const gradientAngle = document.getElementById('main-gradient-angle');
+  const gradientAngleValue = document.getElementById('main-gradient-angle-value');
+  
+  gradientColor1.addEventListener('input', (e) => {
+    settings.background.gradient.color1 = e.target.value;
+    gradientColor1Text.value = e.target.value;
+    if (settings.background.type === 'gradient') {
+      applyBackground(settings);
+      saveSettings(settings);
+    }
+  });
+  
+  gradientColor1Text.addEventListener('input', (e) => {
+    settings.background.gradient.color1 = e.target.value;
+    gradientColor1.value = e.target.value;
+    if (settings.background.type === 'gradient') {
+      applyBackground(settings);
+      saveSettings(settings);
+    }
+  });
+  
+  gradientColor2.addEventListener('input', (e) => {
+    settings.background.gradient.color2 = e.target.value;
+    gradientColor2Text.value = e.target.value;
+    if (settings.background.type === 'gradient') {
+      applyBackground(settings);
+      saveSettings(settings);
+    }
+  });
+  
+  gradientColor2Text.addEventListener('input', (e) => {
+    settings.background.gradient.color2 = e.target.value;
+    gradientColor2.value = e.target.value;
+    if (settings.background.type === 'gradient') {
+      applyBackground(settings);
+      saveSettings(settings);
+    }
+  });
+  
+  gradientAngle.addEventListener('input', (e) => {
+    settings.background.gradient.angle = e.target.value;
+    gradientAngleValue.textContent = e.target.value + '°';
+    if (settings.background.type === 'gradient') {
+      applyBackground(settings);
+      saveSettings(settings);
+    }
+  });
+  
+  // Solid color controls
+  const solidColor = document.getElementById('main-solid-color');
+  const solidColorText = document.getElementById('main-solid-color-text');
+  
+  solidColor.addEventListener('input', (e) => {
+    settings.background.solid.color = e.target.value;
+    solidColorText.value = e.target.value;
+    if (settings.background.type === 'solid') {
+      applyBackground(settings);
+      saveSettings(settings);
+    }
+  });
+  
+  solidColorText.addEventListener('input', (e) => {
+    settings.background.solid.color = e.target.value;
+    solidColor.value = e.target.value;
+    if (settings.background.type === 'solid') {
+      applyBackground(settings);
+      saveSettings(settings);
+    }
+  });
+  
+  // Image controls
+  const imageUpload = document.getElementById('main-bg-image-upload');
+  const removeImage = document.getElementById('main-remove-bg-image');
+  const imageOpacity = document.getElementById('main-bg-image-opacity');
+  const imageOpacityValue = document.getElementById('main-bg-image-opacity-value');
+  
+  imageUpload.addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      settings.background.image.url = reader.result;
+      settings.background.type = 'image';
+      removeImage.classList.remove('hidden');
+      applyBackground(settings);
+      saveSettings(settings);
+      
+      // Update UI
+      document.querySelector('input[name="main-bg-type"][value="image"]').checked = true;
+      document.querySelectorAll('.bg-options-group').forEach(opt => opt.classList.add('hidden'));
+      document.getElementById('main-image-options').classList.remove('hidden');
+    };
+    reader.readAsDataURL(file);
+  });
+  
+  removeImage.addEventListener('click', () => {
+    settings.background.image.url = null;
+    settings.background.type = 'gradient';
+    imageUpload.value = '';
+    removeImage.classList.add('hidden');
     applyBackground(settings);
     saveSettings(settings);
-    updateBackgroundControls();
-  };
-  reader.readAsDataURL(file);
-});
+    
+    // Switch back to gradient
+    document.querySelector('input[name="main-bg-type"][value="gradient"]').checked = true;
+    document.querySelectorAll('.bg-options-group').forEach(opt => opt.classList.add('hidden'));
+    document.getElementById('main-gradient-options').classList.remove('hidden');
+  });
+  
+  imageOpacity.addEventListener('input', (e) => {
+    settings.background.image.opacity = e.target.value;
+    imageOpacityValue.textContent = e.target.value + '%';
+    if (settings.background.type === 'image') {
+      applyBackground(settings);
+      saveSettings(settings);
+    }
+  });
+  
+  // Preset gradients
+  document.querySelectorAll('.preset-gradient-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const [angle, color1, color2] = btn.dataset.gradient.split(',');
+      settings.background.type = 'gradient';
+      settings.background.gradient = { color1, color2, angle: parseInt(angle) };
+      
+      // Update UI
+      document.querySelector('input[name="main-bg-type"][value="gradient"]').checked = true;
+      document.querySelectorAll('.bg-options-group').forEach(opt => opt.classList.add('hidden'));
+      document.getElementById('main-gradient-options').classList.remove('hidden');
+      
+      gradientColor1.value = color1;
+      gradientColor1Text.value = color1;
+      gradientColor2.value = color2;
+      gradientColor2Text.value = color2;
+      gradientAngle.value = angle;
+      gradientAngleValue.textContent = angle + '°';
+      
+      applyBackground(settings);
+      saveSettings(settings);
+    });
+  });
+  
+  // Load current settings into UI
+  loadBackgroundUI();
+}
 
-removeImageBtn.addEventListener('click', () => {
-  settings.background = { type: 'color', value: settings.lastColor || defaultSettings.lastColor };
-  applyBackground(settings);
-  saveSettings(settings);
-  imagePicker.value = '';
-  updateBackgroundControls();
-});
+function loadBackgroundUI() {
+  // Ensure background settings have the new format
+  if (!settings.background.gradient) {
+    settings.background.gradient = { color1: '#667eea', color2: '#764ba2', angle: 135 };
+  }
+  if (!settings.background.solid) {
+    settings.background.solid = { color: '#222222' };
+  }
+  if (!settings.background.image) {
+    settings.background.image = { url: null, opacity: 100 };
+  }
+  
+  // Set the active type
+  document.querySelector(`input[name="main-bg-type"][value="${settings.background.type}"]`).checked = true;
+  document.querySelectorAll('.bg-options-group').forEach(opt => opt.classList.add('hidden'));
+  document.getElementById(`main-${settings.background.type}-options`).classList.remove('hidden');
+  
+  // Load gradient settings
+  document.getElementById('main-gradient-color1').value = settings.background.gradient.color1;
+  document.getElementById('main-gradient-color1-text').value = settings.background.gradient.color1;
+  document.getElementById('main-gradient-color2').value = settings.background.gradient.color2;
+  document.getElementById('main-gradient-color2-text').value = settings.background.gradient.color2;
+  document.getElementById('main-gradient-angle').value = settings.background.gradient.angle;
+  document.getElementById('main-gradient-angle-value').textContent = settings.background.gradient.angle + '°';
+  
+  // Load solid color settings
+  document.getElementById('main-solid-color').value = settings.background.solid.color;
+  document.getElementById('main-solid-color-text').value = settings.background.solid.color;
+  
+  // Load image settings
+  if (settings.background.image.url) {
+    document.getElementById('main-remove-bg-image').classList.remove('hidden');
+  }
+  document.getElementById('main-bg-image-opacity').value = settings.background.image.opacity;
+  document.getElementById('main-bg-image-opacity-value').textContent = settings.background.image.opacity + '%';
+}
+
+// Initialize background controls
+setupBackgroundControls();
 
 // Modal behavior controls
 const resetModalPositionCheckbox = document.getElementById('reset-modal-position');
