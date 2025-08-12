@@ -1,6 +1,7 @@
 // Sidepanel panel JavaScript
 let sidebarSettings = null;
 let currentWebsiteUrl = null;
+let currentBackgroundImage = null;
 
 // Utility function to get favicon URL from a website URL
 function getFaviconUrl(websiteUrl) {
@@ -42,6 +43,9 @@ async function initializeSidepanel() {
   
   // Apply behavior settings
   applyBehaviorSettings();
+  
+  // Load and apply appearance settings
+  loadAppearanceSettings();
 }
 
 // Load settings from main extension settings first, then fallback to background script
@@ -378,6 +382,9 @@ function setupEventListeners() {
   document.getElementById('auto-close').addEventListener('change', updateBehaviorSettings);
   document.getElementById('show-urls').addEventListener('change', updateBehaviorSettings);
   document.getElementById('compact-mode').addEventListener('change', updateBehaviorSettings);
+  
+  // Appearance settings
+  setupAppearanceListeners();
 }
 
 // Switch between tabs in settings modal
@@ -411,6 +418,29 @@ function openSettings() {
   document.getElementById('auto-close').checked = sidebarSettings.sidebarBehavior.autoClose;
   document.getElementById('show-urls').checked = sidebarSettings.sidebarBehavior.showUrls || false;
   document.getElementById('compact-mode').checked = sidebarSettings.sidebarBehavior.compactMode;
+  
+  // Load appearance settings
+  if (sidebarSettings.appearance) {
+    const { backgroundType, backgroundSettings } = sidebarSettings.appearance;
+    document.querySelector(`input[name="bg-type"][value="${backgroundType}"]`).checked = true;
+    document.querySelectorAll('.bg-options').forEach(opt => opt.classList.add('hidden'));
+    document.getElementById(`${backgroundType}-options`).classList.remove('hidden');
+    
+    if (backgroundType === 'gradient') {
+      document.getElementById('gradient-color1').value = backgroundSettings.color1 || '#667eea';
+      document.getElementById('gradient-color1-text').value = backgroundSettings.color1 || '#667eea';
+      document.getElementById('gradient-color2').value = backgroundSettings.color2 || '#764ba2';
+      document.getElementById('gradient-color2-text').value = backgroundSettings.color2 || '#764ba2';
+      document.getElementById('gradient-angle').value = backgroundSettings.angle || 135;
+      document.getElementById('gradient-angle-value').textContent = (backgroundSettings.angle || 135) + '°';
+    } else if (backgroundType === 'solid') {
+      document.getElementById('solid-color').value = backgroundSettings.color || '#667eea';
+      document.getElementById('solid-color-text').value = backgroundSettings.color || '#667eea';
+    } else if (backgroundType === 'image' && backgroundSettings.image) {
+      currentBackgroundImage = backgroundSettings.image;
+      document.getElementById('remove-bg-image').style.display = 'block';
+    }
+  }
   
   // Render manage websites list
   renderManageWebsitesList();
@@ -731,4 +761,191 @@ function applyBehaviorSettings() {
       item.classList.remove('compact');
     }
   });
+}
+
+// Setup appearance listeners
+function setupAppearanceListeners() {
+  // Background type radio buttons
+  document.querySelectorAll('input[name="bg-type"]').forEach(radio => {
+    radio.addEventListener('change', (e) => {
+      const type = e.target.value;
+      document.querySelectorAll('.bg-options').forEach(opt => opt.classList.add('hidden'));
+      document.getElementById(`${type}-options`).classList.remove('hidden');
+    });
+  });
+  
+  // Gradient controls
+  document.getElementById('gradient-color1').addEventListener('input', updateGradientPreview);
+  document.getElementById('gradient-color1-text').addEventListener('input', (e) => {
+    document.getElementById('gradient-color1').value = e.target.value;
+    updateGradientPreview();
+  });
+  
+  document.getElementById('gradient-color2').addEventListener('input', updateGradientPreview);
+  document.getElementById('gradient-color2-text').addEventListener('input', (e) => {
+    document.getElementById('gradient-color2').value = e.target.value;
+    updateGradientPreview();
+  });
+  
+  document.getElementById('gradient-angle').addEventListener('input', (e) => {
+    document.getElementById('gradient-angle-value').textContent = e.target.value + '°';
+    updateGradientPreview();
+  });
+  
+  // Solid color controls
+  document.getElementById('solid-color').addEventListener('input', updateSolidColorPreview);
+  document.getElementById('solid-color-text').addEventListener('input', (e) => {
+    document.getElementById('solid-color').value = e.target.value;
+    updateSolidColorPreview();
+  });
+  
+  // Image upload
+  document.getElementById('bg-image-upload').addEventListener('change', handleImageUpload);
+  document.getElementById('remove-bg-image').addEventListener('click', removeBackgroundImage);
+  
+  document.getElementById('bg-image-opacity').addEventListener('input', (e) => {
+    document.getElementById('bg-image-opacity-value').textContent = e.target.value + '%';
+    updateImageOpacity();
+  });
+  
+  // Preset gradients
+  document.querySelectorAll('.preset-gradient').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      const [angle, color1, color2] = e.target.dataset.gradient.split(',');
+      document.getElementById('gradient-angle').value = angle;
+      document.getElementById('gradient-angle-value').textContent = angle + '°';
+      document.getElementById('gradient-color1').value = color1;
+      document.getElementById('gradient-color1-text').value = color1;
+      document.getElementById('gradient-color2').value = color2;
+      document.getElementById('gradient-color2-text').value = color2;
+      document.querySelector('input[name="bg-type"][value="gradient"]').checked = true;
+      document.querySelectorAll('.bg-options').forEach(opt => opt.classList.add('hidden'));
+      document.getElementById('gradient-options').classList.remove('hidden');
+      updateGradientPreview();
+    });
+  });
+}
+
+// Update gradient preview
+function updateGradientPreview() {
+  const color1 = document.getElementById('gradient-color1').value;
+  const color2 = document.getElementById('gradient-color2').value;
+  const angle = document.getElementById('gradient-angle').value;
+  
+  document.getElementById('gradient-color1-text').value = color1;
+  document.getElementById('gradient-color2-text').value = color2;
+  
+  applyBackground('gradient', { color1, color2, angle });
+}
+
+// Update solid color preview
+function updateSolidColorPreview() {
+  const color = document.getElementById('solid-color').value;
+  document.getElementById('solid-color-text').value = color;
+  applyBackground('solid', { color });
+}
+
+// Handle image upload
+function handleImageUpload(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  
+  const reader = new FileReader();
+  reader.onload = (event) => {
+    currentBackgroundImage = event.target.result;
+    document.getElementById('remove-bg-image').style.display = 'block';
+    applyBackground('image', { image: currentBackgroundImage });
+  };
+  reader.readAsDataURL(file);
+}
+
+// Remove background image
+function removeBackgroundImage() {
+  currentBackgroundImage = null;
+  document.getElementById('bg-image-upload').value = '';
+  document.getElementById('remove-bg-image').style.display = 'none';
+  
+  // Switch back to gradient
+  document.querySelector('input[name="bg-type"][value="gradient"]').checked = true;
+  document.querySelectorAll('.bg-options').forEach(opt => opt.classList.add('hidden'));
+  document.getElementById('gradient-options').classList.remove('hidden');
+  updateGradientPreview();
+}
+
+// Update image opacity
+function updateImageOpacity() {
+  const opacity = document.getElementById('bg-image-opacity').value / 100;
+  if (currentBackgroundImage) {
+    applyBackground('image', { image: currentBackgroundImage, opacity });
+  }
+}
+
+// Apply background to sidepanel
+function applyBackground(type, settings) {
+  const body = document.body;
+  
+  switch (type) {
+    case 'gradient':
+      body.style.background = `linear-gradient(${settings.angle}deg, ${settings.color1} 0%, ${settings.color2} 100%)`;
+      break;
+    case 'solid':
+      body.style.background = settings.color;
+      break;
+    case 'image':
+      const opacity = settings.opacity || (document.getElementById('bg-image-opacity').value / 100);
+      body.style.background = `linear-gradient(rgba(0,0,0,${1-opacity}), rgba(0,0,0,${1-opacity})), url('${settings.image}') center/cover`;
+      break;
+  }
+  
+  // Save to settings
+  if (!sidebarSettings.appearance) {
+    sidebarSettings.appearance = {};
+  }
+  sidebarSettings.appearance.backgroundType = type;
+  sidebarSettings.appearance.backgroundSettings = settings;
+}
+
+// Load appearance settings
+function loadAppearanceSettings() {
+  if (!sidebarSettings.appearance) {
+    // Default appearance
+    sidebarSettings.appearance = {
+      backgroundType: 'gradient',
+      backgroundSettings: {
+        color1: '#667eea',
+        color2: '#764ba2',
+        angle: 135
+      }
+    };
+  }
+  
+  const { backgroundType, backgroundSettings } = sidebarSettings.appearance;
+  
+  // Apply the saved background
+  applyBackground(backgroundType, backgroundSettings);
+  
+  // Update UI controls
+  document.querySelector(`input[name="bg-type"][value="${backgroundType}"]`).checked = true;
+  document.querySelectorAll('.bg-options').forEach(opt => opt.classList.add('hidden'));
+  document.getElementById(`${backgroundType}-options`).classList.remove('hidden');
+  
+  if (backgroundType === 'gradient') {
+    document.getElementById('gradient-color1').value = backgroundSettings.color1;
+    document.getElementById('gradient-color1-text').value = backgroundSettings.color1;
+    document.getElementById('gradient-color2').value = backgroundSettings.color2;
+    document.getElementById('gradient-color2-text').value = backgroundSettings.color2;
+    document.getElementById('gradient-angle').value = backgroundSettings.angle;
+    document.getElementById('gradient-angle-value').textContent = backgroundSettings.angle + '°';
+  } else if (backgroundType === 'solid') {
+    document.getElementById('solid-color').value = backgroundSettings.color;
+    document.getElementById('solid-color-text').value = backgroundSettings.color;
+  } else if (backgroundType === 'image' && backgroundSettings.image) {
+    currentBackgroundImage = backgroundSettings.image;
+    document.getElementById('remove-bg-image').style.display = 'block';
+    if (backgroundSettings.opacity !== undefined) {
+      const opacityPercent = Math.round(backgroundSettings.opacity * 100);
+      document.getElementById('bg-image-opacity').value = opacityPercent;
+      document.getElementById('bg-image-opacity-value').textContent = opacityPercent + '%';
+    }
+  }
 }
