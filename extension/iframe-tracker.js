@@ -42,7 +42,6 @@
       window.parent.postMessage({
         type: 'SIDEPANEL_NAVIGATION_STATE',
         canGoBack: window.history.length > 1 && window.history.state !== null,
-        canGoForward: false, // Browser doesn't provide reliable forward detection
         url: window.location.href,
         timestamp: Date.now()
       }, '*');
@@ -67,14 +66,6 @@
           } else {
             return { success: false, reason: 'No history to go back' };
           }
-        case 'forward':
-          window.history.forward();
-          // Report URL change after navigation
-          setTimeout(() => {
-            reportUrlChange();
-            reportNavigationState();
-          }, 100);
-          return { success: true };
         case 'refresh':
           window.location.reload();
           return { success: true };

@@ -61,7 +61,6 @@ window.addEventListener('message', (event) => {
   // Handle navigation state updates
   else if (event.data.type === 'SIDEPANEL_NAVIGATION_STATE') {
     navigationState.canGoBack = event.data.canGoBack || false;
-    navigationState.canGoForward = event.data.canGoForward || false;
     updateNavigationButtons();
     console.log('Navigation state updated:', navigationState);
   }
@@ -343,8 +342,7 @@ let navigationCheckInterval = null;
 
 // Navigation state tracking
 let navigationState = {
-  canGoBack: false,
-  canGoForward: false
+  canGoBack: false
 };
 let pendingNavigationRequests = new Map();
 
@@ -600,6 +598,12 @@ function navigateIframe(command) {
     return;
   }
 
+  // Only support back and refresh commands
+  if (command !== 'back' && command !== 'refresh') {
+    console.log(`Unsupported navigation command: ${command}`);
+    return;
+  }
+
   // Handle refresh differently - reload iframe from parent context
   if (command === 'refresh') {
     const refreshBtn = document.getElementById('nav-refresh');
@@ -617,7 +621,7 @@ function navigateIframe(command) {
     return;
   }
 
-  // For back/forward, send command to content script
+  // For back, send command to content script
   const requestId = 'nav_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
   
   // Store the request to track completion
@@ -652,14 +656,9 @@ function navigateIframe(command) {
 // Update navigation button states
 function updateNavigationButtons() {
   const backBtn = document.getElementById('nav-back');
-  const forwardBtn = document.getElementById('nav-forward');
   
   if (backBtn) {
     backBtn.disabled = !navigationState.canGoBack;
-  }
-  
-  if (forwardBtn) {
-    forwardBtn.disabled = !navigationState.canGoForward;
   }
 }
 
@@ -781,7 +780,6 @@ async function backToList() {
   
   // Reset navigation state
   navigationState.canGoBack = false;
-  navigationState.canGoForward = false;
   updateNavigationButtons();
 }
 
@@ -857,7 +855,6 @@ function setupEventListeners() {
 
   // Navigation controls
   document.getElementById('nav-back').addEventListener('click', () => navigateIframe('back'));
-  document.getElementById('nav-forward').addEventListener('click', () => navigateIframe('forward'));
   document.getElementById('nav-refresh').addEventListener('click', () => navigateIframe('refresh'));
   
   // Behavior checkboxes
