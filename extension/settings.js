@@ -453,21 +453,30 @@ function loadBackgroundUI() {
   }
   document.getElementById('main-bg-image-opacity').value = settings.background.image.opacity;
   document.getElementById('main-bg-image-opacity-value').textContent = settings.background.image.opacity + '%';
+  
+  // Initialize modal controls after settings are loaded
+  setupModalControls();
 }
 
 // Initialize background controls
 setupBackgroundControls();
 
-// Modal behavior controls
-const resetModalPositionCheckbox = document.getElementById('reset-modal-position');
-
-// Initialize checkbox state
-resetModalPositionCheckbox.checked = settings.resetModalPosition !== false;
-
-resetModalPositionCheckbox.addEventListener('change', (e) => {
-  settings.resetModalPosition = e.target.checked;
-  saveSettings(settings);
-});
+// Modal behavior controls function
+function setupModalControls() {
+  const resetModalPositionCheckbox = document.getElementById('reset-modal-position');
+  
+  if (resetModalPositionCheckbox && settings) {
+    // Initialize checkbox state based on current settings
+    // Use explicit check for the setting value
+    const currentSetting = settings.resetModalPosition;
+    resetModalPositionCheckbox.checked = currentSetting !== false && currentSetting !== undefined;
+    
+    resetModalPositionCheckbox.addEventListener('change', (e) => {
+      settings.resetModalPosition = e.target.checked;
+      saveSettings(settings);
+    });
+  }
+}
 
 // Grid controls removed - using fixed responsive grid
 
@@ -774,6 +783,14 @@ class ModalDragResize {
     this.modal.classList.add('modal-resizing');
     
     const rect = this.modal.getBoundingClientRect();
+    
+    // Immediately set explicit position to prevent transform-based jumping
+    if (!this.modal.classList.contains('modal-positioned')) {
+      this.modal.style.left = rect.left + 'px';
+      this.modal.style.top = rect.top + 'px';
+      this.modal.classList.add('modal-positioned');
+    }
+    
     this.resizeStart = {
       x: e.clientX,
       y: e.clientY,
@@ -809,12 +826,20 @@ class ModalDragResize {
       const newWidth = Math.max(300, this.resizeStart.width + deltaX);
       const newHeight = Math.max(400, this.resizeStart.height + deltaY);
       
-      // Keep within viewport bounds
-      const maxWidth = window.innerWidth - this.modal.offsetLeft;
-      const maxHeight = window.innerHeight - this.modal.offsetTop;
+      // Get current modal position for boundary calculations
+      const modalRect = this.modal.getBoundingClientRect();
+      const modalLeft = this.modal.offsetLeft || modalRect.left;
+      const modalTop = this.modal.offsetTop || modalRect.top;
       
-      this.modal.style.width = Math.min(newWidth, maxWidth) + 'px';
-      this.modal.style.height = Math.min(newHeight, maxHeight) + 'px';
+      // Keep within viewport bounds with safety margins
+      const maxWidth = Math.max(300, window.innerWidth - modalLeft - 20);
+      const maxHeight = Math.max(400, window.innerHeight - modalTop - 20);
+      
+      const finalWidth = Math.min(newWidth, maxWidth);
+      const finalHeight = Math.min(newHeight, maxHeight);
+      
+      this.modal.style.width = finalWidth + 'px';
+      this.modal.style.height = finalHeight + 'px';
       this.modal.classList.add('modal-positioned');
       
       // Update content layout
@@ -901,12 +926,19 @@ class ModalDragResize {
   }
   
   resetPosition() {
+    // Clear all custom positioning and sizing styles
     this.modal.style.left = '';
     this.modal.style.top = '';
     this.modal.style.width = '';
     this.modal.style.height = '';
+    
+    // Remove positioning class and reset state
     this.modal.classList.remove('modal-positioned');
+    this.modal.classList.remove('modal-dragging');
+    this.modal.classList.remove('modal-resizing');
     this.hasBeenCustomized = false;
+    this.isDragging = false;
+    this.isResizing = false;
   }
   
   destroy() {
