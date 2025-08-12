@@ -293,6 +293,7 @@ body {
 /* Specific navigation button styles */
 #nav-refresh {
   animation: none;
+  font-size: 16px;
 }
 
 #nav-refresh.refreshing {
