@@ -1,6 +1,6 @@
 # NewTab PlusProMaxUltra
 
-[![Version](https://img.shields.io/badge/version-0.2.0-blue)](https://github.com/DimitriMeimaridis/newtab-pluspromaxultra/releases)
+[![Version](https://img.shields.io/badge/version-0.3.0-blue)](https://github.com/DimitriMeimaridis/newtab-pluspromaxultra/releases)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Chrome Extension](https://img.shields.io/badge/platform-Chrome%20Extension-brightgreen)](https://chromewebstore.google.com)
 
@@ -8,11 +8,12 @@
 
 ## 🌟 Overview
 
-A privacy-first Chrome extension that replaces your new tab page with a flexible tile-based grid system. Built with vanilla web technologies, offering complete customization while keeping all your data local.
+A privacy-first Chrome extension that replaces your new tab page with a flexible tile-based grid system and revolutionary browser sidepanel. Built with vanilla web technologies, offering complete customization while keeping all your data local.
 
 ### ✨ Key Highlights
 - 🎯 **Zero Subscriptions** - Completely free and open source
 - 🔒 **Privacy First** - All data stored locally, no external services  
+- 🌐 **Universal Sidepanel** - Embed ANY website with advanced iframe technology
 - 🎨 **Infinite Customization** - Personalize every aspect of your dashboard
 - 🧩 **Extensible Widgets** - Calculator, clock, search, date, and more
 - ⚡ **Performance Optimized** - Lightweight with no external dependencies
@@ -25,10 +26,11 @@ A privacy-first Chrome extension that replaces your new tab page with a flexible
 | **🕒 Clock** | Real-time clock with locale & format options | 4×3 | [Details](docs/features/clock-widget.md) |
 | **🧮 Calculator** | Full-featured calculator with keyboard support | 4×5 | [Details](docs/features/calculator-widget.md) |
 | **🔍 Search** | Multi-engine search with custom targeting | 6×2 | [Details](docs/features/search-widget.md) |
-| **📅 Date** | Customizable date display with 17 formats | 4×2 | [Details](docs/features/date-widget.md) |
+| **📅 Date** | Day.js powered date display with unlimited formats | 4×2 | [Details](docs/features/date-widget.md) |
 
 ### 🏗️ **Core Capabilities**
 - **40×24 Grid System** - Drag & drop positioning with visual overlay
+- **Universal Sidepanel** - Embed ANY website with advanced header stripping
 - **Glassmorphism Design** - Modern blur effects and transparency
 - **Global Appearance** - Unified styling with per-widget overrides  
 - **Import/Export** - Save and share configurations as JSON
@@ -77,19 +79,19 @@ extension/
 
 ## 📊 Project Status
 
-**Current Version**: v0.2.0 - Calculator & Enhanced Features  
+**Current Version**: v0.3.0 - Date Widget & Universal Sidepanel  
 **Development Stage**: Active development with regular releases  
-**Widget Count**: 4 shipped, 3+ planned for next release
+**Widget Count**: 4 shipped widgets, unlimited website embedding via sidepanel
 
 ### Recent Highlights
-- ✅ **Calculator Widget** - Full-featured calculator with keyboard support
-- ✅ **Enhanced Documentation** - Comprehensive guides and feature specs  
-- ✅ **Improved Grid System** - Better drag & drop with visual feedback
+- ✅ **Universal Sidepanel** - Embed ANY website with advanced iframe technology
+- ✅ **Date Widget** - Day.js powered formatting with unlimited customization
+- ✅ **Enhanced Architecture** - Improved widget system and resource management
 
 ### Coming Next
 - 🚧 **Notes Widget** - Rich text note-taking with auto-save
 - ⭕ **Weather Widget** - Local weather with NWS API integration
-- ⭕ **Enhanced Calculator** - Scientific functions and memory operations
+- ⭕ **Sidepanel Enhancements** - Bookmarking, history, and session management
 
 📋 **[Full Roadmap & Status](docs/features/README.md)**  
 📝 **[Release Notes](release-notes/)**
