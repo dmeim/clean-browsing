@@ -1,6 +1,6 @@
-# NewTab PlusProMaxUltra Documentation
+# Clean NewTab Documentation
 
-Welcome to the comprehensive documentation for the NewTab PlusProMaxUltra Chrome extension. This documentation provides everything you need to understand, contribute to, and extend the project.
+Welcome to the comprehensive documentation for the Clean NewTab Chrome extension. This documentation provides everything you need to understand, contribute to, and extend the project.
 
 ## 📚 Documentation Overview
 
@@ -71,7 +71,7 @@ High-level system design
 1. **Clone the repository**
    ```bash
    git clone [repository-url]
-   cd newtab-pluspromaxultra
+   cd clean-newtab
    ```
 
 2. **Load extension for testing**

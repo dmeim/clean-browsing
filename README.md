@@ -1,10 +1,10 @@
-# NewTab PlusProMaxUltra
+# Clean NewTab
 
-[![Version](https://img.shields.io/badge/version-0.3.0-blue)](https://github.com/DimitriMeimaridis/newtab-pluspromaxultra/releases)
+[![Version](https://img.shields.io/badge/version-0.4.0-blue)](https://github.com/DimitriMeimaridis/clean-newtab/releases)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Chrome Extension](https://img.shields.io/badge/platform-Chrome%20Extension-brightgreen)](https://chromewebstore.google.com)
 
-**The PRO PREMIUM MAXED-OUT ULTRA new tab experience** – Transform your new tab into a powerful, customizable dashboard with zero subscriptions and unlimited personalization.
+**A clean, customizable new tab experience** – Transform your new tab into a powerful, customizable dashboard with zero subscriptions and unlimited personalization.
 
 ## 🌟 Overview
 
@@ -47,8 +47,8 @@ A privacy-first Chrome extension that replaces your new tab page with a flexible
 
 ### For Developers
 ```bash
-git clone https://github.com/DimitriMeimaridis/newtab-pluspromaxultra.git
-cd newtab-pluspromaxultra
+git clone https://github.com/DimitriMeimaridis/clean-newtab.git
+cd clean-newtab
 # Load extension/ folder in Chrome extensions
 ```
 

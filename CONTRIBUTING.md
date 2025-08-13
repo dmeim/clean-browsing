@@ -1,6 +1,6 @@
-# Contributing to NewTab PlusProMaxUltra
+# Contributing to Clean NewTab
 
-Thank you for your interest in contributing to NewTab PlusProMaxUltra! This document provides guidelines and information for contributors.
+Thank you for your interest in contributing to Clean NewTab! This document provides guidelines and information for contributors.
 
 ## 🚀 Getting Started
 
@@ -13,8 +13,8 @@ Thank you for your interest in contributing to NewTab PlusProMaxUltra! This docu
 1. Fork the repository
 2. Clone your fork:
    ```bash
-   git clone https://github.com/yourusername/newtab-pluspromaxultra.git
-   cd newtab-pluspromaxultra
+   git clone https://github.com/yourusername/clean-newtab.git
+   cd clean-newtab
    ```
 3. Load the extension in Chrome:
    - Open `chrome://extensions`
