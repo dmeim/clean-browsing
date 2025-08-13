@@ -55,6 +55,40 @@
     const targetContainer = isEdit ? document.getElementById('widget-settings-tab') : widgetList;
     const currentFormat = existing?.settings?.format || 'YYYY-MM-DD';
     
+    // Generate examples dynamically ONLY if Day.js is loaded
+    let examplesHTML = '';
+    if (typeof dayjs !== 'undefined') {
+      examplesHTML = `
+        <div style="margin-top: 10px; padding: 12px; background: rgba(255,255,255,0.05); border-radius: 6px;">
+          <small style="color: #aaa; display: block; line-height: 1.6;">
+            <strong style="color: #00ff88;">Quick Examples:</strong><br>
+            <code style="color: #fff;">YYYY-MM-DD</code> → ${dayjs().format('YYYY-MM-DD')}<br>
+            <code style="color: #fff;">MM/DD/YYYY</code> → ${dayjs().format('MM/DD/YYYY')}<br>
+            <code style="color: #fff;">DD/MM/YYYY</code> → ${dayjs().format('DD/MM/YYYY')}<br>
+            <code style="color: #fff;">MMMM D, YYYY</code> → ${dayjs().format('MMMM D, YYYY')}<br>
+            <code style="color: #fff;">ddd, MMM Do</code> → ${dayjs().format('ddd, MMM Do')}<br>
+            <code style="color: #fff;">h:mm A • MMM D</code> → ${dayjs().format('h:mm A • MMM D')}<br>
+            <code style="color: #fff;">[Today is] dddd</code> → ${dayjs().format('[Today is] dddd')}
+          </small>
+        </div>
+      `;
+    } else {
+      examplesHTML = `
+        <div style="margin-top: 10px; padding: 12px; background: rgba(255,255,255,0.05); border-radius: 6px;">
+          <small style="color: #aaa; display: block; line-height: 1.6;">
+            <strong style="color: #00ff88;">Common Format Examples:</strong><br>
+            <code style="color: #fff;">YYYY-MM-DD</code> → ISO date format<br>
+            <code style="color: #fff;">MM/DD/YYYY</code> → US date format<br>
+            <code style="color: #fff;">DD/MM/YYYY</code> → EU date format<br>
+            <code style="color: #fff;">MMMM D, YYYY</code> → Full month name<br>
+            <code style="color: #fff;">ddd, MMM Do</code> → Short weekday and ordinal<br>
+            <code style="color: #fff;">h:mm A • MMM D</code> → Time and date<br>
+            <code style="color: #fff;">[Today is] dddd</code> → With literal text
+          </small>
+        </div>
+      `;
+    }
+    
     targetContainer.innerHTML = `
       <h3>${isEdit ? 'Edit Date Widget' : 'Date Widget'}</h3>
       
@@ -70,19 +104,7 @@
                placeholder="Enter Day.js format string" 
                value="${currentFormat}"
                style="font-family: monospace; font-size: 14px;">
-        
-        <div style="margin-top: 10px; padding: 12px; background: rgba(255,255,255,0.05); border-radius: 6px;">
-          <small style="color: #aaa; display: block; line-height: 1.6;">
-            <strong style="color: #00ff88;">Quick Examples:</strong><br>
-            <code style="color: #fff;">YYYY-MM-DD</code> → ${dayjs().format('YYYY-MM-DD')}<br>
-            <code style="color: #fff;">MM/DD/YYYY</code> → ${dayjs().format('MM/DD/YYYY')}<br>
-            <code style="color: #fff;">DD/MM/YYYY</code> → ${dayjs().format('DD/MM/YYYY')}<br>
-            <code style="color: #fff;">MMMM D, YYYY</code> → ${dayjs().format('MMMM D, YYYY')}<br>
-            <code style="color: #fff;">ddd, MMM Do</code> → ${dayjs().format('ddd, MMM Do')}<br>
-            <code style="color: #fff;">h:mm A • MMM D</code> → ${dayjs().format('h:mm A • MMM D')}<br>
-            <code style="color: #fff;">[Today is] dddd</code> → ${dayjs().format('[Today is] dddd')}
-          </small>
-        </div>
+        ${examplesHTML}
       </div>
       
       <div class="input-group">
