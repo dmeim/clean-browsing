@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Simplified Date Widget Test</title>
+    <style>
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            padding: 20px; 
+            background: #1a1a1a; 
+            color: #fff;
+        }
+        .test { 
+            margin: 20px 0; 
+            padding: 15px; 
+            background: rgba(255,255,255,0.1); 
+            border-radius: 8px;
+        }
+        .success { color: #00ff88; }
+        .error { color: #ff6b6b; }
+        .format-test {
+            display: grid;
+            grid-template-columns: 200px 300px 100px;
+            gap: 10px;
+            align-items: center;
+            padding: 10px;
+            background: rgba(0,0,0,0.3);
+            margin: 5px 0;
+            border-radius: 4px;
+        }
+        code { 
+            background: rgba(255,255,255,0.1); 
+            padding: 2px 6px; 
+            border-radius: 3px;
+            font-family: 'Monaco', 'Courier New', monospace;
+        }
+    </style>
+</head>
+<body>
+    <h1>Simplified Date Widget Test</h1>
+    
+    <!-- Load Day.js exactly as in the simplified newtab.html -->
+    <script src="https://cdn.jsdelivr.net/npm/dayjs@1/dayjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/dayjs@1/plugin/advancedFormat.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/dayjs@1/plugin/localizedFormat.js"></script>
+    
+    <script>
+        // Simple Day.js plugin extension
+        if (typeof dayjs !== 'undefined') {
+            if (window.dayjs_plugin_advancedFormat) {
+                dayjs.extend(window.dayjs_plugin_advancedFormat);
+            }
+            if (window.dayjs_plugin_localizedFormat) {
+                dayjs.extend(window.dayjs_plugin_localizedFormat);
+            }
+        }
+    </script>
+
+    <div class="test">
+        <h2>Day.js Status</h2>
+        <div id="status"></div>
+    </div>
+
+    <div class="test">
+        <h2>Format Tests</h2>
+        <div id="format-tests"></div>
+    </div>
+
+    <div class="test">
+        <h2>Live Format Tester</h2>
+        <input type="text" id="custom-format" placeholder="Enter format string" style="width: 300px; padding: 8px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.3); color: white; border-radius: 4px;">
+        <button onclick="testCustomFormat()" style="padding: 8px 16px; margin-left: 10px; background: #7877c6; color: white; border: none; border-radius: 4px; cursor: pointer;">Test</button>
+        <div id="custom-result" style="margin-top: 10px; padding: 10px; background: rgba(0,0,0,0.3); border-radius: 4px; min-height: 30px;"></div>
+    </div>
+
+    <script>
+        // Check Day.js status
+        const statusDiv = document.getElementById('status');
+        if (typeof dayjs === 'undefined') {
+            statusDiv.innerHTML = '<span class="error">❌ Day.js is NOT loaded!</span>';
+        } else {
+            statusDiv.innerHTML = '<span class="success">✅ Day.js is loaded and ready!</span>';
+            
+            // Test formats
+            const formats = [
+                // Basic formats
+                { format: 'YYYY-MM-DD', description: 'ISO Date' },
+                { format: 'MM/DD/YYYY', description: 'US Date' },
+                { format: 'DD/MM/YYYY', description: 'EU Date' },
+                { format: 'YYYY/MM/DD', description: 'JP Date' },
+                
+                // Month names
+                { format: 'MMMM D, YYYY', description: 'Full month' },
+                { format: 'MMM D, YYYY', description: 'Short month' },
+                { format: 'D MMMM YYYY', description: 'Day first' },
+                
+                // Weekdays
+                { format: 'dddd, MMMM D', description: 'Full weekday' },
+                { format: 'ddd, MMM D', description: 'Short weekday' },
+                
+                // Time
+                { format: 'h:mm A', description: '12-hour time' },
+                { format: 'HH:mm', description: '24-hour time' },
+                { format: 'HH:mm:ss', description: 'With seconds' },
+                
+                // Combined
+                { format: 'YYYY-MM-DD HH:mm', description: 'Date & time' },
+                { format: 'MMM D, h:mm A', description: 'Short date & time' },
+                
+                // Advanced (needs plugin)
+                { format: 'Do MMMM', description: 'Ordinal day' },
+                { format: 'Q [Quarter] YYYY', description: 'Quarter' },
+                { format: 'wo [week of year]', description: 'Week number' },
+                
+                // Localized (needs plugin)
+                { format: 'L', description: 'Locale date' },
+                { format: 'LL', description: 'Locale long date' },
+                { format: 'LLL', description: 'Locale date time' },
+                
+                // Literal text
+                { format: '[Today is] dddd', description: 'Literal text' },
+                { format: 'YYYY [year,] M [month]', description: 'Mixed literals' }
+            ];
+            
+            const testsDiv = document.getElementById('format-tests');
+            formats.forEach(test => {
+                const result = dayjs().format(test.format);
+                const isValid = result !== test.format; // If unchanged, format didn't work
+                
+                const testDiv = document.createElement('div');
+                testDiv.className = 'format-test';
+                testDiv.innerHTML = `
+                    <code>${test.format}</code>
+                    <span>${result}</span>
+                    <span class="${isValid ? 'success' : 'error'}">${isValid ? '✅' : '❌'} ${test.description}</span>
+                `;
+                testsDiv.appendChild(testDiv);
+            });
+        }
+        
+        function testCustomFormat() {
+            const format = document.getElementById('custom-format').value;
+            const resultDiv = document.getElementById('custom-result');
+            
+            if (!format) {
+                resultDiv.innerHTML = '<span class="error">Please enter a format string</span>';
+                return;
+            }
+            
+            if (typeof dayjs === 'undefined') {
+                resultDiv.innerHTML = '<span class="error">Day.js not loaded</span>';
+                return;
+            }
+            
+            try {
+                const result = dayjs().format(format);
+                const isValid = result !== format;
+                resultDiv.innerHTML = `
+                    <div>Format: <code>${format}</code></div>
+                    <div>Result: <strong style="color: ${isValid ? '#00ff88' : '#ff6b6b'}">${result}</strong></div>
+                    <div>Status: ${isValid ? '<span class="success">✅ Valid format</span>' : '<span class="error">❌ Invalid or unrecognized format</span>'}</div>
+                `;
+            } catch (error) {
+                resultDiv.innerHTML = `<span class="error">Error: ${error.message}</span>`;
+            }
+        }
+        
+        // Test on Enter key
+        document.getElementById('custom-format').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') testCustomFormat();
+        });
+    </script>
+</body>
+</html>

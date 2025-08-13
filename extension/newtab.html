@@ -270,8 +270,31 @@
       <div id="widget-appearance-tab-content" class="tab-content hidden"></div>
     </div>
   </div>
+  <!-- Day.js library and plugins for date formatting -->
+  <!-- Load Day.js synchronously to ensure it's available -->
+  <!-- Day.js for date widget - simplified loading -->
+  <script src="https://cdn.jsdelivr.net/npm/dayjs@1/dayjs.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/dayjs@1/plugin/advancedFormat.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/dayjs@1/plugin/localizedFormat.js"></script>
+  
+  <script>
+    // Simple Day.js plugin extension
+    if (typeof dayjs !== 'undefined') {
+      // Extend with plugins for additional format tokens
+      if (window.dayjs_plugin_advancedFormat) {
+        dayjs.extend(window.dayjs_plugin_advancedFormat); // Adds Do, Q, k, kk, X, x
+      }
+      if (window.dayjs_plugin_localizedFormat) {
+        dayjs.extend(window.dayjs_plugin_localizedFormat); // Adds L, LL, LLL, LLLL
+      }
+    }
+  </script>
+  
+  <!-- Core extension scripts -->
   <script src="settings.js"></script>
   <script src="widgets.js"></script>
+  
+  <!-- Widget implementations -->
   <script src="widgets/clock-widget.js"></script>
   <script src="widgets/date-widget.js"></script>
   <script src="widgets/search-widget.js"></script>
