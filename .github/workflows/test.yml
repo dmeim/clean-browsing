@@ -1,0 +1,43 @@
+name: Extension Tests
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Run tests
+      run: npm test
+      
+    - name: Validate manifest
+      run: |
+        node -e "
+          const manifest = require('./extension/manifest.json');
+          if (!manifest.name || !manifest.version) {
+            throw new Error('Invalid manifest.json');
+          }
+          console.log('Manifest validation passed');
+        "
+        
+    - name: Check extension structure
+      run: |
+        test -f extension/newtab.html || exit 1
+        test -f extension/settings.js || exit 1
+        test -f extension/widgets.js || exit 1
+        test -f extension/styles.css || exit 1
+        echo "Extension structure validation passed"

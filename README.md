@@ -3,6 +3,7 @@
 [![Version](https://img.shields.io/badge/version-0.4.0-blue)](https://github.com/DimitriMeimaridis/clean-newtab/releases)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Chrome Extension](https://img.shields.io/badge/platform-Chrome%20Extension-brightgreen)](https://chromewebstore.google.com)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
 
 **A clean, customizable new tab experience** – Transform your new tab into a powerful, customizable dashboard with zero subscriptions and unlimited personalization.
 
