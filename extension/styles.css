@@ -1765,4 +1765,149 @@ select option {
   line-height: 1.5;
 }
 
+/* Configuration Management Styles */
+.subsection-title {
+  margin: 1.5rem 0 1rem 0;
+  font-size: 1rem;
+  font-weight: 500;
+  color: #fff;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(255, 255, 255, 0.6) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.config-categories {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  padding: 1rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.config-categories .checkbox-group {
+  margin: 0;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.config-categories .checkbox-group:last-child {
+  border-bottom: none;
+}
+
+.config-categories .checkbox-group label {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.25rem;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.config-categories .checkbox-group label:hover {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.config-categories .checkbox-group input[type="checkbox"] {
+  margin-right: 0.75rem;
+  margin-top: 0.1rem;
+  transform: scale(1.1);
+}
+
+.checkbox-description {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.6);
+  font-style: italic;
+  margin-left: 1.8rem;
+  line-height: 1.3;
+}
+
+.config-actions {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-top: 1rem;
+}
+
+.config-actions button {
+  flex: 1;
+  min-width: 150px;
+  padding: 0.75rem 1rem;
+  font-weight: 500;
+}
+
+.secondary-button {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 6px;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.9rem;
+}
+
+.secondary-button:hover {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.3);
+  transform: translateY(-1px);
+}
+
+.config-status {
+  margin-top: 1rem;
+  padding: 0.75rem;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  text-align: center;
+  min-height: 20px;
+  transition: all 0.3s ease;
+}
+
+.config-status.success {
+  background: rgba(34, 197, 94, 0.2);
+  color: #4ade80;
+  border: 1px solid rgba(34, 197, 94, 0.3);
+}
+
+.config-status.error {
+  background: rgba(239, 68, 68, 0.2);
+  color: #f87171;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+/* Special styling for "All Settings" checkbox */
+.config-category-all {
+  accent-color: #667eea;
+}
+
+.config-categories .checkbox-group:first-child {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 6px;
+  padding: 0.75rem 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.config-categories .checkbox-group:first-child label {
+  font-weight: 600;
+}
+
+/* Responsive adjustments for config UI */
+@media (max-width: 600px) {
+  .config-actions {
+    flex-direction: column;
+  }
+  
+  .config-actions button {
+    min-width: auto;
+  }
+  
+  .checkbox-description {
+    margin-left: 1.5rem;
+    font-size: 0.8rem;
+  }
+}
+
 

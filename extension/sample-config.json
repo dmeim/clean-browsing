@@ -1,0 +1,97 @@
+{
+  "version": "0.4.0",
+  "exportDate": "2025-01-14",
+  "categories": {
+    "background": {
+      "type": "gradient",
+      "gradient": {
+        "color1": "#667eea",
+        "color2": "#764ba2",
+        "angle": 135
+      },
+      "solid": {
+        "color": "#222222"
+      },
+      "image": {
+        "url": null,
+        "opacity": 100
+      }
+    },
+    "globalAppearance": {
+      "fontSize": 100,
+      "fontWeight": 400,
+      "italic": false,
+      "underline": false,
+      "textColor": "#ffffff",
+      "textOpacity": 100,
+      "backgroundColor": "#000000",
+      "backgroundOpacity": 20,
+      "blur": 10,
+      "borderRadius": 12,
+      "opacity": 100,
+      "textAlign": "center",
+      "verticalAlign": "center",
+      "padding": 16
+    },
+    "widgets": [
+      {
+        "type": "clock",
+        "x": 0,
+        "y": 0,
+        "w": 4,
+        "h": 3,
+        "settings": {
+          "showSeconds": true,
+          "flashing": false,
+          "locale": "auto",
+          "use24h": false,
+          "daylightSavings": true,
+          "textSize": 100
+        }
+      },
+      {
+        "type": "date",
+        "x": 5,
+        "y": 0,
+        "w": 4,
+        "h": 2,
+        "settings": {
+          "format": "MM/DD/YYYY",
+          "separator": "/",
+          "locale": "auto"
+        }
+      }
+    ],
+    "sidebar": {
+      "sidebarEnabled": true,
+      "sidebarWebsites": [
+        {
+          "id": "wikipedia",
+          "name": "Wikipedia",
+          "url": "https://en.wikipedia.org",
+          "icon": "📚",
+          "openMode": "iframe",
+          "position": 0
+        },
+        {
+          "id": "github",
+          "name": "GitHub",
+          "url": "https://github.com",
+          "icon": "💻",
+          "openMode": "iframe",
+          "position": 1
+        }
+      ],
+      "sidebarBehavior": {
+        "autoClose": false,
+        "defaultOpenMode": "iframe",
+        "showIcons": true,
+        "compactMode": false
+      }
+    },
+    "preferences": {
+      "resetModalPosition": true,
+      "lastColor": "#222222"
+    }
+  }
+}

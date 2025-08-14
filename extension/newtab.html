@@ -28,25 +28,80 @@
     <div class="modal-content">
       <div id="config-tab" class="tab-content">
         <div class="settings-section">
-          <h3 class="section-title">Export / Import</h3>
+          <h3 class="section-title">Configuration Management</h3>
+          
+          <!-- Mode Selection -->
           <div class="settings-group">
             <div class="input-group">
-              <label for="export-type">Export Format</label>
-              <select id="export-type">
-                <option value="text">Text Format</option>
-                <option value="file">File Download</option>
+              <label for="config-mode">Action</label>
+              <select id="config-mode">
+                <option value="export">Export Settings</option>
+                <option value="import">Import Settings</option>
               </select>
-              <button id="export-btn" class="primary-button">Export Settings</button>
             </div>
-            <div class="input-group">
-              <label for="import-type">Import Format</label>
-              <select id="import-type">
-                <option value="text">Text Format</option>
-                <option value="file">File Upload</option>
-              </select>
-              <button id="import-btn" class="primary-button">Import Settings</button>
-              <input type="file" id="import-file" accept="application/json" style="display:none">
+          </div>
+
+          <!-- Settings Categories -->
+          <div class="settings-group">
+            <h4 class="subsection-title">Settings Categories</h4>
+            <div class="config-categories">
+              <div class="input-group checkbox-group">
+                <label>
+                  <input type="checkbox" id="config-all" class="config-category-all">
+                  <strong>All Settings</strong>
+                  <span class="checkbox-description">Select/deselect all categories</span>
+                </label>
+              </div>
+              <div class="input-group checkbox-group">
+                <label>
+                  <input type="checkbox" id="config-background" class="config-category">
+                  Background & Theme
+                  <span class="checkbox-description">Background colors, gradients, and images</span>
+                </label>
+              </div>
+              <div class="input-group checkbox-group">
+                <label>
+                  <input type="checkbox" id="config-appearance" class="config-category">
+                  Global Widget Styles
+                  <span class="checkbox-description">Default appearance settings for all widgets</span>
+                </label>
+              </div>
+              <div class="input-group checkbox-group">
+                <label>
+                  <input type="checkbox" id="config-widgets" class="config-category">
+                  Widgets & Layout
+                  <span class="checkbox-description">Widget positions, sizes, and individual settings</span>
+                </label>
+              </div>
+              <div class="input-group checkbox-group">
+                <label>
+                  <input type="checkbox" id="config-sidebar" class="config-category">
+                  Sidebar Websites
+                  <span class="checkbox-description">Saved websites and sidebar behavior</span>
+                </label>
+              </div>
+              <div class="input-group checkbox-group">
+                <label>
+                  <input type="checkbox" id="config-preferences" class="config-category">
+                  Application Preferences
+                  <span class="checkbox-description">Modal behavior and other preferences</span>
+                </label>
+              </div>
             </div>
+          </div>
+
+          <!-- Action Buttons -->
+          <div class="settings-group">
+            <div class="config-actions">
+              <button id="config-action-btn" class="primary-button">Export Selected</button>
+              <button id="config-quick-all" class="secondary-button">Quick Export All</button>
+              <input type="file" id="config-import-file" accept="application/json" style="display:none">
+            </div>
+          </div>
+
+          <!-- Status/Feedback -->
+          <div class="settings-group">
+            <div id="config-status" class="config-status"></div>
           </div>
         </div>
       </div>
