@@ -1,4 +1,4 @@
-# Clean NewTab
+# Clean-NewTab
 
 [![Version](https://img.shields.io/badge/version-0.3.0-blue)](https://github.com/DimitriMeimaridis/clean-newtab/releases)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
