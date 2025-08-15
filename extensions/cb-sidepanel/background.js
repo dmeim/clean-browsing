@@ -8,8 +8,8 @@ let activeSidepanelSessions = new Set();
 async function initializeSidepanelBehavior() {
   try {
     // Check if sidepanel is enabled in settings
-    const result = await chrome.storage.local.get(['sidebarSettings']);
-    const settings = result.sidebarSettings || getDefaultSidebarSettings();
+    const result = await chrome.storage.local.get(['sidepanel_settings']);
+    const settings = result.sidepanel_settings || getDefaultSidepanelSettings();
     
     const isEnabled = settings.sidebarEnabled !== false; // Default to true if not set
     
@@ -32,8 +32,8 @@ async function initializeSidepanelBehavior() {
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === 'getSidebarSettings') {
     // Get sidepanel settings from storage
-    chrome.storage.local.get(['sidebarSettings'], (result) => {
-      sendResponse(result.sidebarSettings || getDefaultSidebarSettings());
+    chrome.storage.local.get(['sidepanel_settings'], (result) => {
+      sendResponse(result.sidepanel_settings || getDefaultSidepanelSettings());
     });
     return true; // Keep message channel open for async response
   } else if (request.action === 'enableFrameBypass') {
@@ -48,7 +48,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     sendResponse({ success: true });
   } else if (request.action === 'saveSidebarSettings') {
     // Save sidepanel settings to storage
-    chrome.storage.local.set({ sidebarSettings: request.settings }, () => {
+    chrome.storage.local.set({ sidepanel_settings: request.settings }, () => {
       // Update sidepanel behavior when settings change
       const isEnabled = request.settings.sidebarEnabled !== false;
       try {
@@ -72,64 +72,24 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   }
 });
 
-// Default sidepanel settings
-function getDefaultSidebarSettings() {
+// Use minimal fallback settings for background script
+// Note: Background scripts can't easily load shared modules, so we keep a minimal fallback
+function getDefaultSidepanelSettings() {
   return {
     sidebarEnabled: true,
-    sidebarWebsites: [
-      {
-        id: 'wikipedia',
-        name: 'Wikipedia',
-        url: 'https://en.wikipedia.org',
-        icon: '📚',
-        favicon: 'https://en.wikipedia.org/favicon.ico',
-        openMode: 'iframe',  // Try iframe first for all sites
-        position: 0
-      },
-      {
-        id: 'archive',
-        name: 'Internet Archive',
-        url: 'https://archive.org',
-        icon: '📁',
-        favicon: 'https://archive.org/favicon.ico',
-        openMode: 'iframe',  // Try iframe first for all sites
-        position: 1
-      },
-      {
-        id: 'chatgpt',
-        name: 'ChatGPT',
-        url: 'https://chat.openai.com',
-        icon: '🤖',
-        favicon: 'https://chat.openai.com/favicon.ico',
-        openMode: 'iframe',  // Try iframe first, will auto-fallback if blocked
-        position: 2
-      },
-      {
-        id: 'claude',
-        name: 'Claude',
-        url: 'https://claude.ai',
-        icon: '🧠',
-        favicon: 'https://claude.ai/favicon.ico',
-        openMode: 'iframe',  // Try iframe first, will auto-fallback if blocked
-        position: 3
-      },
-      {
-        id: 'github',
-        name: 'GitHub',
-        url: 'https://github.com',
-        icon: '💻',
-        favicon: 'https://github.com/favicon.ico',
-        openMode: 'iframe',  // Try iframe first, will auto-fallback if blocked
-        position: 4
-      }
-    ],
+    sidebarWebsites: [],
     sidebarBehavior: {
       autoClose: false,
-      defaultOpenMode: 'iframe',
-      showIcons: true,
       compactMode: false,
-      useFavicons: false,  // Default to emojis, user can enable favicons
-      showUrls: false      // Default to showing only names
+      showUrls: false
+    },
+    appearance: {
+      backgroundType: 'gradient',
+      backgroundSettings: {
+        color1: '#667eea',
+        color2: '#764ba2',
+        angle: 135
+      }
     }
   };
 }

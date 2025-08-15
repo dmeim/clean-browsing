@@ -4,18 +4,23 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is a Chrome extension that provides a customizable new tab page with a tile-based grid layout system. The extension is built with vanilla HTML, CSS, and JavaScript - no build process or framework dependencies.
+Clean Browsing is a monorepo containing two Chrome extensions:
+- **CB-NewTab** (`extensions/cb-newtab/`) - Customizable new tab dashboard with widgets
+- **CB-Sidepanel** (`extensions/cb-sidepanel/`) - Universal website sidepanel with iframe embedding
+
+Both extensions share common components in the `shared/` directory and use a build process to copy shared files.
 
 ## Architecture
 
 The codebase follows a modular architecture with clear separation of concerns. For detailed architectural information, see the comprehensive [Documentation](docs/README.md).
 
-**Core Files:**
-- **`newtab.html`** - Main entry point that defines the DOM structure
-- **`settings.js`** - Global settings management and persistence layer
-- **`widgets.js`** - Core widget system and grid management
-- **`styles.css`** - Complete styling with glassmorphism design system
-- **`widgets/`** - Individual widget implementations (separate files)
+**Monorepo Structure:**
+- **`extensions/cb-newtab/`** - New tab dashboard extension
+- **`extensions/cb-sidepanel/`** - Universal sidepanel extension
+- **`shared/storage/`** - Shared storage management and settings
+- **`shared/styles/`** - Common glassmorphism design system
+- **`shared/resources/`** - Shared icons, logos, and assets
+- **`scripts/`** - Build, development, and packaging tools
 
 **Documentation:**
 - **[`docs/STYLING_GUIDE.md`](docs/STYLING_GUIDE.md)** - Complete design system and CSS patterns
@@ -25,16 +30,20 @@ The codebase follows a modular architecture with clear separation of concerns. F
 
 ## Development Workflow
 
-### Testing the Extension
-1. Open Chrome and navigate to `chrome://extensions`
-2. Enable Developer mode
-3. Click "Load unpacked" and select the `extension/` folder
-4. Open a new tab to test changes
+### Testing the Extensions
+1. Build shared components: `npm run build`
+2. Open Chrome and navigate to `chrome://extensions`
+3. Enable Developer mode
+4. Click "Load unpacked" and select `extensions/cb-newtab/` folder
+5. Click "Load unpacked" and select `extensions/cb-sidepanel/` folder
+6. Test CB-NewTab by opening a new tab
+7. Test CB-Sidepanel by clicking the extension icon
 
 ### File Loading Order
-Scripts must be loaded in this order in `newtab.html`:
-1. `settings.js` (defines global settings, loadSettings, saveSettings functions)
-2. `widgets.js` (depends on settings object and DOM elements)
+Both extensions load shared components first:
+1. `shared/storage/default-settings.js` (default configuration)
+2. `shared/storage/storage-manager.js` (storage utilities)
+3. Extension-specific scripts (settings.js, widgets.js, etc.)
 
 ### Common Development Tasks
 

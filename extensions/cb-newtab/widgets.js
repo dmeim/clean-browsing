@@ -31,24 +31,34 @@ function initWidgetsUI() {
   editButton = document.getElementById('edit-button');
   widgetGrid = document.getElementById('widget-grid');
   
+  // Check if all required elements exist
+  if (!widgetsButton || !widgetsPanel || !closeWidgetsButton || !widgetList || !editButton || !widgetGrid) {
+    console.error('Required widget UI elements not found');
+    return;
+  }
+  
   // Initialize widget panel tabs
   const widgetTabs = document.getElementById('widget-tabs');
-  const widgetTabButtons = widgetTabs.querySelectorAll('button');
-  const widgetTabContents = widgetsPanel.querySelectorAll('.tab-content');
-  
-  widgetTabButtons.forEach(btn => {
-    btn.addEventListener('click', () => {
-      widgetTabButtons.forEach(b => b.classList.remove('active'));
-      widgetTabContents.forEach(c => c.classList.add('hidden'));
-      btn.classList.add('active');
-      const targetTab = btn.dataset.tab;
-      if (targetTab === 'widget-settings') {
-        document.getElementById('widget-settings-tab').classList.remove('hidden');
-      } else if (targetTab === 'widget-appearance') {
-        document.getElementById('widget-appearance-tab-content').classList.remove('hidden');
-      }
+  if (widgetTabs) {
+    const widgetTabButtons = widgetTabs.querySelectorAll('button');
+    const widgetTabContents = widgetsPanel.querySelectorAll('.tab-content');
+    
+    widgetTabButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        widgetTabButtons.forEach(b => b.classList.remove('active'));
+        widgetTabContents.forEach(c => c.classList.add('hidden'));
+        btn.classList.add('active');
+        const targetTab = btn.dataset.tab;
+        if (targetTab === 'widget-settings') {
+          const settingsTab = document.getElementById('widget-settings-tab');
+          if (settingsTab) settingsTab.classList.remove('hidden');
+        } else if (targetTab === 'widget-appearance') {
+          const appearanceTab = document.getElementById('widget-appearance-tab-content');
+          if (appearanceTab) appearanceTab.classList.remove('hidden');
+        }
+      });
     });
-  });
+  }
 
   // Ensure panels start hidden
   widgetsPanel.classList.add('hidden');

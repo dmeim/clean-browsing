@@ -2,7 +2,9 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Clean-NewTab</title>
+  <title>CB-NewTab</title>
+  <link rel="stylesheet" href="shared/styles/variables.css">
+  <link rel="stylesheet" href="shared/styles/glassmorphism.css">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -15,7 +17,7 @@
   <div id="settings-modal" class="hidden">
     <div class="modal-header">
       <div class="modal-title-with-logo">
-        <img src="resources/logo.svg" alt="Clean NewTab" class="modal-logo">
+        <img src="resources/logo.svg" alt="CB-NewTab" class="modal-logo">
         <h2 class="modal-title">Settings</h2>
       </div>
       <button id="close-settings" class="close-button">&times;</button>
@@ -71,13 +73,6 @@
                   <input type="checkbox" id="config-widgets" class="config-category">
                   Widgets & Layout
                   <span class="checkbox-description">Widget positions, sizes, and individual settings</span>
-                </label>
-              </div>
-              <div class="input-group checkbox-group">
-                <label>
-                  <input type="checkbox" id="config-sidebar" class="config-category">
-                  Sidebar Websites
-                  <span class="checkbox-description">Saved websites and sidebar behavior</span>
                 </label>
               </div>
               <div class="input-group checkbox-group">
@@ -310,7 +305,7 @@
   <div id="widgets-panel" class="hidden">
     <div class="modal-header">
       <div class="modal-title-with-logo">
-        <img src="resources/logo.svg" alt="Clean NewTab" class="modal-logo">
+        <img src="resources/logo.svg" alt="CB-NewTab" class="modal-logo">
         <h2 class="modal-title">Widgets</h2>
       </div>
       <button id="close-widgets" class="close-button">&times;</button>
@@ -326,7 +321,11 @@
     </div>
   </div>
   
-  <!-- Core extension scripts - MUST load first -->
+  <!-- Shared components - MUST load first -->
+  <script src="shared/storage/default-settings.js"></script>
+  <script src="shared/storage/storage-manager.js"></script>
+  
+  <!-- Core extension scripts -->
   <script src="settings.js"></script>
   <script src="widgets.js"></script>
   

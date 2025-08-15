@@ -1,11 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "Clean-NewTab",
-  "version": "0.4.0",
-  "description": "A clean, customizable new tab experience",
-  "chrome_url_overrides": {
-    "newtab": "newtab.html"
-  },
+  "name": "CB-Sidepanel",
+  "version": "0.5.0",
+  "description": "Clean Browsing: Universal website sidepanel with iframe embedding",
   "permissions": [
     "windows",
     "sidePanel",

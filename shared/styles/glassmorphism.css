@@ -1,0 +1,300 @@
+/* Clean Browsing Glassmorphism Design System */
+/* Shared glassmorphism components for consistent design across extensions */
+
+/* Base glassmorphism effect */
+.cb-glass {
+  background: var(--cb-bg-primary);
+  backdrop-filter: var(--cb-blur-medium);
+  border: 1px solid var(--cb-border-primary);
+  border-radius: var(--cb-radius-medium);
+  box-shadow: 
+    var(--cb-shadow-medium),
+    var(--cb-shadow-inset);
+  position: relative;
+  overflow: hidden;
+}
+
+.cb-glass::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.02) 100%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.cb-glass > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* Enhanced glassmorphism for modals */
+.cb-glass-modal {
+  background: var(--cb-bg-modal);
+  backdrop-filter: var(--cb-blur-medium);
+  border: 1px solid var(--cb-border-primary);
+  border-radius: var(--cb-radius-large);
+  box-shadow: 
+    var(--cb-shadow-large),
+    var(--cb-shadow-medium),
+    var(--cb-shadow-inset);
+  position: relative;
+  overflow: hidden;
+}
+
+.cb-glass-modal::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, var(--cb-accent-purple) 0%, var(--cb-accent-pink) 100%);
+  opacity: 0.08;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.cb-glass-modal > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* Button styles with glassmorphism */
+.cb-button {
+  background: var(--cb-bg-secondary);
+  border: 1px solid var(--cb-border-secondary);
+  color: var(--cb-text-primary);
+  padding: 0.6rem 1.2rem;
+  border-radius: var(--cb-radius-medium);
+  font-family: var(--cb-font-family);
+  font-weight: var(--cb-font-weight-medium);
+  cursor: pointer;
+  backdrop-filter: var(--cb-blur-light);
+  transition: var(--cb-transition-medium);
+  position: relative;
+  overflow: hidden;
+  box-shadow: var(--cb-shadow-small);
+}
+
+.cb-button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+  transition: left 0.6s ease;
+}
+
+.cb-button:hover {
+  background: var(--cb-bg-tertiary);
+  border-color: rgba(255, 255, 255, 0.25);
+  transform: translateY(var(--cb-hover-translate)) scale(var(--cb-hover-scale));
+  box-shadow: 
+    0 8px 24px rgba(0, 0, 0, 0.25),
+    var(--cb-shadow-inset),
+    0 0 0 1px var(--cb-accent-purple);
+}
+
+.cb-button:hover::before {
+  left: 100%;
+}
+
+.cb-button:active {
+  transform: scale(var(--cb-active-scale)) translateY(-1px);
+  transition: transform var(--cb-transition-fast);
+}
+
+/* Primary button variant */
+.cb-button-primary {
+  background: linear-gradient(135deg, var(--cb-accent-purple), var(--cb-accent-pink));
+  border-color: var(--cb-accent-purple);
+  color: var(--cb-text-primary);
+  font-weight: var(--cb-font-weight-semibold);
+}
+
+.cb-button-primary:hover {
+  background: linear-gradient(135deg, rgba(120, 119, 198, 0.9), rgba(255, 119, 198, 0.7));
+  transform: translateY(var(--cb-hover-translate)) scale(var(--cb-hover-scale));
+}
+
+/* Icon button styles */
+.cb-icon-button {
+  width: 36px;
+  height: 36px;
+  min-width: 36px;
+  min-height: 36px;
+  padding: 0;
+  border-radius: var(--cb-radius-round);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  background: var(--cb-bg-secondary);
+  border: 1px solid var(--cb-border-secondary);
+  color: var(--cb-text-muted);
+  cursor: pointer;
+  backdrop-filter: var(--cb-blur-light);
+  transition: var(--cb-transition-medium);
+  box-shadow: var(--cb-shadow-small);
+}
+
+.cb-icon-button:hover {
+  background: var(--cb-bg-tertiary);
+  color: var(--cb-text-primary);
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+/* Form input styles */
+.cb-input {
+  background: var(--cb-bg-secondary);
+  border: 1px solid var(--cb-border-secondary);
+  color: var(--cb-text-primary);
+  padding: 0.6rem 0.8rem;
+  border-radius: var(--cb-radius-medium);
+  font-family: var(--cb-font-family);
+  backdrop-filter: var(--cb-blur-light);
+  transition: var(--cb-transition-medium);
+  box-shadow: var(--cb-shadow-inset);
+}
+
+.cb-input:focus {
+  outline: none;
+  border-color: var(--cb-border-focus);
+  background: var(--cb-bg-tertiary);
+  box-shadow: 
+    var(--cb-shadow-inset),
+    0 0 0 3px rgba(120, 119, 198, 0.2);
+}
+
+.cb-input::placeholder {
+  color: var(--cb-text-disabled);
+}
+
+/* Checkbox styles */
+.cb-checkbox {
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  background: var(--cb-bg-secondary);
+  border: 1px solid var(--cb-border-secondary);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: var(--cb-transition-medium);
+  position: relative;
+}
+
+.cb-checkbox:checked {
+  background: linear-gradient(135deg, var(--cb-accent-purple), var(--cb-accent-pink));
+  border-color: var(--cb-accent-purple);
+}
+
+.cb-checkbox:checked::before {
+  content: '✓';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: white;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+/* Modal glassmorphism styles */
+.cb-modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(0.9);
+  background: var(--cb-bg-modal);
+  backdrop-filter: var(--cb-blur-medium);
+  color: var(--cb-text-secondary);
+  border-radius: var(--cb-radius-large);
+  box-shadow: 
+    var(--cb-shadow-large),
+    var(--cb-shadow-medium),
+    var(--cb-shadow-inset);
+  border: 1px solid var(--cb-border-primary);
+  opacity: 0;
+  transition: var(--cb-transition-slow);
+  overflow: hidden;
+  z-index: var(--cb-z-modal);
+}
+
+.cb-modal:not(.hidden) {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
+}
+
+.cb-modal::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, var(--cb-accent-purple) 0%, var(--cb-accent-pink) 100%);
+  opacity: 0.08;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.cb-modal > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* Glassmorphism background effect */
+.cb-glass-background {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: 
+    radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.15) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, rgba(255, 119, 198, 0.1) 0%, transparent 50%),
+    radial-gradient(circle at 40% 40%, rgba(120, 255, 198, 0.08) 0%, transparent 50%);
+  pointer-events: none;
+  z-index: var(--cb-z-background);
+}
+
+/* Utility classes */
+.cb-text-center { text-align: center; }
+.cb-text-left { text-align: left; }
+.cb-text-right { text-align: right; }
+
+.cb-flex { display: flex; }
+.cb-flex-center { display: flex; align-items: center; justify-content: center; }
+.cb-flex-column { flex-direction: column; }
+.cb-flex-wrap { flex-wrap: wrap; }
+
+.cb-gap-xs { gap: var(--cb-space-xs); }
+.cb-gap-sm { gap: var(--cb-space-sm); }
+.cb-gap-md { gap: var(--cb-space-md); }
+.cb-gap-lg { gap: var(--cb-space-lg); }
+
+.cb-p-xs { padding: var(--cb-space-xs); }
+.cb-p-sm { padding: var(--cb-space-sm); }
+.cb-p-md { padding: var(--cb-space-md); }
+.cb-p-lg { padding: var(--cb-space-lg); }
+
+.cb-m-xs { margin: var(--cb-space-xs); }
+.cb-m-sm { margin: var(--cb-space-sm); }
+.cb-m-md { margin: var(--cb-space-md); }
+.cb-m-lg { margin: var(--cb-space-lg); }
+
+.cb-hidden { display: none !important; }
+.cb-visible { display: block !important; }
+
+/* Font system */
+.cb-font-light { font-weight: var(--cb-font-weight-light); }
+.cb-font-normal { font-weight: var(--cb-font-weight-normal); }
+.cb-font-medium { font-weight: var(--cb-font-weight-medium); }
+.cb-font-semibold { font-weight: var(--cb-font-weight-semibold); }

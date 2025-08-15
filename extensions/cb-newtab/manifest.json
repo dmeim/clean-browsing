@@ -1,0 +1,17 @@
+{
+  "manifest_version": 3,
+  "name": "CB-NewTab",
+  "version": "0.5.0",
+  "description": "Clean Browsing: A customizable new tab dashboard with tile-based widgets",
+  "chrome_url_overrides": {
+    "newtab": "newtab.html"
+  },
+  "permissions": [
+    "storage"
+  ],
+  "icons": {
+    "16": "resources/logo.png",
+    "48": "resources/logo.png",
+    "128": "resources/logo.png"
+  }
+}

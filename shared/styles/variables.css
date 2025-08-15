@@ -1,0 +1,82 @@
+/* Clean Browsing Design System Variables */
+/* Shared CSS variables for consistent theming across extensions */
+
+:root {
+  /* Color Palette */
+  --cb-primary-gradient-start: #667eea;
+  --cb-primary-gradient-end: #764ba2;
+  --cb-accent-purple: rgba(120, 119, 198, 0.8);
+  --cb-accent-pink: rgba(255, 119, 198, 0.6);
+  --cb-accent-green: rgba(120, 255, 198, 0.6);
+  
+  /* Text Colors */
+  --cb-text-primary: #ffffff;
+  --cb-text-secondary: #e8e8e8;
+  --cb-text-muted: rgba(255, 255, 255, 0.7);
+  --cb-text-disabled: rgba(255, 255, 255, 0.4);
+  
+  /* Background Colors */
+  --cb-bg-primary: rgba(255, 255, 255, 0.05);
+  --cb-bg-secondary: rgba(255, 255, 255, 0.08);
+  --cb-bg-tertiary: rgba(255, 255, 255, 0.12);
+  --cb-bg-modal: rgba(0, 0, 0, 0.2);
+  
+  /* Border Colors */
+  --cb-border-primary: rgba(255, 255, 255, 0.1);
+  --cb-border-secondary: rgba(255, 255, 255, 0.15);
+  --cb-border-focus: rgba(120, 119, 198, 0.6);
+  
+  /* Shadows */
+  --cb-shadow-small: 0 2px 8px rgba(0, 0, 0, 0.1);
+  --cb-shadow-medium: 0 8px 32px rgba(0, 0, 0, 0.2);
+  --cb-shadow-large: 0 20px 60px rgba(0, 0, 0, 0.4);
+  --cb-shadow-inset: inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  
+  /* Backdrop Filters */
+  --cb-blur-light: blur(10px) saturate(1.2);
+  --cb-blur-medium: blur(20px) saturate(1.2);
+  --cb-blur-heavy: blur(30px) saturate(1.2);
+  
+  /* Border Radius */
+  --cb-radius-small: 6px;
+  --cb-radius-medium: 12px;
+  --cb-radius-large: 20px;
+  --cb-radius-round: 50%;
+  
+  /* Spacing */
+  --cb-space-xs: 0.25rem;
+  --cb-space-sm: 0.5rem;
+  --cb-space-md: 1rem;
+  --cb-space-lg: 1.5rem;
+  --cb-space-xl: 2rem;
+  
+  /* Typography */
+  --cb-font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  --cb-font-weight-light: 200;
+  --cb-font-weight-normal: 400;
+  --cb-font-weight-medium: 500;
+  --cb-font-weight-semibold: 600;
+  
+  /* Transitions */
+  --cb-transition-fast: 0.15s ease;
+  --cb-transition-medium: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  --cb-transition-slow: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  
+  /* Z-Index Scale */
+  --cb-z-modal: 2000;
+  --cb-z-overlay: 1000;
+  --cb-z-actions: 100;
+  --cb-z-content: 1;
+  --cb-z-background: -1;
+  
+  /* Interactive States */
+  --cb-hover-scale: 1.02;
+  --cb-hover-translate: -2px;
+  --cb-active-scale: 0.95;
+  
+  /* Status Colors */
+  --cb-success: rgba(40, 167, 69, 0.8);
+  --cb-warning: rgba(255, 193, 7, 0.8);
+  --cb-error: rgba(220, 53, 69, 0.8);
+  --cb-info: rgba(13, 110, 253, 0.8);
+}

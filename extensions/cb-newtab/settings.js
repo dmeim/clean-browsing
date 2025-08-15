@@ -1,145 +1,99 @@
-const settingsButton = document.getElementById('settings-button');
-const settingsModal = document.getElementById('settings-modal');
-const closeSettingsButton = document.getElementById('close-settings');
+// Initialize settings UI after DOM and dependencies are ready
+function initializeSettingsUI() {
+  const settingsButton = document.getElementById('settings-button');
+  const settingsModal = document.getElementById('settings-modal');
+  const closeSettingsButton = document.getElementById('close-settings');
 
-settingsModal.classList.add('hidden');
+  if (!settingsButton || !settingsModal || !closeSettingsButton) {
+    console.error('Settings UI elements not found');
+    return;
+  }
 
-settingsButton.addEventListener('click', () => {
-  settingsModal.classList.remove('hidden');
-});
-
-closeSettingsButton.addEventListener('click', (e) => {
-  e.stopPropagation();
   settingsModal.classList.add('hidden');
-});
 
-// tab handling
-const tabButtons = document.querySelectorAll('.settings-tabs button');
-const tabContents = document.querySelectorAll('.tab-content');
-tabButtons.forEach(btn => {
-  btn.addEventListener('click', () => {
-    tabButtons.forEach(b => b.classList.remove('active'));
-    tabContents.forEach(c => c.classList.add('hidden'));
-    btn.classList.add('active');
-    document.getElementById(`${btn.dataset.tab}-tab`).classList.remove('hidden');
+  settingsButton.addEventListener('click', async () => {
+    settingsModal.classList.remove('hidden');
   });
-});
 
-const defaultSettings = {
-  background: { 
-    type: 'gradient',
-    gradient: {
-      color1: '#667eea',
-      color2: '#764ba2',
-      angle: 135
-    },
-    solid: {
-      color: '#222222'
-    },
-    image: {
-      url: null,
-      opacity: 100
-    }
-  },
-  lastColor: '#222222',
-  resetModalPosition: true,
-  globalWidgetAppearance: {
-    fontSize: 100,
-    fontWeight: 400,
-    italic: false,
-    underline: false,
-    textColor: '#ffffff',
-    textOpacity: 100,
-    backgroundColor: '#000000',
-    backgroundOpacity: 20,
-    blur: 10,
-    borderRadius: 12,
-    opacity: 100,
-    textAlign: 'center',
-    verticalAlign: 'center',
-    padding: 16
-  },
-  sidebarSettings: {
-    sidebarEnabled: true,
-    sidebarWebsites: [
-      {
-        id: 'wikipedia',
-        name: 'Wikipedia',
-        url: 'https://en.wikipedia.org',
-        icon: '📚',
-        openMode: 'iframe',  // Try iframe first for all sites
-        position: 0
-      },
-      {
-        id: 'archive',
-        name: 'Internet Archive',
-        url: 'https://archive.org',
-        icon: '📁',
-        openMode: 'iframe',  // Try iframe first for all sites
-        position: 1
-      },
-      {
-        id: 'chatgpt',
-        name: 'ChatGPT',
-        url: 'https://chat.openai.com',
-        icon: '🤖',
-        openMode: 'iframe',  // Try iframe first, will auto-fallback if blocked
-        position: 2
-      },
-      {
-        id: 'claude',
-        name: 'Claude',
-        url: 'https://claude.ai',
-        icon: '🧠',
-        openMode: 'iframe',  // Try iframe first, will auto-fallback if blocked
-        position: 3
-      },
-      {
-        id: 'github',
-        name: 'GitHub',
-        url: 'https://github.com',
-        icon: '💻',
-        openMode: 'iframe',  // Try iframe first, will auto-fallback if blocked
-        position: 4
+  closeSettingsButton.addEventListener('click', (e) => {
+    e.stopPropagation();
+    settingsModal.classList.add('hidden');
+  });
+
+  // Initialize tab handling
+  initializeTabHandling();
+}
+
+// Initialize tab handling separately
+function initializeTabHandling() {
+  const tabButtons = document.querySelectorAll('.settings-tabs button');
+  const tabContents = document.querySelectorAll('.tab-content');
+  tabButtons.forEach(btn => {
+    btn.addEventListener('click', async () => {
+      tabButtons.forEach(b => b.classList.remove('active'));
+      tabContents.forEach(c => c.classList.add('hidden'));
+      btn.classList.add('active');
+      const targetTab = document.getElementById(`${btn.dataset.tab}-tab`);
+      if (targetTab) {
+        targetTab.classList.remove('hidden');
       }
-    ],
-    sidebarBehavior: {
-      autoClose: false,
-      defaultOpenMode: 'iframe',
-      showIcons: true,
-      compactMode: false
-    }
-  },
-  widgets: [
-    {
-      type: 'clock',
-      x: 0,
-      y: 0,
-      w: 4,
-      h: 3,
-      settings: {
-        showSeconds: true,
-        flashing: false,
-        locale: 'auto',
-        use24h: false,
-        daylightSavings: true,
-        textSize: 100
-      }
-    },
-    {
-      type: 'date',
-      x: 5,
-      y: 0,
-      w: 4,
-      h: 2,
-      settings: {
-        format: 'MM/DD/YYYY',
-        separator: '/',
-        locale: 'auto'
+    });
+  });
+}
+
+
+// Default settings now loaded from shared component
+let defaultSettings = null;
+
+// Wait for dependencies to be ready with timeout and retry logic
+function waitForDependencies() {
+  return new Promise((resolve, reject) => {
+    let attempts = 0;
+    const maxAttempts = 500; // 5 seconds total (10ms * 500)
+    
+    function checkDependencies() {
+      attempts++;
+      
+      if (window.DefaultSettings && window.StorageManager) {
+        try {
+          defaultSettings = window.DefaultSettings.getDefaultNewtabSettings();
+          console.log('Dependencies loaded successfully after', attempts, 'attempts');
+          resolve();
+        } catch (error) {
+          console.error('Error getting default settings:', error);
+          resolve(); // Continue anyway with fallbacks
+        }
+      } else if (attempts >= maxAttempts) {
+        console.error('Dependencies failed to load after', maxAttempts, 'attempts. Available:', {
+          DefaultSettings: !!window.DefaultSettings,
+          StorageManager: !!window.StorageManager
+        });
+        // Don't reject, resolve anyway to allow fallback behavior
+        resolve();
+      } else {
+        // Check again in 10ms
+        setTimeout(checkDependencies, 10);
       }
     }
-  ]
-};
+    checkDependencies();
+  });
+}
+
+// Initialize everything after dependencies are ready
+document.addEventListener('DOMContentLoaded', async () => {
+  try {
+    await waitForDependencies();
+    initializeSettingsUI();
+  } catch (error) {
+    console.error('Failed to initialize settings UI:', error);
+    // Try to initialize UI anyway with basic functionality
+    try {
+      initializeSettingsUI();
+    } catch (fallbackError) {
+      console.error('Failed to initialize settings UI with fallback:', fallbackError);
+    }
+  }
+});
 
 function normalizeColor(color) {
   if (/^#[0-9a-f]{3}$/i.test(color)) {
@@ -148,42 +102,70 @@ function normalizeColor(color) {
   return color;
 }
 
-function loadSettings() {
+// Use shared normalizeColor if available
+if (window.StorageManager && window.StorageManager.normalizeColor) {
+  normalizeColor = window.StorageManager.normalizeColor;
+}
+
+async function loadSettings() {
   try {
-    const s = JSON.parse(localStorage.getItem('settings')) || { ...defaultSettings };
-    if (s.background && s.background.type === 'color') {
-      s.background.value = normalizeColor(s.background.value);
+    if (!defaultSettings) {
+      defaultSettings = window.DefaultSettings.getDefaultNewtabSettings();
     }
-    s.lastColor = normalizeColor(s.lastColor || defaultSettings.lastColor);
-    s.globalWidgetAppearance = { ...defaultSettings.globalWidgetAppearance, ...(s.globalWidgetAppearance || {}) };
-    s.sidebarSettings = s.sidebarSettings || defaultSettings.sidebarSettings;
-    // Ensure sidepanel settings structure is complete
-    if (s.sidebarSettings) {
-      s.sidebarSettings.sidebarWebsites = s.sidebarSettings.sidebarWebsites || defaultSettings.sidebarSettings.sidebarWebsites;
-      s.sidebarSettings.sidebarBehavior = { ...defaultSettings.sidebarSettings.sidebarBehavior, ...(s.sidebarSettings.sidebarBehavior || {}) };
+    
+    if (window.StorageManager) {
+      return await StorageManager.loadNewtabSettings();
+    } else {
+      // Fallback to localStorage
+      try {
+        const s = JSON.parse(localStorage.getItem('newtab_settings')) || { ...defaultSettings };
+        if (s.background && s.background.type === 'color') {
+          s.background.value = normalizeColor(s.background.value);
+        }
+        s.lastColor = normalizeColor(s.lastColor || defaultSettings.lastColor);
+        s.globalWidgetAppearance = { ...defaultSettings.globalWidgetAppearance, ...(s.globalWidgetAppearance || {}) };
+        s.widgets = (s.widgets || defaultSettings.widgets).map(w => ({
+          ...w,
+          x: w.x || 0,
+          y: w.y || 0,
+          w: w.w || 4,
+          h: w.h || 3,
+        }));
+        return s;
+      } catch (e) {
+        console.warn('Failed to parse localStorage settings:', e);
+        return { ...defaultSettings };
+      }
     }
-    // Also sync with chrome.storage for sidepanel access
-    if (chrome.storage && chrome.storage.local) {
-      chrome.storage.local.set({ sidebarSettings: s.sidebarSettings });
+  } catch (error) {
+    console.error('Failed to load settings:', error);
+    // Return safe default settings
+    try {
+      return window.DefaultSettings ? window.DefaultSettings.getDefaultNewtabSettings() : {};
+    } catch (defaultError) {
+      console.error('Failed to get default settings:', defaultError);
+      return {};
     }
-    s.widgets = (s.widgets || defaultSettings.widgets).map(w => ({
-      ...w,
-      x: w.x || 0,
-      y: w.y || 0,
-      w: w.w || 4,
-      h: w.h || 3,
-    }));
-    return s;
-  } catch (e) {
-    return { ...defaultSettings };
   }
 }
 
-function saveSettings(s) {
-  localStorage.setItem('settings', JSON.stringify(s));
-  // Also sync sidepanel settings with chrome.storage for sidepanel access
-  if (chrome.storage && chrome.storage.local && s.sidebarSettings) {
-    chrome.storage.local.set({ sidebarSettings: s.sidebarSettings });
+async function saveSettings(s) {
+  try {
+    if (window.StorageManager) {
+      await StorageManager.saveNewtabSettings(s);
+    } else {
+      // Fallback to localStorage
+      localStorage.setItem('newtab_settings', JSON.stringify(s));
+    }
+  } catch (error) {
+    console.error('Failed to save settings:', error);
+    // Try localStorage fallback if chrome.storage failed
+    try {
+      localStorage.setItem('newtab_settings', JSON.stringify(s));
+    } catch (fallbackError) {
+      console.error('Failed to save settings to localStorage:', fallbackError);
+      throw new Error('Unable to save settings to any storage method');
+    }
   }
 }
 
@@ -236,8 +218,13 @@ function applyBackground(s) {
   }
 }
 
-let settings = loadSettings();
-applyBackground(settings);
+let settings = null;
+
+// Initialize settings asynchronously
+(async () => {
+  settings = await loadSettings();
+  applyBackground(settings);
+})();
 
 // Grid is now fixed and responsive - no user configuration needed
 
@@ -254,7 +241,7 @@ function updateImagePickerDisplay() {
 function setupBackgroundControls() {
   // Background type radio buttons
   document.querySelectorAll('input[name="main-bg-type"]').forEach(radio => {
-    radio.addEventListener('change', (e) => {
+    radio.addEventListener('change', async (e) => {
       const type = e.target.value;
       settings.background.type = type;
       
@@ -263,7 +250,7 @@ function setupBackgroundControls() {
       document.getElementById(`main-${type}-options`).classList.remove('hidden');
       
       applyBackground(settings);
-      saveSettings(settings);
+      await saveSettings(settings);
     });
   });
   
@@ -275,48 +262,48 @@ function setupBackgroundControls() {
   const gradientAngle = document.getElementById('main-gradient-angle');
   const gradientAngleValue = document.getElementById('main-gradient-angle-value');
   
-  gradientColor1.addEventListener('input', (e) => {
+  gradientColor1.addEventListener('input', async (e) => {
     settings.background.gradient.color1 = e.target.value;
     gradientColor1Text.value = e.target.value;
     if (settings.background.type === 'gradient') {
       applyBackground(settings);
-      saveSettings(settings);
+      await saveSettings(settings);
     }
   });
   
-  gradientColor1Text.addEventListener('input', (e) => {
+  gradientColor1Text.addEventListener('input', async (e) => {
     settings.background.gradient.color1 = e.target.value;
     gradientColor1.value = e.target.value;
     if (settings.background.type === 'gradient') {
       applyBackground(settings);
-      saveSettings(settings);
+      await saveSettings(settings);
     }
   });
   
-  gradientColor2.addEventListener('input', (e) => {
+  gradientColor2.addEventListener('input', async (e) => {
     settings.background.gradient.color2 = e.target.value;
     gradientColor2Text.value = e.target.value;
     if (settings.background.type === 'gradient') {
       applyBackground(settings);
-      saveSettings(settings);
+      await saveSettings(settings);
     }
   });
   
-  gradientColor2Text.addEventListener('input', (e) => {
+  gradientColor2Text.addEventListener('input', async (e) => {
     settings.background.gradient.color2 = e.target.value;
     gradientColor2.value = e.target.value;
     if (settings.background.type === 'gradient') {
       applyBackground(settings);
-      saveSettings(settings);
+      await saveSettings(settings);
     }
   });
   
-  gradientAngle.addEventListener('input', (e) => {
+  gradientAngle.addEventListener('input', async (e) => {
     settings.background.gradient.angle = e.target.value;
     gradientAngleValue.textContent = e.target.value + '°';
     if (settings.background.type === 'gradient') {
       applyBackground(settings);
-      saveSettings(settings);
+      await saveSettings(settings);
     }
   });
   
@@ -324,21 +311,21 @@ function setupBackgroundControls() {
   const solidColor = document.getElementById('main-solid-color');
   const solidColorText = document.getElementById('main-solid-color-text');
   
-  solidColor.addEventListener('input', (e) => {
+  solidColor.addEventListener('input', async (e) => {
     settings.background.solid.color = e.target.value;
     solidColorText.value = e.target.value;
     if (settings.background.type === 'solid') {
       applyBackground(settings);
-      saveSettings(settings);
+      await saveSettings(settings);
     }
   });
   
-  solidColorText.addEventListener('input', (e) => {
+  solidColorText.addEventListener('input', async (e) => {
     settings.background.solid.color = e.target.value;
     solidColor.value = e.target.value;
     if (settings.background.type === 'solid') {
       applyBackground(settings);
-      saveSettings(settings);
+      await saveSettings(settings);
     }
   });
   
@@ -348,16 +335,16 @@ function setupBackgroundControls() {
   const imageOpacity = document.getElementById('main-bg-image-opacity');
   const imageOpacityValue = document.getElementById('main-bg-image-opacity-value');
   
-  imageUpload.addEventListener('change', (e) => {
+  imageUpload.addEventListener('change', async (e) => {
     const file = e.target.files[0];
     if (!file) return;
     const reader = new FileReader();
-    reader.onload = () => {
+    reader.onload = async () => {
       settings.background.image.url = reader.result;
       settings.background.type = 'image';
       removeImage.classList.remove('hidden');
       applyBackground(settings);
-      saveSettings(settings);
+      await saveSettings(settings);
       
       // Update UI
       document.querySelector('input[name="main-bg-type"][value="image"]').checked = true;
@@ -367,13 +354,13 @@ function setupBackgroundControls() {
     reader.readAsDataURL(file);
   });
   
-  removeImage.addEventListener('click', () => {
+  removeImage.addEventListener('click', async () => {
     settings.background.image.url = null;
     settings.background.type = 'gradient';
     imageUpload.value = '';
     removeImage.classList.add('hidden');
     applyBackground(settings);
-    saveSettings(settings);
+    await saveSettings(settings);
     
     // Switch back to gradient
     document.querySelector('input[name="main-bg-type"][value="gradient"]').checked = true;
@@ -381,18 +368,18 @@ function setupBackgroundControls() {
     document.getElementById('main-gradient-options').classList.remove('hidden');
   });
   
-  imageOpacity.addEventListener('input', (e) => {
+  imageOpacity.addEventListener('input', async (e) => {
     settings.background.image.opacity = e.target.value;
     imageOpacityValue.textContent = e.target.value + '%';
     if (settings.background.type === 'image') {
       applyBackground(settings);
-      saveSettings(settings);
+      await saveSettings(settings);
     }
   });
   
   // Preset gradients
   document.querySelectorAll('.preset-gradient-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
+    btn.addEventListener('click', async () => {
       const [angle, color1, color2] = btn.dataset.gradient.split(',');
       settings.background.type = 'gradient';
       settings.background.gradient = { color1, color2, angle: parseInt(angle) };
@@ -410,7 +397,7 @@ function setupBackgroundControls() {
       gradientAngleValue.textContent = angle + '°';
       
       applyBackground(settings);
-      saveSettings(settings);
+      await saveSettings(settings);
     });
   });
   
@@ -471,9 +458,9 @@ function setupModalControls() {
     const currentSetting = settings.resetModalPosition;
     resetModalPositionCheckbox.checked = currentSetting !== false && currentSetting !== undefined;
     
-    resetModalPositionCheckbox.addEventListener('change', (e) => {
+    resetModalPositionCheckbox.addEventListener('change', async (e) => {
       settings.resetModalPosition = e.target.checked;
-      saveSettings(settings);
+      await saveSettings(settings);
     });
   }
 }
@@ -530,9 +517,6 @@ function createExportData(categories) {
       case 'widgets':
         exportData.categories.widgets = settings.widgets;
         break;
-      case 'sidebar':
-        exportData.categories.sidebar = settings.sidebarSettings;
-        break;
       case 'preferences':
         exportData.categories.preferences = {
           resetModalPosition: settings.resetModalPosition,
@@ -573,12 +557,6 @@ function applyImportedSettings(importData, selectedCategories) {
           appliedCategories.push('Widgets & Layout');
         }
         break;
-      case 'sidebar':
-        if (importData.categories.sidebar) {
-          settings.sidebarSettings = { ...defaultSettings.sidebarSettings, ...importData.categories.sidebar };
-          appliedCategories.push('Sidebar Websites');
-        }
-        break;
       case 'preferences':
         if (importData.categories.preferences) {
           if (importData.categories.preferences.resetModalPosition !== undefined) {
@@ -597,41 +575,53 @@ function applyImportedSettings(importData, selectedCategories) {
 }
 
 // Mode change handler - updates UI based on export/import selection
-configMode.addEventListener('change', () => {
-  const isExport = configMode.value === 'export';
-  configActionBtn.textContent = isExport ? 'Export Selected' : 'Import Selected';
-  configQuickAll.textContent = isExport ? 'Quick Export All' : 'Quick Import All';
-});
+  // Config mode dropdown handler
+  if (configMode) {
+    configMode.addEventListener('change', () => {
+      const isExport = configMode.value === 'export';
+      if (configActionBtn) configActionBtn.textContent = isExport ? 'Export Selected' : 'Import Selected';
+      if (configQuickAll) configQuickAll.textContent = isExport ? 'Quick Export All' : 'Quick Import All';
+    });
+  }
 
-// All settings checkbox handler
-configAllCheckbox.addEventListener('change', () => {
-  const isChecked = configAllCheckbox.checked;
-  configCategoryCheckboxes.forEach(checkbox => {
-    checkbox.checked = isChecked;
-  });
-});
+  // All settings checkbox handler
+  if (configAllCheckbox) {
+    configAllCheckbox.addEventListener('change', () => {
+      const isChecked = configAllCheckbox.checked;
+      if (configCategoryCheckboxes) {
+        configCategoryCheckboxes.forEach(checkbox => {
+          checkbox.checked = isChecked;
+        });
+      }
+    });
+  }
 
-// Individual category checkboxes handler
-configCategoryCheckboxes.forEach(checkbox => {
-  checkbox.addEventListener('change', () => {
-    const allChecked = Array.from(configCategoryCheckboxes).every(cb => cb.checked);
-    const noneChecked = Array.from(configCategoryCheckboxes).every(cb => !cb.checked);
-    
-    if (allChecked) {
-      configAllCheckbox.checked = true;
-      configAllCheckbox.indeterminate = false;
-    } else if (noneChecked) {
-      configAllCheckbox.checked = false;
-      configAllCheckbox.indeterminate = false;
-    } else {
-      configAllCheckbox.checked = false;
-      configAllCheckbox.indeterminate = true;
-    }
-  });
-});
+  // Individual category checkboxes handler
+  if (configCategoryCheckboxes) {
+    configCategoryCheckboxes.forEach(checkbox => {
+      checkbox.addEventListener('change', () => {
+        const allChecked = Array.from(configCategoryCheckboxes).every(cb => cb.checked);
+        const noneChecked = Array.from(configCategoryCheckboxes).every(cb => !cb.checked);
+        
+        if (configAllCheckbox) {
+          if (allChecked) {
+            configAllCheckbox.checked = true;
+            configAllCheckbox.indeterminate = false;
+          } else if (noneChecked) {
+            configAllCheckbox.checked = false;
+            configAllCheckbox.indeterminate = false;
+          } else {
+            configAllCheckbox.checked = false;
+            configAllCheckbox.indeterminate = true;
+          }
+        }
+      });
+    });
+  }
 
-// Main action button handler (Export Selected / Import Selected)
-configActionBtn.addEventListener('click', () => {
+  // Main action button handler (Export Selected / Import Selected)
+  if (configActionBtn) {
+    configActionBtn.addEventListener('click', async () => {
   const isExport = configMode.value === 'export';
   const selectedCategories = getSelectedCategories();
 
@@ -662,8 +652,9 @@ configActionBtn.addEventListener('click', () => {
   }
 });
 
-// Quick All button handler
-configQuickAll.addEventListener('click', () => {
+  // Quick All button handler
+  if (configQuickAll) {
+    configQuickAll.addEventListener('click', async () => {
   const isExport = configMode.value === 'export';
   const allCategories = ['background', 'appearance', 'widgets', 'sidebar', 'preferences'];
 
@@ -689,12 +680,14 @@ configQuickAll.addEventListener('click', () => {
     configCategoryCheckboxes.forEach(checkbox => {
       checkbox.checked = true;
     });
-    configImportFile.click();
+      configImportFile.click();
+    }
+    });
   }
-});
 
-// File import handler
-configImportFile.addEventListener('change', () => {
+  // File import handler
+  if (configImportFile) {
+    configImportFile.addEventListener('change', () => {
   const file = configImportFile.files[0];
   if (!file) return;
 
@@ -705,7 +698,7 @@ configImportFile.addEventListener('change', () => {
   }
 
   const reader = new FileReader();
-  reader.onload = () => {
+  reader.onload = async () => {
     try {
       const importData = JSON.parse(reader.result);
       
@@ -731,15 +724,14 @@ configImportFile.addEventListener('change', () => {
       }
 
       // Save and apply changes
-      saveSettings(settings);
-      settings = loadSettings();
+      await saveSettings(settings);
+      settings = await loadSettings();
       
       // Update UI to reflect changes
       applyBackground(settings);
       loadBackgroundUI();
       updateGlobalWidgetControls();
       if (typeof renderWidgets === 'function') renderWidgets();
-      if (typeof initSidebarSettings === 'function') initSidebarSettings();
       
       showConfigStatus(`Successfully imported: ${appliedCategories.join(', ')}`);
       
@@ -749,9 +741,11 @@ configImportFile.addEventListener('change', () => {
   };
   reader.readAsText(file);
   
-  // Reset file input
-  configImportFile.value = '';
-});
+      // Reset file input
+      configImportFile.value = '';
+    });
+  }
+}
 
 // Global Widget Appearance Controls
 function updateGlobalWidgetControls() {
@@ -789,126 +783,126 @@ function initGlobalWidgetControls() {
   // Font size
   const fontSizeSlider = document.getElementById('global-widget-font-size');
   const fontSizeValue = document.getElementById('global-widget-font-size-value');
-  fontSizeSlider.addEventListener('input', (e) => {
+  fontSizeSlider.addEventListener('input', async (e) => {
     settings.globalWidgetAppearance.fontSize = parseInt(e.target.value);
     fontSizeValue.textContent = e.target.value + '%';
-    saveSettings(settings);
+    await saveSettings(settings);
     if (typeof renderWidgets === 'function') renderWidgets();
   });
   
   // Font weight
-  document.getElementById('global-widget-font-weight').addEventListener('change', (e) => {
+  document.getElementById('global-widget-font-weight').addEventListener('change', async (e) => {
     settings.globalWidgetAppearance.fontWeight = parseInt(e.target.value);
-    saveSettings(settings);
+    await saveSettings(settings);
     if (typeof renderWidgets === 'function') renderWidgets();
   });
   
   // Font style
-  document.getElementById('global-widget-italic').addEventListener('change', (e) => {
+  document.getElementById('global-widget-italic').addEventListener('change', async (e) => {
     settings.globalWidgetAppearance.italic = e.target.checked;
-    saveSettings(settings);
+    await saveSettings(settings);
     if (typeof renderWidgets === 'function') renderWidgets();
   });
   
-  document.getElementById('global-widget-underline').addEventListener('change', (e) => {
+  document.getElementById('global-widget-underline').addEventListener('change', async (e) => {
     settings.globalWidgetAppearance.underline = e.target.checked;
-    saveSettings(settings);
+    await saveSettings(settings);
     if (typeof renderWidgets === 'function') renderWidgets();
   });
   
   // Text color
-  document.getElementById('global-widget-text-color').addEventListener('input', (e) => {
+  document.getElementById('global-widget-text-color').addEventListener('input', async (e) => {
     settings.globalWidgetAppearance.textColor = e.target.value;
-    saveSettings(settings);
+    await saveSettings(settings);
     if (typeof renderWidgets === 'function') renderWidgets();
   });
   
   // Text opacity
   const textOpacitySlider = document.getElementById('global-widget-text-opacity');
   const textOpacityValue = document.getElementById('global-widget-text-opacity-value');
-  textOpacitySlider.addEventListener('input', (e) => {
+  textOpacitySlider.addEventListener('input', async (e) => {
     settings.globalWidgetAppearance.textOpacity = parseInt(e.target.value);
     textOpacityValue.textContent = e.target.value + '%';
-    saveSettings(settings);
+    await saveSettings(settings);
     if (typeof renderWidgets === 'function') renderWidgets();
   });
   
   // Background color
-  document.getElementById('global-widget-bg-color').addEventListener('input', (e) => {
+  document.getElementById('global-widget-bg-color').addEventListener('input', async (e) => {
     settings.globalWidgetAppearance.backgroundColor = e.target.value;
-    saveSettings(settings);
+    await saveSettings(settings);
     if (typeof renderWidgets === 'function') renderWidgets();
   });
   
   // Background opacity
   const bgOpacitySlider = document.getElementById('global-widget-bg-opacity');
   const bgOpacityValue = document.getElementById('global-widget-bg-opacity-value');
-  bgOpacitySlider.addEventListener('input', (e) => {
+  bgOpacitySlider.addEventListener('input', async (e) => {
     settings.globalWidgetAppearance.backgroundOpacity = parseInt(e.target.value);
     bgOpacityValue.textContent = e.target.value + '%';
-    saveSettings(settings);
+    await saveSettings(settings);
     if (typeof renderWidgets === 'function') renderWidgets();
   });
   
   // Blur
   const blurSlider = document.getElementById('global-widget-blur');
   const blurValue = document.getElementById('global-widget-blur-value');
-  blurSlider.addEventListener('input', (e) => {
+  blurSlider.addEventListener('input', async (e) => {
     settings.globalWidgetAppearance.blur = parseInt(e.target.value);
     blurValue.textContent = e.target.value + 'px';
-    saveSettings(settings);
+    await saveSettings(settings);
     if (typeof renderWidgets === 'function') renderWidgets();
   });
   
   // Border radius
   const borderRadiusSlider = document.getElementById('global-widget-border-radius');
   const borderRadiusValue = document.getElementById('global-widget-border-radius-value');
-  borderRadiusSlider.addEventListener('input', (e) => {
+  borderRadiusSlider.addEventListener('input', async (e) => {
     settings.globalWidgetAppearance.borderRadius = parseInt(e.target.value);
     borderRadiusValue.textContent = e.target.value + 'px';
-    saveSettings(settings);
+    await saveSettings(settings);
     if (typeof renderWidgets === 'function') renderWidgets();
   });
   
   // Widget opacity
   const opacitySlider = document.getElementById('global-widget-opacity');
   const opacityValue = document.getElementById('global-widget-opacity-value');
-  opacitySlider.addEventListener('input', (e) => {
+  opacitySlider.addEventListener('input', async (e) => {
     settings.globalWidgetAppearance.opacity = parseInt(e.target.value);
     opacityValue.textContent = e.target.value + '%';
-    saveSettings(settings);
+    await saveSettings(settings);
     if (typeof renderWidgets === 'function') renderWidgets();
   });
   
   // Text alignment
-  document.getElementById('global-widget-text-align').addEventListener('change', (e) => {
+  document.getElementById('global-widget-text-align').addEventListener('change', async (e) => {
     settings.globalWidgetAppearance.textAlign = e.target.value;
-    saveSettings(settings);
+    await saveSettings(settings);
     if (typeof renderWidgets === 'function') renderWidgets();
   });
   
   // Vertical alignment
-  document.getElementById('global-widget-vertical-align').addEventListener('change', (e) => {
+  document.getElementById('global-widget-vertical-align').addEventListener('change', async (e) => {
     settings.globalWidgetAppearance.verticalAlign = e.target.value;
-    saveSettings(settings);
+    await saveSettings(settings);
     if (typeof renderWidgets === 'function') renderWidgets();
   });
   
   // Padding
   const paddingSlider = document.getElementById('global-widget-padding');
   const paddingValue = document.getElementById('global-widget-padding-value');
-  paddingSlider.addEventListener('input', (e) => {
+  paddingSlider.addEventListener('input', async (e) => {
     settings.globalWidgetAppearance.padding = parseInt(e.target.value);
     paddingValue.textContent = e.target.value + 'px';
-    saveSettings(settings);
+    await saveSettings(settings);
     if (typeof renderWidgets === 'function') renderWidgets();
   });
   
   // Reset button
-  document.getElementById('reset-global-widget-appearance').addEventListener('click', () => {
+  document.getElementById('reset-global-widget-appearance').addEventListener('click', async () => {
     settings.globalWidgetAppearance = { ...defaultSettings.globalWidgetAppearance };
     updateGlobalWidgetControls();
-    saveSettings(settings);
+    await saveSettings(settings);
     if (typeof renderWidgets === 'function') renderWidgets();
   });
 }

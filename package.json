@@ -1,34 +1,42 @@
 {
-  "name": "clean-newtab",
-  "version": "0.4.0",
-  "description": "A clean, customizable Chrome extension that transforms your new tab into a powerful dashboard with tile-based widgets and universal website embedding",
+  "name": "clean-browsing",
+  "version": "0.5.0",
+  "description": "Clean Browsing: A monorepo containing CB-NewTab (dashboard extension) and CB-Sidepanel (universal website sidepanel) Chrome extensions",
   "author": "Dimitri Meimaridis",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/DimitriMeimaridis/clean-newtab.git"
+    "url": "https://github.com/DimitriMeimaridis/clean-browsing.git"
   },
   "bugs": {
-    "url": "https://github.com/DimitriMeimaridis/clean-newtab/issues"
+    "url": "https://github.com/DimitriMeimaridis/clean-browsing/issues"
   },
-  "homepage": "https://github.com/DimitriMeimaridis/clean-newtab#readme",
+  "homepage": "https://github.com/DimitriMeimaridis/clean-browsing#readme",
   "keywords": [
     "chrome-extension",
     "new-tab",
+    "sidepanel",
     "dashboard",
     "widgets",
     "customizable",
     "productivity",
     "browser-extension",
-    "vanilla-js"
+    "vanilla-js",
+    "monorepo",
+    "iframe-embedding"
   ],
   "scripts": {
-    "test": "echo 'Running extension validation tests' && node -e \"const manifest = require('./extension/manifest.json'); console.log('Manifest valid:', manifest.name, manifest.version);\"",
-    "validate": "node -e \"require('./extension/manifest.json'); console.log('Extension structure validated');\"",
-    "build": "echo 'No build process required - pure vanilla JS extension'",
-    "dev": "echo 'Load extension/ folder in Chrome extensions (chrome://extensions)'",
-    "package": "cd extension && zip -r ../dist/clean-newtab-v$(node -p \"require('./manifest.json').version\").zip .",
+    "test": "echo 'Running extension validation tests' && node scripts/validate-extensions.js",
+    "validate": "node scripts/validate-extensions.js",
+    "build": "node scripts/build.js",
+    "dev": "node scripts/dev.js",
+    "package": "node scripts/package.js",
     "lint": "echo 'No linter configured - using browser dev tools for validation'"
   },
-  "private": true
+  "private": true,
+  "devDependencies": {
+    "archiver": "^7.0.1",
+    "chokidar": "^4.0.3",
+    "fs-extra": "^11.3.1"
+  }
 }

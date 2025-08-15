@@ -86,63 +86,95 @@ window.addEventListener('message', (event) => {
 });
 
 async function initializeSidepanel() {
-  // Load settings from background script
-  sidebarSettings = await loadSidebarSettings();
-  
-  // Render website list
-  renderWebsiteList();
-  
-  // Set up event listeners
-  setupEventListeners();
-  
-  // Apply behavior settings
-  applyBehaviorSettings();
-  
-  // Load and apply appearance settings
-  loadAppearanceSettings();
-}
-
-// Load settings from main extension settings first, then fallback to background script
-function loadSidebarSettings() {
-  return new Promise((resolve) => {
-    // First try to load from main extension settings (localStorage)
-    try {
-      const mainSettings = JSON.parse(localStorage.getItem('settings') || '{}');
-      if (mainSettings.sidebarSettings && mainSettings.sidebarSettings.sidebarWebsites) {
-        console.log('Loading sidepanel settings from main settings');
-        resolve(mainSettings.sidebarSettings);
-        return;
-      }
-    } catch (e) {
-      console.log('Could not load from main settings, trying background script:', e);
-    }
+  try {
+    // Load settings from background script
+    sidebarSettings = await loadSidebarSettings();
     
-    // Fallback to background script storage
-    chrome.runtime.sendMessage({ action: 'getSidebarSettings' }, (response) => {
-      console.log('Loading sidepanel settings from background script');
-      resolve(response);
-    });
-  });
+    // Render website list
+    renderWebsiteList();
+    
+    // Set up event listeners
+    setupEventListeners();
+    
+    // Apply behavior settings
+    applyBehaviorSettings();
+    
+    // Load and apply appearance settings
+    loadAppearanceSettings();
+  } catch (error) {
+    console.error('Failed to initialize sidepanel:', error);
+    // Try to use fallback settings
+    try {
+      if (window.DefaultSettings) {
+        sidebarSettings = window.DefaultSettings.getDefaultSidepanelSettings();
+        renderWebsiteList();
+        setupEventListeners();
+        applyBehaviorSettings();
+        loadAppearanceSettings();
+      }
+    } catch (fallbackError) {
+      console.error('Failed to initialize with fallback settings:', fallbackError);
+    }
+  }
 }
 
-// Save settings to background script and sync with main extension settings
-function saveSidebarSettings() {
-  return new Promise((resolve) => {
-    chrome.runtime.sendMessage({ 
-      action: 'saveSidebarSettings', 
-      settings: sidebarSettings 
-    }, (response) => {
-      // Also sync with main extension settings in localStorage for export/import
-      try {
-        const mainSettings = JSON.parse(localStorage.getItem('settings') || '{}');
-        mainSettings.sidebarSettings = sidebarSettings;
-        localStorage.setItem('settings', JSON.stringify(mainSettings));
-      } catch (e) {
-        console.log('Could not sync with main settings:', e);
-      }
-      resolve(response);
-    });
-  });
+// Settings are now managed by shared settings manager
+// Function kept for compatibility but redirects to shared manager
+async function loadSidebarSettings() {
+  try {
+    if (window.StorageManager) {
+      return await StorageManager.loadSidepanelSettings();
+    } else {
+      console.warn('StorageManager not available, falling back to chrome.runtime messaging');
+      return new Promise((resolve) => {
+        chrome.runtime.sendMessage({ action: 'getSidebarSettings' }, (response) => {
+          if (chrome.runtime.lastError) {
+            console.error('Error loading settings via runtime:', chrome.runtime.lastError);
+            resolve(getMinimalFallbackSettings());
+          } else {
+            resolve(response || getMinimalFallbackSettings());
+          }
+        });
+      });
+    }
+  } catch (error) {
+    console.error('Error loading sidebar settings:', error);
+    return getMinimalFallbackSettings();
+  }
+}
+
+// Save settings using shared settings manager
+async function saveSidebarSettings() {
+  try {
+    if (window.StorageManager) {
+      await StorageManager.saveSidepanelSettings(sidebarSettings);
+    } else {
+      console.warn('StorageManager not available, falling back to chrome.runtime messaging');
+      return new Promise((resolve) => {
+        chrome.runtime.sendMessage({ 
+          action: 'saveSidebarSettings', 
+          settings: sidebarSettings 
+        }, (response) => {
+          if (chrome.runtime.lastError) {
+            console.error('Error saving settings via runtime:', chrome.runtime.lastError);
+          }
+          resolve();
+        });
+      });
+    }
+  } catch (error) {
+    console.error('Error saving sidebar settings:', error);
+  }
+}
+
+// Minimal fallback settings when all else fails
+function getMinimalFallbackSettings() {
+  return {
+    sidebarEnabled: true,
+    sidebarWebsites: [],
+    sidebarBehavior: { autoClose: false, compactMode: false, showUrls: false },
+    appearance: { backgroundType: 'gradient', backgroundSettings: { color1: '#667eea', color2: '#764ba2', angle: 135 } }
+  };
 }
 
 // Render the website list
@@ -248,31 +280,50 @@ function openWebsite(website) {
 
 // Open website in iframe
 async function openInIframe(website) {
-  const websiteList = document.getElementById('website-list');
-  const iframeContainer = document.getElementById('iframe-container');
-  const iframe = document.getElementById('website-iframe');
-  const iframeTitle = document.getElementById('iframe-title');
-  const iframeCurrentUrl = document.getElementById('iframe-current-url');
-  
-  // Hide website list, show iframe
-  websiteList.classList.add('hidden');
-  iframeContainer.classList.remove('hidden');
-  
-  // Set title and initialize current URL
-  iframeTitle.textContent = website.name;
-  iframeCurrentUrl.textContent = website.url;
-  iframeCurrentUrl.title = 'Click to copy: ' + website.url;
-  iframeCurrentUrl.className = 'iframe-current-url';
-  currentWebsiteUrl = website.url;
-  
-  // Set up click handler for URL copying
-  setupUrlClickHandler(iframeCurrentUrl, website.url);
-  
-  // Enable frame bypass for this URL
-  await chrome.runtime.sendMessage({ 
-    action: 'enableFrameBypass', 
-    url: website.url 
-  });
+  try {
+    const websiteList = document.getElementById('website-list');
+    const iframeContainer = document.getElementById('iframe-container');
+    const iframe = document.getElementById('website-iframe');
+    const iframeTitle = document.getElementById('iframe-title');
+    const iframeCurrentUrl = document.getElementById('iframe-current-url');
+    
+    if (!websiteList || !iframeContainer || !iframe || !iframeTitle || !iframeCurrentUrl) {
+      throw new Error('Required DOM elements not found for iframe');
+    }
+    
+    // Hide website list, show iframe
+    websiteList.classList.add('hidden');
+    iframeContainer.classList.remove('hidden');
+    
+    // Set title and initialize current URL
+    iframeTitle.textContent = website.name;
+    iframeCurrentUrl.textContent = website.url;
+    iframeCurrentUrl.title = 'Click to copy: ' + website.url;
+    iframeCurrentUrl.className = 'iframe-current-url';
+    currentWebsiteUrl = website.url;
+    
+    // Set up click handler for URL copying
+    setupUrlClickHandler(iframeCurrentUrl, website.url);
+    
+    // Enable frame bypass for this URL with retry logic
+    try {
+      await new Promise((resolve, reject) => {
+        chrome.runtime.sendMessage({ 
+          action: 'enableFrameBypass', 
+          url: website.url 
+        }, (response) => {
+          if (chrome.runtime.lastError) {
+            console.warn('Failed to enable frame bypass:', chrome.runtime.lastError);
+            resolve(); // Continue anyway
+          } else {
+            resolve(response);
+          }
+        });
+      });
+    } catch (msgError) {
+      console.warn('Failed to enable frame bypass:', msgError);
+      // Continue without frame bypass
+    }
   
   // Add a small delay to ensure header rules are active
   await new Promise(resolve => setTimeout(resolve, 100));
@@ -332,6 +383,17 @@ async function openInIframe(website) {
   
   // Start URL tracking with simplified approach
   startUrlTracking(iframe, iframeCurrentUrl);
+  
+  } catch (error) {
+    console.error('Error setting up iframe:', error);
+    // Handle error by opening in new tab instead
+    if (website && website.url) {
+      chrome.runtime.sendMessage({ 
+        action: 'openInNewTab', 
+        url: website.url 
+      });
+    }
+  }
 }
 
 // URL tracking variables
@@ -735,61 +797,91 @@ function handleIframeError(website, errorType = 'unknown') {
 
 // Back to website list
 async function backToList() {
-  const websiteList = document.getElementById('website-list');
-  const iframeContainer = document.getElementById('iframe-container');
-  const iframe = document.getElementById('website-iframe');
-  const iframeCurrentUrl = document.getElementById('iframe-current-url');
-  
-  // Stop URL tracking
-  stopUrlTracking();
-  
-  // Clean up URL click handler
-  if (iframeCurrentUrl) {
-    removeUrlClickHandler(iframeCurrentUrl);
-  }
-  
-  // Disable tracking in iframe content script
   try {
-    iframe.contentWindow.postMessage({
-      type: 'SIDEPANEL_ENABLE_TRACKING',
-      enabled: false
-    }, '*');
-  } catch (e) {
-    // Expected for CORS protected content
+    const websiteList = document.getElementById('website-list');
+    const iframeContainer = document.getElementById('iframe-container');
+    const iframe = document.getElementById('website-iframe');
+    const iframeCurrentUrl = document.getElementById('iframe-current-url');
+    
+    // Stop URL tracking
+    stopUrlTracking();
+    
+    // Clean up URL click handler
+    if (iframeCurrentUrl) {
+      removeUrlClickHandler(iframeCurrentUrl);
+    }
+    
+    // Disable tracking in iframe content script
+    try {
+      if (iframe && iframe.contentWindow) {
+        iframe.contentWindow.postMessage({
+          type: 'SIDEPANEL_ENABLE_TRACKING',
+          enabled: false
+        }, '*');
+      }
+    } catch (e) {
+      // Expected for CORS protected content
+    }
+    
+    // Disable frame bypass if we had a URL loaded
+    if (currentWebsiteUrl) {
+      try {
+        await new Promise((resolve) => {
+          chrome.runtime.sendMessage({ 
+            action: 'disableFrameBypass', 
+            url: currentWebsiteUrl 
+          }, (response) => {
+            if (chrome.runtime.lastError) {
+              console.warn('Failed to disable frame bypass:', chrome.runtime.lastError);
+            }
+            resolve();
+          });
+        });
+      } catch (msgError) {
+        console.warn('Failed to disable frame bypass:', msgError);
+      }
+    }
+    
+    // Show website list, hide iframe
+    if (websiteList) websiteList.classList.remove('hidden');
+    if (iframeContainer) iframeContainer.classList.add('hidden');
+    
+    // Clear iframe
+    if (iframe) iframe.src = '';
+    currentWebsiteUrl = null;
+    
+  } catch (error) {
+    console.error('Error returning to list:', error);
+    // Force UI state reset even if there was an error
+    const websiteList = document.getElementById('website-list');
+    const iframeContainer = document.getElementById('iframe-container');
+    if (websiteList) websiteList.classList.remove('hidden');
+    if (iframeContainer) iframeContainer.classList.add('hidden');
   }
-  
-  // Disable frame bypass if we had a URL loaded
-  if (currentWebsiteUrl) {
-    await chrome.runtime.sendMessage({ 
-      action: 'disableFrameBypass', 
-      url: currentWebsiteUrl 
-    });
-  }
-  
-  // Show website list, hide iframe
-  websiteList.classList.remove('hidden');
-  iframeContainer.classList.add('hidden');
-  
-  // Clear iframe
-  iframe.src = '';
-  currentWebsiteUrl = null;
-  
-  // Back button is always enabled, no state reset needed
 }
 
 // Set up all event listeners
 function setupEventListeners() {
   // Settings button
-  document.getElementById('sidepanel-settings-btn').addEventListener('click', openSettings);
+  const settingsBtn = document.getElementById('sidepanel-settings-btn');
+  if (settingsBtn) settingsBtn.addEventListener('click', openSettings);
   
   // Settings modal
-  document.getElementById('close-settings').addEventListener('click', closeSettings);
-  document.getElementById('save-settings').addEventListener('click', saveSettings);
-  document.getElementById('add-website-btn').addEventListener('click', addWebsite);
+  const closeSettingsBtn = document.getElementById('close-settings');
+  if (closeSettingsBtn) closeSettingsBtn.addEventListener('click', closeSettings);
+  
+  const saveSettingsBtn = document.getElementById('save-settings');
+  if (saveSettingsBtn) saveSettingsBtn.addEventListener('click', saveSettings);
+  
+  const addWebsiteBtn = document.getElementById('add-website-btn');
+  if (addWebsiteBtn) addWebsiteBtn.addEventListener('click', addWebsite);
   
   // Edit modal
-  document.getElementById('close-edit').addEventListener('click', closeEditModal);
-  document.getElementById('save-edit').addEventListener('click', saveEditWebsite);
+  const closeEdit = document.getElementById('close-edit');
+  if (closeEdit) closeEdit.addEventListener('click', closeEditModal);
+  
+  const saveEdit = document.getElementById('save-edit');
+  if (saveEdit) saveEdit.addEventListener('click', saveEditWebsite);
   
   // Tab switching
   document.querySelectorAll('.settings-tabs .tab-btn').forEach(btn => {
@@ -803,10 +895,12 @@ function setupEventListeners() {
   document.querySelectorAll('input[name="icon-type"]').forEach(radio => {
     radio.addEventListener('change', (e) => {
       const emojiGroup = document.getElementById('emoji-input-group');
-      if (e.target.value === 'emoji') {
-        emojiGroup.style.display = 'block';
-      } else {
-        emojiGroup.style.display = 'none';
+      if (emojiGroup) {
+        if (e.target.value === 'emoji') {
+          emojiGroup.style.display = 'block';
+        } else {
+          emojiGroup.style.display = 'none';
+        }
       }
     });
   });
@@ -815,17 +909,22 @@ function setupEventListeners() {
   document.querySelectorAll('input[name="edit-icon-type"]').forEach(radio => {
     radio.addEventListener('change', (e) => {
       const emojiGroup = document.getElementById('edit-emoji-input-group');
-      if (e.target.value === 'emoji') {
-        emojiGroup.style.display = 'block';
-      } else {
-        emojiGroup.style.display = 'none';
+      if (emojiGroup) {
+        if (e.target.value === 'emoji') {
+          emojiGroup.style.display = 'block';
+        } else {
+          emojiGroup.style.display = 'none';
+        }
       }
     });
   });
   
   // Iframe controls
-  document.getElementById('back-to-list').addEventListener('click', backToList);
-  document.getElementById('open-in-tab').addEventListener('click', () => {
+  const backToListBtn = document.getElementById('back-to-list');
+  if (backToListBtn) backToListBtn.addEventListener('click', backToList);
+  
+  const openInTabBtn = document.getElementById('open-in-tab');
+  if (openInTabBtn) openInTabBtn.addEventListener('click', () => {
     // Get the most current URL available
     const iframe = document.getElementById('website-iframe');
     let urlToOpen = currentWebsiteUrl || lastKnownUrl;
@@ -848,13 +947,21 @@ function setupEventListeners() {
   });
 
   // Navigation controls
-  document.getElementById('nav-back').addEventListener('click', () => navigateIframe('back'));
-  document.getElementById('nav-refresh').addEventListener('click', () => navigateIframe('refresh'));
+  const navBack = document.getElementById('nav-back');
+  if (navBack) navBack.addEventListener('click', () => navigateIframe('back'));
+  
+  const navRefresh = document.getElementById('nav-refresh');
+  if (navRefresh) navRefresh.addEventListener('click', () => navigateIframe('refresh'));
   
   // Behavior checkboxes
-  document.getElementById('auto-close').addEventListener('change', updateBehaviorSettings);
-  document.getElementById('show-urls').addEventListener('change', updateBehaviorSettings);
-  document.getElementById('compact-mode').addEventListener('change', updateBehaviorSettings);
+  const autoClose = document.getElementById('auto-close');
+  if (autoClose) autoClose.addEventListener('change', updateBehaviorSettings);
+  
+  const showUrls = document.getElementById('show-urls');
+  if (showUrls) showUrls.addEventListener('change', updateBehaviorSettings);
+  
+  const compactMode = document.getElementById('compact-mode');
+  if (compactMode) compactMode.addEventListener('change', updateBehaviorSettings);
   
   // Appearance settings
   setupAppearanceListeners();
