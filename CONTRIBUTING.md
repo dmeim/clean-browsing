@@ -1,6 +1,6 @@
-# Contributing to Clean NewTab
+# Contributing to Clean Browsing
 
-Thank you for your interest in contributing to Clean NewTab! This document provides guidelines and information for contributors.
+Thank you for your interest in contributing to Clean Browsing! This document provides guidelines and information for contributors.
 
 ## 🚀 Getting Started
 
@@ -13,14 +13,14 @@ Thank you for your interest in contributing to Clean NewTab! This document provi
 1. Fork the repository
 2. Clone your fork:
    ```bash
-   git clone https://github.com/yourusername/clean-newtab.git
-   cd clean-newtab
+   git clone https://github.com/yourusername/clean-browsing.git
+   cd clean-browsing
    ```
 3. Load the extension in Chrome:
    - Open `chrome://extensions`
    - Enable Developer mode
    - Click "Load unpacked" and select the `extension/` folder
-4. Make your changes and test in a new tab
+4. Make your changes and test the extension features
 
 ## 🛠️ Development Guidelines
 

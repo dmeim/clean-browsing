@@ -1,6 +1,6 @@
 # Features Documentation
 
-This directory contains detailed documentation for all widgets and features in the NewTab PlusProMaxUltra extension, organized by development status and functionality.
+This directory contains detailed documentation for all widgets and features in the Clean Browsing extension, organized by development status and functionality.
 
 ## 📊 Status Legend
 

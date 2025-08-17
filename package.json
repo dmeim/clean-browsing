@@ -1,17 +1,17 @@
 {
-  "name": "clean-newtab",
+  "name": "clean-browsing",
   "version": "0.4.0",
-  "description": "A clean, customizable Chrome extension that transforms your new tab into a powerful dashboard with tile-based widgets and universal website embedding",
+  "description": "A comprehensive browsing enhancement Chrome extension with customizable dashboard, universal sidepanel, and productivity widgets",
   "author": "Dimitri Meimaridis",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/DimitriMeimaridis/clean-newtab.git"
+    "url": "https://github.com/dmeim/clean-browsing.git"
   },
   "bugs": {
-    "url": "https://github.com/DimitriMeimaridis/clean-newtab/issues"
+    "url": "https://github.com/dmeim/clean-browsing/issues"
   },
-  "homepage": "https://github.com/DimitriMeimaridis/clean-newtab#readme",
+  "homepage": "https://github.com/dmeim/clean-browsing#readme",
   "keywords": [
     "chrome-extension",
     "new-tab",
@@ -27,7 +27,7 @@
     "validate": "node -e \"require('./extension/manifest.json'); console.log('Extension structure validated');\"",
     "build": "echo 'No build process required - pure vanilla JS extension'",
     "dev": "echo 'Load extension/ folder in Chrome extensions (chrome://extensions)'",
-    "package": "cd extension && zip -r ../dist/clean-newtab-v$(node -p \"require('./manifest.json').version\").zip .",
+    "package": "cd extension && zip -r ../dist/clean-browsing-v$(node -p \"require('./manifest.json').version\").zip .",
     "lint": "echo 'No linter configured - using browser dev tools for validation'"
   },
   "private": true
