@@ -30,8 +30,21 @@
         <div class="settings-section">
           <h3 class="section-title">Configuration Management</h3>
           
-          <!-- Mode Selection -->
+          <!-- Quick Actions - Always Available -->
           <div class="settings-group">
+            <h4 class="subsection-title">Quick Actions</h4>
+            <div class="config-quick-actions">
+              <button id="config-quick-export-all" class="primary-button">Quick Export All</button>
+              <button id="config-quick-import-all" class="primary-button">Quick Import All</button>
+              <input type="file" id="config-quick-import-file" accept="application/json" style="display:none">
+            </div>
+          </div>
+
+          <!-- Advanced Options -->
+          <div class="settings-group">
+            <h4 class="subsection-title">Advanced Import/Export</h4>
+            
+            <!-- Mode Selection -->
             <div class="input-group">
               <label for="config-mode">Action</label>
               <select id="config-mode">
@@ -39,11 +52,8 @@
                 <option value="import">Import Settings</option>
               </select>
             </div>
-          </div>
 
-          <!-- Settings Categories -->
-          <div class="settings-group">
-            <h4 class="subsection-title">Settings Categories</h4>
+            <!-- Settings Categories -->
             <div class="config-categories">
               <div class="input-group checkbox-group">
                 <label>
@@ -75,9 +85,9 @@
               </div>
               <div class="input-group checkbox-group">
                 <label>
-                  <input type="checkbox" id="config-sidebar" class="config-category">
-                  Sidebar Websites
-                  <span class="checkbox-description">Saved websites and sidebar behavior</span>
+                  <input type="checkbox" id="config-sidepanel" class="config-category">
+                  Sidepanel Websites
+                  <span class="checkbox-description">Saved websites and sidepanel behavior</span>
                 </label>
               </div>
               <div class="input-group checkbox-group">
@@ -88,13 +98,10 @@
                 </label>
               </div>
             </div>
-          </div>
 
-          <!-- Action Buttons -->
-          <div class="settings-group">
+            <!-- Action Buttons -->
             <div class="config-actions">
               <button id="config-action-btn" class="primary-button">Export Selected</button>
-              <button id="config-quick-all" class="secondary-button">Quick Export All</button>
               <input type="file" id="config-import-file" accept="application/json" style="display:none">
             </div>
           </div>

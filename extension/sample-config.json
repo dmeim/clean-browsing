@@ -62,7 +62,7 @@
         }
       }
     ],
-    "sidebar": {
+    "sidepanel": {
       "sidebarEnabled": true,
       "sidebarWebsites": [
         {
@@ -87,6 +87,23 @@
         "defaultOpenMode": "iframe",
         "showIcons": true,
         "compactMode": false
+      },
+      "appearance": {
+        "backgroundType": "gradient",
+        "backgroundSettings": {
+          "gradient": {
+            "color1": "#667eea",
+            "color2": "#764ba2",
+            "angle": 135
+          },
+          "solid": {
+            "color": "#222222"
+          },
+          "image": {
+            "url": null,
+            "opacity": 100
+          }
+        }
       }
     },
     "preferences": {
