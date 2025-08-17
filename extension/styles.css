@@ -1824,6 +1824,22 @@ select option {
   line-height: 1.3;
 }
 
+/* Quick Actions Section */
+.config-quick-actions {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  padding: 1rem;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.config-quick-actions button {
+  flex: 1;
+}
+
+/* Advanced Config Actions */
 .config-actions {
   display: flex;
   gap: 1rem;
@@ -1896,6 +1912,11 @@ select option {
 
 /* Responsive adjustments for config UI */
 @media (max-width: 600px) {
+  .config-quick-actions {
+    flex-direction: column;
+    padding: 0.75rem;
+  }
+  
   .config-actions {
     flex-direction: column;
   }

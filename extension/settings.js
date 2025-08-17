@@ -483,11 +483,15 @@ function setupModalControls() {
 // New selective configuration management system
 const configMode = document.getElementById('config-mode');
 const configActionBtn = document.getElementById('config-action-btn');
-const configQuickAll = document.getElementById('config-quick-all');
 const configImportFile = document.getElementById('config-import-file');
 const configStatus = document.getElementById('config-status');
 const configAllCheckbox = document.getElementById('config-all');
 const configCategoryCheckboxes = document.querySelectorAll('.config-category');
+
+// Quick action elements
+const configQuickExportAll = document.getElementById('config-quick-export-all');
+const configQuickImportAll = document.getElementById('config-quick-import-all');
+const configQuickImportFile = document.getElementById('config-quick-import-file');
 
 // Helper function to show status messages
 function showConfigStatus(message, isError = false) {
@@ -514,7 +518,7 @@ function getSelectedCategories() {
 // Helper function to create settings data structure for export
 function createExportData(categories) {
   const exportData = {
-    version: "0.3.0",
+    version: "0.4.0",
     exportDate: new Date().toISOString().split('T')[0],
     categories: {}
   };
@@ -530,8 +534,8 @@ function createExportData(categories) {
       case 'widgets':
         exportData.categories.widgets = settings.widgets;
         break;
-      case 'sidebar':
-        exportData.categories.sidebar = settings.sidebarSettings;
+      case 'sidepanel':
+        exportData.categories.sidepanel = settings.sidebarSettings;
         break;
       case 'preferences':
         exportData.categories.preferences = {
@@ -550,8 +554,8 @@ function applyImportedSettings(importData, selectedCategories) {
   let appliedCategories = [];
 
   selectedCategories.forEach(category => {
-    if (!importData.categories || !importData.categories[category]) {
-      return; // Skip if category not found in import data
+    if (!importData.categories) {
+      return; // Skip if no categories in import data
     }
 
     switch (category) {
@@ -573,10 +577,12 @@ function applyImportedSettings(importData, selectedCategories) {
           appliedCategories.push('Widgets & Layout');
         }
         break;
-      case 'sidebar':
-        if (importData.categories.sidebar) {
-          settings.sidebarSettings = { ...defaultSettings.sidebarSettings, ...importData.categories.sidebar };
-          appliedCategories.push('Sidebar Websites');
+      case 'sidepanel':
+        // Handle both new 'sidepanel' and legacy 'sidebar' naming
+        const sidepanelData = importData.categories.sidepanel || importData.categories.sidebar;
+        if (sidepanelData) {
+          settings.sidebarSettings = { ...defaultSettings.sidebarSettings, ...sidepanelData };
+          appliedCategories.push('Sidepanel Websites');
         }
         break;
       case 'preferences':
@@ -662,36 +668,6 @@ configActionBtn.addEventListener('click', () => {
   }
 });
 
-// Quick All button handler
-configQuickAll.addEventListener('click', () => {
-  const isExport = configMode.value === 'export';
-  const allCategories = ['background', 'appearance', 'widgets', 'sidebar', 'preferences'];
-
-  if (isExport) {
-    try {
-      const exportData = createExportData(allCategories);
-      const jsonString = JSON.stringify(exportData, null, 2);
-      const blob = new Blob([jsonString], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `newtab-config-complete-${exportData.exportDate}.json`;
-      a.click();
-      URL.revokeObjectURL(url);
-      
-      showConfigStatus('Complete configuration exported successfully!');
-    } catch (error) {
-      showConfigStatus('Export failed. Please try again.', true);
-    }
-  } else {
-    // Import all - check all boxes and trigger file picker
-    configAllCheckbox.checked = true;
-    configCategoryCheckboxes.forEach(checkbox => {
-      checkbox.checked = true;
-    });
-    configImportFile.click();
-  }
-});
 
 // File import handler
 configImportFile.addEventListener('change', () => {
@@ -716,7 +692,7 @@ configImportFile.addEventListener('change', () => {
       }
 
       // Version compatibility check
-      if (importData.version !== "0.3.0") {
+      if (importData.version !== "0.4.0" && importData.version !== "0.3.0") {
         if (!confirm('This configuration file is from a different version. Import anyway? Some settings may not be compatible.')) {
           return;
         }
@@ -751,6 +727,86 @@ configImportFile.addEventListener('change', () => {
   
   // Reset file input
   configImportFile.value = '';
+});
+
+// Quick Export All Handler
+configQuickExportAll.addEventListener('click', () => {
+  try {
+    const allCategories = ['background', 'appearance', 'widgets', 'sidepanel', 'preferences'];
+    const exportData = createExportData(allCategories);
+    const jsonString = JSON.stringify(exportData, null, 2);
+    const blob = new Blob([jsonString], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `newtab-config-complete-${exportData.exportDate}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    
+    showConfigStatus('Complete configuration exported successfully!');
+  } catch (error) {
+    showConfigStatus('Export failed. Please try again.', true);
+  }
+});
+
+// Quick Import All Handler
+configQuickImportAll.addEventListener('click', () => {
+  configQuickImportFile.click();
+});
+
+// Quick Import File Handler
+configQuickImportFile.addEventListener('change', () => {
+  const file = configQuickImportFile.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = () => {
+    try {
+      const importData = JSON.parse(reader.result);
+      
+      // Validate import data structure
+      if (!importData.version || !importData.categories) {
+        showConfigStatus('Invalid configuration file format.', true);
+        return;
+      }
+
+      // Version compatibility check
+      if (importData.version !== "0.4.0" && importData.version !== "0.3.0") {
+        if (!confirm('This configuration file is from a different version. Import anyway? Some settings may not be compatible.')) {
+          return;
+        }
+      }
+
+      // Import all categories
+      const allCategories = ['background', 'appearance', 'widgets', 'sidepanel', 'preferences'];
+      const appliedCategories = applyImportedSettings(importData, allCategories);
+      
+      if (appliedCategories.length === 0) {
+        showConfigStatus('No valid categories found in the configuration file.', true);
+        return;
+      }
+
+      // Save and apply changes
+      saveSettings(settings);
+      settings = loadSettings();
+      
+      // Update UI to reflect changes
+      applyBackground(settings);
+      loadBackgroundUI();
+      updateGlobalWidgetControls();
+      if (typeof renderWidgets === 'function') renderWidgets();
+      if (typeof initSidebarSettings === 'function') initSidebarSettings();
+      
+      showConfigStatus(`Quick import successful! Imported: ${appliedCategories.join(', ')}`);
+      
+    } catch (error) {
+      showConfigStatus('Invalid JSON file or corrupted data.', true);
+    }
+  };
+  reader.readAsText(file);
+  
+  // Reset file input
+  configQuickImportFile.value = '';
 });
 
 // Global Widget Appearance Controls
@@ -1083,7 +1139,7 @@ class ModalDragResize {
     const groups = content.querySelectorAll('.settings-group');
     const tabContent = content.querySelectorAll('.tab-content');
     
-    if (modalRect.width > 850) {
+    if (modalRect.width > 900) {
       // Wide layout
       content.classList.add('layout-wide');
       sections.forEach(section => section.classList.add('compact'));
