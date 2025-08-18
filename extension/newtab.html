@@ -24,6 +24,7 @@
       <button data-tab="config" class="active">Configuration</button>
       <button data-tab="page-appearance">Page Appearance</button>
       <button data-tab="widget-appearance">Widget Appearance</button>
+      <button data-tab="storage">Storage</button>
     </div>
     <div class="modal-content">
       <div id="config-tab" class="tab-content">
@@ -111,6 +112,7 @@
             <div id="config-status" class="config-status"></div>
           </div>
         </div>
+
       </div>
       <div id="page-appearance-tab" class="tab-content hidden">
         <div class="settings-section">
@@ -312,6 +314,55 @@
           </div>
         </div>
       </div>
+      <div id="storage-tab" class="tab-content hidden">
+        <div class="settings-section">
+          <h3 class="section-title">Picture Storage</h3>
+          
+          <div class="settings-group">
+            <h4 class="subsection-title">Storage Overview</h4>
+            <div id="storage-overview" class="storage-overview">
+              <div class="storage-stats">
+                <div id="storage-text" class="storage-text">Loading...</div>
+                <div id="storage-details" class="storage-details"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="settings-group">
+            <h4 class="subsection-title">Cleanup Tools</h4>
+            <div class="storage-actions">
+              <button id="storage-optimize" class="secondary-button">Optimize Storage</button>
+              <button id="storage-clear-orphaned" class="secondary-button">Clean Orphaned Images</button>
+              <button id="storage-clear-all" class="danger-button">Clear All Images</button>
+            </div>
+            <div id="storage-cleanup-status" class="storage-status"></div>
+          </div>
+
+          <div class="settings-group">
+            <h4 class="subsection-title">Storage Statistics</h4>
+            <div id="storage-stats-details" class="storage-stats-details">
+              <div class="stats-grid">
+                <div class="stat-item">
+                  <span class="stat-label">Total Images:</span>
+                  <span id="stat-image-count" class="stat-value">-</span>
+                </div>
+                <div class="stat-item">
+                  <span class="stat-label">Average Size:</span>
+                  <span id="stat-avg-size" class="stat-value">-</span>
+                </div>
+                <div class="stat-item">
+                  <span class="stat-label">Largest Image:</span>
+                  <span id="stat-largest" class="stat-value">-</span>
+                </div>
+                <div class="stat-item">
+                  <span class="stat-label">Oldest Image:</span>
+                  <span id="stat-oldest" class="stat-value">-</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
   <div id="widgets-panel" class="hidden">
@@ -336,6 +387,7 @@
   <!-- Core extension scripts - MUST load first -->
   <script src="settings.js"></script>
   <script src="widgets.js"></script>
+  <script src="storage-manager.js"></script>
   
   <!-- Day.js library for date widget - loaded locally to avoid CSP issues -->
   <script src="libs/dayjs/dayjs.min.js"></script>
@@ -362,5 +414,6 @@
   <script src="widgets/date-widget.js"></script>
   <script src="widgets/search-widget.js"></script>
   <script src="widgets/calculator-widget.js"></script>
+  <script src="widgets/picture-widget.js"></script>
 </body>
 </html>

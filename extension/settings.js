@@ -516,14 +516,14 @@ function getSelectedCategories() {
 }
 
 // Helper function to create settings data structure for export
-function createExportData(categories) {
+async function createExportData(categories) {
   const exportData = {
     version: "0.4.0",
     exportDate: new Date().toISOString().split('T')[0],
     categories: {}
   };
 
-  categories.forEach(category => {
+  for (const category of categories) {
     switch (category) {
       case 'background':
         exportData.categories.background = settings.background;
@@ -532,7 +532,10 @@ function createExportData(categories) {
         exportData.categories.globalAppearance = settings.globalWidgetAppearance;
         break;
       case 'widgets':
-        exportData.categories.widgets = settings.widgets;
+        // Export widgets with embedded image data
+        if (settings.widgets) {
+          exportData.categories.widgets = await exportWidgetsWithImages(settings.widgets);
+        }
         break;
       case 'sidepanel':
         exportData.categories.sidepanel = settings.sidebarSettings;
@@ -544,18 +547,59 @@ function createExportData(categories) {
         };
         break;
     }
-  });
+  }
+
+  // Include IndexedDB images if widgets are being exported
+  if (categories.includes('widgets') && window.storageManager) {
+    try {
+      exportData.imageDatabase = await window.storageManager.exportAllImages();
+    } catch (error) {
+      console.warn('Failed to export IndexedDB images:', error);
+    }
+  }
 
   return exportData;
 }
 
+// Helper function to export widgets with resolved image references
+async function exportWidgetsWithImages(widgets) {
+  const exportedWidgets = [];
+  
+  for (const widget of widgets) {
+    const exportedWidget = { ...widget };
+    
+    // If this is a picture widget with an IndexedDB reference, resolve the image
+    if (widget.type === 'picture' && widget.settings?.imageRef) {
+      try {
+        const imageRef = widget.settings.imageRef;
+        if (typeof imageRef === 'object' && imageRef.type === 'indexeddb') {
+          // Convert IndexedDB reference to data URL for export
+          const imageData = await window.storageManager.getImage(imageRef);
+          if (imageData) {
+            exportedWidget.settings = {
+              ...widget.settings,
+              imageRef: imageData // Store as data URL in export
+            };
+          }
+        }
+      } catch (error) {
+        console.warn(`Failed to resolve image for widget ${widget.type}:`, error);
+      }
+    }
+    
+    exportedWidgets.push(exportedWidget);
+  }
+  
+  return exportedWidgets;
+}
+
 // Helper function to apply imported settings
-function applyImportedSettings(importData, selectedCategories) {
+async function applyImportedSettings(importData, selectedCategories) {
   let appliedCategories = [];
 
-  selectedCategories.forEach(category => {
+  for (const category of selectedCategories) {
     if (!importData.categories) {
-      return; // Skip if no categories in import data
+      continue; // Skip if no categories in import data
     }
 
     switch (category) {
@@ -573,7 +617,8 @@ function applyImportedSettings(importData, selectedCategories) {
         break;
       case 'widgets':
         if (importData.categories.widgets) {
-          settings.widgets = importData.categories.widgets;
+          // Process widgets and restore images if needed
+          settings.widgets = await importWidgetsWithImages(importData.categories.widgets, importData.imageDatabase);
           appliedCategories.push('Widgets & Layout');
         }
         break;
@@ -597,9 +642,56 @@ function applyImportedSettings(importData, selectedCategories) {
         }
         break;
     }
-  });
+  }
 
   return appliedCategories;
+}
+
+// Helper function to import widgets with image restoration
+async function importWidgetsWithImages(widgets, imageDatabase) {
+  const importedWidgets = [];
+  
+  for (const widget of widgets) {
+    const importedWidget = { ...widget };
+    
+    // If this is a picture widget, process the image reference
+    if (widget.type === 'picture' && widget.settings?.imageRef) {
+      try {
+        const imageRef = widget.settings.imageRef;
+        
+        // If imageRef is a data URL (from export), store it appropriately
+        if (typeof imageRef === 'string' && imageRef.startsWith('data:')) {
+          // Store the image using storage manager
+          const storedImageRef = await window.storageManager.storeImage(imageRef);
+          importedWidget.settings = {
+            ...widget.settings,
+            imageRef: storedImageRef
+          };
+        }
+        // If it's already an IndexedDB reference, keep it as is
+      } catch (error) {
+        console.warn(`Failed to import image for widget ${widget.type}:`, error);
+        // Keep the widget but without the image reference
+        importedWidget.settings = {
+          ...widget.settings,
+          imageRef: null
+        };
+      }
+    }
+    
+    importedWidgets.push(importedWidget);
+  }
+  
+  // Import any additional images from the database
+  if (imageDatabase && window.storageManager) {
+    try {
+      await window.storageManager.importImages(imageDatabase);
+    } catch (error) {
+      console.warn('Failed to import image database:', error);
+    }
+  }
+  
+  return importedWidgets;
 }
 
 // Mode change handler - updates UI based on export/import selection
@@ -637,7 +729,7 @@ configCategoryCheckboxes.forEach(checkbox => {
 });
 
 // Main action button handler (Export Selected / Import Selected)
-configActionBtn.addEventListener('click', () => {
+configActionBtn.addEventListener('click', async () => {
   const isExport = configMode.value === 'export';
   const selectedCategories = getSelectedCategories();
 
@@ -648,7 +740,10 @@ configActionBtn.addEventListener('click', () => {
 
   if (isExport) {
     try {
-      const exportData = createExportData(selectedCategories);
+      configActionBtn.disabled = true;
+      configActionBtn.textContent = 'Exporting...';
+      
+      const exportData = await createExportData(selectedCategories);
       const jsonString = JSON.stringify(exportData, null, 2);
       const blob = new Blob([jsonString], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
@@ -661,6 +756,9 @@ configActionBtn.addEventListener('click', () => {
       showConfigStatus(`Exported ${selectedCategories.length} category${selectedCategories.length > 1 ? 'ies' : ''} successfully!`);
     } catch (error) {
       showConfigStatus('Export failed. Please try again.', true);
+    } finally {
+      configActionBtn.disabled = false;
+      configActionBtn.textContent = 'Export Selected';
     }
   } else {
     // Import mode - trigger file picker
@@ -681,7 +779,7 @@ configImportFile.addEventListener('change', () => {
   }
 
   const reader = new FileReader();
-  reader.onload = () => {
+  reader.onload = async () => {
     try {
       const importData = JSON.parse(reader.result);
       
@@ -698,8 +796,17 @@ configImportFile.addEventListener('change', () => {
         }
       }
 
+      // Show loading status for imports with images
+      const hasImages = importData.imageDatabase || 
+        (importData.categories.widgets && 
+         importData.categories.widgets.some(w => w.type === 'picture'));
+      
+      if (hasImages) {
+        showConfigStatus('Importing settings and images...', false);
+      }
+
       // Apply selected categories
-      const appliedCategories = applyImportedSettings(importData, selectedCategories);
+      const appliedCategories = await applyImportedSettings(importData, selectedCategories);
       
       if (appliedCategories.length === 0) {
         showConfigStatus('No matching categories found in the configuration file.', true);
@@ -720,7 +827,8 @@ configImportFile.addEventListener('change', () => {
       showConfigStatus(`Successfully imported: ${appliedCategories.join(', ')}`);
       
     } catch (error) {
-      showConfigStatus('Invalid JSON file or corrupted data.', true);
+      console.error('Import error:', error);
+      showConfigStatus('Import failed: ' + (error.message || 'Invalid JSON file or corrupted data.'), true);
     }
   };
   reader.readAsText(file);
@@ -730,10 +838,13 @@ configImportFile.addEventListener('change', () => {
 });
 
 // Quick Export All Handler
-configQuickExportAll.addEventListener('click', () => {
+configQuickExportAll.addEventListener('click', async () => {
   try {
+    configQuickExportAll.disabled = true;
+    configQuickExportAll.textContent = 'Exporting...';
+    
     const allCategories = ['background', 'appearance', 'widgets', 'sidepanel', 'preferences'];
-    const exportData = createExportData(allCategories);
+    const exportData = await createExportData(allCategories);
     const jsonString = JSON.stringify(exportData, null, 2);
     const blob = new Blob([jsonString], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
@@ -746,6 +857,9 @@ configQuickExportAll.addEventListener('click', () => {
     showConfigStatus('Complete configuration exported successfully!');
   } catch (error) {
     showConfigStatus('Export failed. Please try again.', true);
+  } finally {
+    configQuickExportAll.disabled = false;
+    configQuickExportAll.textContent = 'Quick Export All';
   }
 });
 
@@ -760,7 +874,7 @@ configQuickImportFile.addEventListener('change', () => {
   if (!file) return;
 
   const reader = new FileReader();
-  reader.onload = () => {
+  reader.onload = async () => {
     try {
       const importData = JSON.parse(reader.result);
       
@@ -777,9 +891,18 @@ configQuickImportFile.addEventListener('change', () => {
         }
       }
 
+      // Show loading status for imports with images
+      const hasImages = importData.imageDatabase || 
+        (importData.categories.widgets && 
+         importData.categories.widgets.some(w => w.type === 'picture'));
+      
+      if (hasImages) {
+        showConfigStatus('Importing complete configuration and images...', false);
+      }
+
       // Import all categories
       const allCategories = ['background', 'appearance', 'widgets', 'sidepanel', 'preferences'];
-      const appliedCategories = applyImportedSettings(importData, allCategories);
+      const appliedCategories = await applyImportedSettings(importData, allCategories);
       
       if (appliedCategories.length === 0) {
         showConfigStatus('No valid categories found in the configuration file.', true);
@@ -800,7 +923,8 @@ configQuickImportFile.addEventListener('change', () => {
       showConfigStatus(`Quick import successful! Imported: ${appliedCategories.join(', ')}`);
       
     } catch (error) {
-      showConfigStatus('Invalid JSON file or corrupted data.', true);
+      console.error('Quick import error:', error);
+      showConfigStatus('Import failed: ' + (error.message || 'Invalid JSON file or corrupted data.'), true);
     }
   };
   reader.readAsText(file);
@@ -1214,11 +1338,169 @@ class ModalDragResize {
   }
 }
 
+// Storage Management Functionality
+async function initStorageManagement() {
+  const storageOptimizeBtn = document.getElementById('storage-optimize');
+  const storageClearOrphanedBtn = document.getElementById('storage-clear-orphaned');
+  const storageClearAllBtn = document.getElementById('storage-clear-all');
+  const storageCleanupStatus = document.getElementById('storage-cleanup-status');
+
+  // Update storage information
+  await updateStorageDisplay();
+
+  // Optimize storage
+  storageOptimizeBtn?.addEventListener('click', async () => {
+    try {
+      storageOptimizeBtn.disabled = true;
+      storageOptimizeBtn.textContent = 'Optimizing...';
+      
+      showStorageStatus('Optimizing storage...', 'info');
+      
+      const results = await window.storageManager.optimizeStorage();
+      
+      if (results.errors.length > 0) {
+        showStorageStatus(`Optimization completed with ${results.errors.length} error(s): ${results.errors.join(', ')}`, 'error');
+      } else {
+        const sizeSaved = results.totalSizeBefore - results.totalSizeAfter;
+        showStorageStatus(`Optimization completed! Cleaned ${results.orphanedCleaned} orphaned images, freed ${Math.round(sizeSaved/1024)}KB`, 'success');
+      }
+      
+      await updateStorageDisplay();
+      
+    } catch (error) {
+      showStorageStatus('Optimization failed: ' + error.message, 'error');
+    } finally {
+      storageOptimizeBtn.disabled = false;
+      storageOptimizeBtn.textContent = 'Optimize Storage';
+    }
+  });
+
+  // Clean orphaned images
+  storageClearOrphanedBtn?.addEventListener('click', async () => {
+    try {
+      storageClearOrphanedBtn.disabled = true;
+      storageClearOrphanedBtn.textContent = 'Cleaning...';
+      
+      const activeImageRefs = window.storageManager.getActiveImageReferences();
+      const cleanedCount = await window.storageManager.cleanupOrphanedImages(activeImageRefs);
+      
+      showStorageStatus(`Cleaned ${cleanedCount} orphaned images`, 'success');
+      await updateStorageDisplay();
+      
+    } catch (error) {
+      showStorageStatus('Cleanup failed: ' + error.message, 'error');
+    } finally {
+      storageClearOrphanedBtn.disabled = false;
+      storageClearOrphanedBtn.textContent = 'Clean Orphaned Images';
+    }
+  });
+
+  // Clear all images
+  storageClearAllBtn?.addEventListener('click', async () => {
+    if (!confirm('Are you sure you want to delete ALL stored images? This cannot be undone and will remove images from all picture widgets.')) {
+      return;
+    }
+    
+    try {
+      storageClearAllBtn.disabled = true;
+      storageClearAllBtn.textContent = 'Clearing...';
+      
+      await window.storageManager.clearAllImages();
+      
+      showStorageStatus('All images cleared successfully', 'success');
+      await updateStorageDisplay();
+      
+      // Also clear image references from settings
+      if (settings.widgets) {
+        settings.widgets.forEach(widget => {
+          if (widget.type === 'picture') {
+            widget.settings.imageRef = null;
+          }
+        });
+        saveSettings(settings);
+        if (typeof renderWidgets === 'function') renderWidgets();
+      }
+      
+    } catch (error) {
+      showStorageStatus('Clear all failed: ' + error.message, 'error');
+    } finally {
+      storageClearAllBtn.disabled = false;
+      storageClearAllBtn.textContent = 'Clear All Images';
+    }
+  });
+}
+
+async function updateStorageDisplay() {
+  try {
+    const info = await window.storageManager.getStorageInfo();
+    const stats = await window.storageManager.getStorageStats();
+    
+    // Update storage display
+    const storageText = document.getElementById('storage-text');
+    const storageDetails = document.getElementById('storage-details');
+    
+    if (storageText) {
+      storageText.textContent = `${info.totalSizeMB}MB used`;
+    }
+    
+    if (storageDetails) {
+      storageDetails.innerHTML = `
+        <strong>${info.imageCount}</strong> images stored<br>
+        Using <strong>${info.totalSizeMB}MB</strong> of browser storage
+      `;
+    }
+    
+    // Update statistics
+    document.getElementById('stat-image-count').textContent = stats.imageCount;
+    document.getElementById('stat-avg-size').textContent = stats.averageImageSize ? `${Math.round(stats.averageImageSize/1024)}KB` : '-';
+    document.getElementById('stat-largest').textContent = stats.largestImage ? `${Math.round(stats.largestImage/1024)}KB` : '-';
+    document.getElementById('stat-oldest').textContent = stats.oldestImageDate || '-';
+    
+  } catch (error) {
+    console.error('Failed to update storage display:', error);
+  }
+}
+
+function showStorageStatus(message, type = 'info') {
+  const statusElement = document.getElementById('storage-cleanup-status');
+  if (statusElement) {
+    statusElement.className = `storage-status ${type}`;
+    statusElement.textContent = message;
+    
+    // Auto-hide after 5 seconds
+    setTimeout(() => {
+      statusElement.className = 'storage-status';
+    }, 5000);
+  }
+}
+
 // Initialize drag and resize for both modals
 if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', initModalDragResize);
+  document.addEventListener('DOMContentLoaded', () => {
+    initModalDragResize();
+    if (window.storageManager) {
+      initStorageManagement();
+    } else {
+      // Wait for storage manager to initialize
+      setTimeout(() => {
+        if (window.storageManager) {
+          initStorageManagement();
+        }
+      }, 1000);
+    }
+  });
 } else {
   initModalDragResize();
+  if (window.storageManager) {
+    initStorageManagement();
+  } else {
+    // Wait for storage manager to initialize
+    setTimeout(() => {
+      if (window.storageManager) {
+        initStorageManagement();
+      }
+    }, 1000);
+  }
 }
 
 function initModalDragResize() {
