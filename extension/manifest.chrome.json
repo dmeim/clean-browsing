@@ -1,12 +1,24 @@
 {
-  "manifest_version": 2,
+  "manifest_version": 3,
   "name": "Clean-Browsing",
   "version": "0.4.4",
   "description": "Enhanced browsing with customizable dashboard, sidepanel, and productivity tools",
   "chrome_url_overrides": {
     "newtab": "newtab.html"
   },
-  "browser_action": {
+  "permissions": [
+    "storage",
+    "scripting",
+    "declarativeNetRequest",
+    "declarativeNetRequestWithHostAccess"
+  ],
+  "host_permissions": [
+    "<all_urls>"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
     "default_title": "Toggle Sidepanel",
     "default_icon": {
       "16": "resources/logo.png",
@@ -19,15 +31,14 @@
     "48": "resources/logo.png",
     "128": "resources/logo.png"
   },
-  "permissions": [
-    "storage",
-    "tabs",
-    "activeTab",
-    "<all_urls>"
-  ],
-  "background": {
-    "scripts": ["background.js"],
-    "persistent": true
+  "declarative_net_request": {
+    "rule_resources": [
+      {
+        "id": "frame_rules",
+        "enabled": true,
+        "path": "frame-rules.json"
+      }
+    ]
   },
   "content_scripts": [
     {
@@ -45,16 +56,15 @@
     }
   ],
   "web_accessible_resources": [
-    "sidepanel-embedded.js",
-    "sidepanel-embedded.css",
-    "split-view.js",
-    "resources/logo.png",
-    "sidepanel.css"
-  ],
-  "browser_specific_settings": {
-    "gecko": {
-      "id": "clean-browsing@example.com",
-      "strict_min_version": "78.0"
+    {
+      "resources": [
+        "sidepanel-embedded.js",
+        "sidepanel-embedded.css",
+        "split-view.js",
+        "resources/logo.png",
+        "sidepanel.css"
+      ],
+      "matches": ["<all_urls>"]
     }
-  }
+  ]
 }

@@ -27,8 +27,10 @@
     "validate": "node -e \"require('./extension/manifest.json'); console.log('Extension structure validated');\"",
     "build": "echo 'No build process required - pure vanilla JS extension'",
     "dev": "echo 'Load extension/ folder in Chrome extensions (chrome://extensions)'",
-    "package": "cd extension && zip -r ../dist/clean-browsing-v$(node -p \"require('./manifest.json').version\").zip .",
+    "package": "cd extension && zip -r ../dist/clean-browsing-chrome-v$(node -p \"require('./manifest.json').version\").zip .",
+    "package:firefox": "rm -rf dist/firefox && mkdir -p dist/firefox && rsync -a --exclude 'manifest.*.json' extension/ dist/firefox/ && cp extension/manifest.firefox.json dist/firefox/manifest.json && cd dist/firefox && zip -r ../clean-browsing-firefox-v$(node -p \"require('./manifest.json').version\").zip .",
+    "dev:firefox": "echo 'Load dist/firefox (or extension/ + rename manifest.firefox.json to manifest.json) in about:debugging#/runtime/this-firefox'",
     "lint": "echo 'No linter configured - using browser dev tools for validation'"
   },
   "private": true
-}
+  }

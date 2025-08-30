@@ -6,6 +6,23 @@
   'use strict';
   
   console.log('🚀 Clean-Browsing: Advanced sidepanel injector loading...');
+  // Cross-browser API shim
+  const _api = (typeof browser !== 'undefined') ? browser : (typeof chrome !== 'undefined' ? chrome : undefined);
+  const _isPromise = (v) => v && typeof v.then === 'function';
+  const ext = {
+    storageGet: async (keys) => {
+      if (!_api?.storage?.local?.get) return {};
+      const out = _api.storage.local.get(keys);
+      return _isPromise(out) ? await out : await new Promise((resolve) => _api.storage.local.get(keys, resolve));
+    },
+    storageSet: async (obj) => {
+      if (!_api?.storage?.local?.set) return;
+      const out = _api.storage.local.set(obj);
+      return _isPromise(out) ? await out : await new Promise((resolve) => _api.storage.local.set(obj, resolve));
+    },
+    getURL: (path) => _api?.runtime?.getURL ? _api.runtime.getURL(path) : path,
+    onMessageAddListener: (handler) => _api?.runtime?.onMessage?.addListener(handler)
+  };
   
   // Only inject on main pages, not iframes
   if (window.top !== window.self) {
@@ -30,7 +47,7 @@
   let bodyObserver = null;
   
   // Listen for messages from background script
-  chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+  ext.onMessageAddListener((request, sender, sendResponse) => {
     console.log('📨 Clean-Browsing: Message received:', request);
     
     if (request.action === 'toggleSidepanel') {
@@ -135,7 +152,7 @@
     console.log('📚 Clean-Browsing: Loading settings...');
     
     try {
-      const result = await chrome.storage.local.get(['sidebarSettings']);
+      const result = await ext.storageGet(['sidebarSettings']);
       sidebarSettings = result.sidebarSettings || getDefaultSidebarSettings();
       console.log('✅ Clean-Browsing: Settings loaded:', sidebarSettings);
     } catch (error) {
@@ -412,7 +429,7 @@
         // Also bring in existing sidepanel.css for exact look & feel
         const link = document.createElement('link');
         link.rel = 'stylesheet';
-        link.href = chrome.runtime.getURL('sidepanel.css');
+        link.href = ext.getURL('sidepanel.css');
         shadowRoot.appendChild(link);
       } catch (stylesError) {
         console.error('❌ Clean-Browsing: Failed to inject Shadow DOM styles:', stylesError);
@@ -1802,7 +1819,7 @@
     const addBtn = modal.querySelector('#add-website-btn');
     if (addBtn) { addBtn.addEventListener('click', addWebsite); }
     const saveBtn = modal.querySelector('#save-settings');
-    if (saveBtn) { saveBtn.addEventListener('click', async ()=>{ await chrome.storage.local.set({ sidebarSettings }); hideSettingsModal(); }); }
+    if (saveBtn) { saveBtn.addEventListener('click', async ()=>{ await ext.storageSet({ sidebarSettings }); hideSettingsModal(); }); }
 
     // Close on backdrop click
     modal.addEventListener('click', (e) => {
@@ -1828,7 +1845,7 @@
         sidebarSettings.sidebarBehavior.autoClose = !!autoClose?.checked;
         sidebarSettings.sidebarBehavior.showUrls = !!showUrls?.checked;
         sidebarSettings.sidebarBehavior.compactMode = !!compact?.checked;
-        await chrome.storage.local.set({ sidebarSettings });
+        await ext.storageSet({ sidebarSettings });
         renderWebsiteList();
       } catch (e) { console.error('Failed to save behavior settings', e); }
     };
@@ -1919,7 +1936,7 @@
     sidebarSettings.sidebarWebsites.push(newWebsite);
     
     try {
-      await chrome.storage.local.set({ sidebarSettings });
+      await ext.storageSet({ sidebarSettings });
       console.log('✅ Website added:', newWebsite);
       
       // Clear form
@@ -1973,7 +1990,7 @@
   }
 
   async function saveSettingsAndRefresh() {
-    await chrome.storage.local.set({ sidebarSettings });
+    await ext.storageSet({ sidebarSettings });
     renderWebsiteList();
     renderManageWebsitesList();
   }
@@ -2086,7 +2103,7 @@
       sidebarSettings.appearance.backgroundSettings = { image: currentBackgroundImage||null, opacity };
     }
     applyAppearanceToPanel();
-    chrome.storage.local.set({ sidebarSettings }).catch(()=>{});
+    ext.storageSet({ sidebarSettings }).catch(()=>{});
   }
 
   function loadAppearanceSettings() {
