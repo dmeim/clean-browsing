@@ -95,3 +95,59 @@ function getDefaultSidebarSettings() {
     }
   };
 }
+
+// Handle extension icon click - inject embedded sidepanel on non-newtab pages
+chrome.action.onClicked.addListener(async (tab) => {
+  console.log('🖱️ Extension button clicked for tab:', tab.id, 'URL:', tab.url);
+  
+  // Don't inject on new tab page (already has embedded panel) or extension/browser pages
+  const excludedPrefixes = ['chrome-extension://', 'chrome://', 'edge://', 'about:', 'moz-extension://'];
+  const isExcludedUrl = excludedPrefixes.some(prefix => tab.url?.startsWith(prefix));
+  
+  if (!tab.url || isExcludedUrl) {
+    console.log('⏭️ Skipping sidepanel injection for excluded URL:', tab.url);
+    return;
+  }
+  
+  try {
+    // Check if content script is already injected by trying to send a message
+    console.log('📨 Sending toggle message to content script...');
+    
+    const response = await chrome.tabs.sendMessage(tab.id, { action: 'toggleSidepanel' });
+    console.log('✅ Sidepanel toggle successful:', response);
+    
+  } catch (error) {
+    console.log('❌ Content script not responding:', error.message);
+    console.log('🔧 This likely means the content script failed to inject or the page has restrictive CSP');
+    
+    // Additional debugging - check if we can inject scripts
+    try {
+      const results = await chrome.scripting.executeScript({
+        target: { tabId: tab.id },
+        func: () => {
+          return {
+            url: window.location.href,
+            hasCleanBrowsingContainer: !!document.getElementById('clean-browsing-sidepanel-overlay'),
+            documentReady: document.readyState,
+            cspHeaders: document.querySelector('meta[http-equiv="Content-Security-Policy"]')?.content || 'none'
+          };
+        }
+      });
+      
+      console.log('🔍 Page analysis:', results[0].result);
+      
+      if (results[0].result.hasCleanBrowsingContainer) {
+        console.log('⚠️ Sidepanel container already exists but content script not responding');
+      } else {
+        console.log('ℹ️ No sidepanel container found - content script may have failed to load');
+      }
+      
+    } catch (scriptError) {
+      console.error('🚫 Cannot execute scripts on this page:', scriptError.message);
+      console.log('💡 This usually means:');
+      console.log('   - Page has restrictive CSP');
+      console.log('   - Page is on chrome:// or other protected scheme');
+      console.log('   - Extension lacks necessary permissions');
+    }
+  }
+});
