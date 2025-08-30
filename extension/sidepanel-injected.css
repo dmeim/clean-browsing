@@ -1,0 +1,253 @@
+/* CSS for injected sidepanel overlay - based on sidepanel-embedded.css */
+/* Only includes styles needed for the overlay injection */
+
+/* Ensure buttons have hover effects */
+#clean-browsing-sidepanel-overlay .icon-btn:hover,
+#clean-browsing-sidepanel-overlay .nav-btn:hover {
+  background: rgba(255, 255, 255, 0.2) !important;
+  transform: translateY(-1px);
+}
+
+#clean-browsing-sidepanel-overlay .icon-btn:hover {
+  transform: translateY(-1px);
+}
+
+#clean-browsing-sidepanel-overlay .nav-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* Website item styling */
+#clean-browsing-sidepanel-overlay .website-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  min-height: 44px;
+  margin-bottom: 6px;
+}
+
+#clean-browsing-sidepanel-overlay .website-item:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: translateX(2px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+#clean-browsing-sidepanel-overlay .website-icon-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+
+#clean-browsing-sidepanel-overlay .website-favicon {
+  width: 16px;
+  height: 16px;
+  object-fit: contain;
+}
+
+#clean-browsing-sidepanel-overlay .website-icon {
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+}
+
+#clean-browsing-sidepanel-overlay .website-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+#clean-browsing-sidepanel-overlay .website-name {
+  font-weight: 500;
+  font-size: 13px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+#clean-browsing-sidepanel-overlay .website-url {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.7);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Compact mode */
+#clean-browsing-sidepanel-overlay .website-item.compact {
+  padding: 6px 8px;
+  min-height: 32px;
+}
+
+#clean-browsing-sidepanel-overlay .website-item.compact .website-name {
+  font-size: 12px;
+}
+
+#clean-browsing-sidepanel-overlay .website-item.compact .website-url {
+  font-size: 10px;
+}
+
+#clean-browsing-sidepanel-overlay .website-item.compact .website-icon-wrapper {
+  width: 16px;
+  height: 16px;
+}
+
+/* Hidden class */
+#clean-browsing-sidepanel-overlay .hidden {
+  display: none !important;
+}
+
+/* Error state styling */
+#clean-browsing-sidepanel-overlay .iframe-error {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(0, 0, 0, 0.1);
+}
+
+#clean-browsing-sidepanel-overlay .error-content {
+  text-align: center;
+  max-width: 300px;
+  padding: 20px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  backdrop-filter: blur(10px);
+}
+
+#clean-browsing-sidepanel-overlay .error-content h3 {
+  color: #ffffff;
+  margin: 0 0 10px 0;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+#clean-browsing-sidepanel-overlay .error-content p {
+  color: rgba(255, 255, 255, 0.7);
+  margin: 0 0 20px 0;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+#clean-browsing-sidepanel-overlay .error-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+#clean-browsing-sidepanel-overlay .primary-btn {
+  background: #6c63ff;
+  color: #ffffff;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 6px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 14px;
+}
+
+#clean-browsing-sidepanel-overlay .primary-btn:hover {
+  background: #5a52d5;
+  transform: translateY(-1px);
+}
+
+/* Resize handle styling */
+#clean-browsing-sidepanel-overlay .sidepanel-resize-handle:hover {
+  background: rgba(255, 255, 255, 0.2) !important;
+}
+
+#clean-browsing-sidepanel-overlay .sidepanel-resize-handle::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 3px;
+  height: 30px;
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 2px;
+}
+
+/* Scrollbar styling for webkit browsers */
+#clean-browsing-sidepanel-overlay .website-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+#clean-browsing-sidepanel-overlay .website-list::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+}
+
+#clean-browsing-sidepanel-overlay .website-list::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 3px;
+}
+
+#clean-browsing-sidepanel-overlay .website-list::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.5);
+}
+
+/* URL click styling */
+#clean-browsing-sidepanel-overlay .iframe-current-url:hover {
+  color: rgba(255, 255, 255, 0.9) !important;
+}
+
+/* Modal styling (simplified) */
+#clean-browsing-sidepanel-overlay .sidepanel-settings-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2147483648;
+  backdrop-filter: blur(5px);
+}
+
+#clean-browsing-sidepanel-overlay .sidepanel-settings-modal.hidden {
+  display: none;
+}
+
+/* Ensure high z-index for overlay */
+#clean-browsing-sidepanel-overlay {
+  z-index: 2147483647 !important;
+}
+
+/* Responsive behavior */
+@media (max-width: 768px) {
+  #clean-browsing-sidepanel-overlay {
+    width: 100vw !important;
+  }
+  
+  #clean-browsing-sidepanel-overlay .sidepanel-container {
+    transform: translateX(0) !important;
+  }
+  
+  #clean-browsing-sidepanel-overlay .sidepanel-container.sidepanel-closed {
+    transform: translateX(100%) !important;
+  }
+  
+  #clean-browsing-sidepanel-overlay .sidepanel-resize-handle {
+    display: none;
+  }
+}
