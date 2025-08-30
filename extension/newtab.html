@@ -4,13 +4,241 @@
   <meta charset="utf-8">
   <title>Clean-Browsing</title>
   <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="sidepanel-embedded.css">
 </head>
 <body>
-  <div id="widget-grid" class="widget-grid"></div>
-  <div id="action-buttons">
-    <div id="settings-button" class="action-button">&#9881;</div>
-    <div id="widgets-button" class="action-button">&#9638;</div>
-    <div id="edit-button" class="action-button">&#9998;</div>
+  <!-- Split-view container for main content and embedded sidepanel -->
+  <div id="app-container" class="app-container">
+    <!-- Main content area -->
+    <div id="main-content" class="main-content">
+      <div id="widget-grid" class="widget-grid"></div>
+      <div id="action-buttons">
+        <div id="settings-button" class="action-button">&#9881;</div>
+        <div id="widgets-button" class="action-button">&#9638;</div>
+        <div id="edit-button" class="action-button">&#9998;</div>
+        <div id="sidepanel-toggle-button" class="action-button" title="Toggle Sidepanel (Alt+S)">&#9634;</div>
+      </div>
+    </div>
+    
+    <!-- Embedded sidepanel container -->
+    <div id="sidepanel-container" class="sidepanel-container sidepanel-closed">
+      <div class="sidepanel-resize-handle" title="Drag to resize"></div>
+      <div class="sidepanel-content">
+        <!-- Header -->
+        <div class="sidepanel-header">
+          <div class="header-title">
+            <img src="resources/logo.png" alt="Logo" class="sidepanel-logo">
+            <span>Quick Access</span>
+          </div>
+          <button id="sidepanel-settings-btn" class="icon-btn" title="Settings">⚙️</button>
+          <button id="sidepanel-close-btn" class="icon-btn" title="Close (Alt+S)">✕</button>
+        </div>
+
+        <!-- Website List -->
+        <div id="website-list" class="website-list">
+          <!-- Websites will be dynamically added here -->
+        </div>
+
+        <!-- Iframe Container -->
+        <div id="iframe-container" class="iframe-container hidden">
+          <div class="iframe-header">
+            <button id="back-to-list" class="icon-btn" title="Back to list">←</button>
+            <div class="iframe-info">
+              <span id="iframe-title" class="iframe-name"></span>
+              <span id="iframe-current-url" class="iframe-current-url">Loading...</span>
+            </div>
+            <div class="iframe-navigation">
+              <button id="nav-back" class="nav-btn" title="Back">⬅</button>
+              <button id="nav-refresh" class="nav-btn" title="Refresh">↻</button>
+            </div>
+            <button id="open-in-tab" class="icon-btn" title="Open in new tab">↗</button>
+          </div>
+          <iframe id="website-iframe" class="website-iframe"></iframe>
+        </div>
+
+        <!-- Sidepanel Settings Modal -->
+        <div id="sidepanel-settings-modal" class="sidepanel-settings-modal hidden">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h2>Sidepanel Settings</h2>
+              <button id="close-sidepanel-settings" class="icon-btn">✕</button>
+            </div>
+            
+            <!-- Tab Navigation -->
+            <div class="settings-tabs">
+              <button data-tab="add-website" class="tab-btn active">Add Website</button>
+              <button data-tab="manage-websites" class="tab-btn">Manage</button>
+              <button data-tab="behavior" class="tab-btn">Behavior</button>
+              <button data-tab="appearance" class="tab-btn">Appearance</button>
+            </div>
+            
+            <div class="modal-body">
+              <!-- Add Website Tab -->
+              <div id="add-website-tab" class="tab-content">
+                <div class="settings-section">
+                  <div class="form-group">
+                    <label for="website-name">Name:</label>
+                    <input type="text" id="website-name" placeholder="e.g., ChatGPT">
+                  </div>
+                  <div class="form-group">
+                    <label for="website-url">URL:</label>
+                    <input type="url" id="website-url" placeholder="https://example.com">
+                  </div>
+                  <div class="form-group">
+                    <label>Icon Type:</label>
+                    <div class="icon-type-selector">
+                      <label class="icon-type-option">
+                        <input type="radio" name="icon-type" value="favicon" checked>
+                        <span>Favicon</span>
+                      </label>
+                      <label class="icon-type-option">
+                        <input type="radio" name="icon-type" value="emoji">
+                        <span>Emoji</span>
+                      </label>
+                      <label class="icon-type-option">
+                        <input type="radio" name="icon-type" value="none">
+                        <span>No Icon</span>
+                      </label>
+                    </div>
+                  </div>
+                  <div class="form-group" id="emoji-input-group" style="display: none;">
+                    <label for="website-icon">Icon (emoji):</label>
+                    <input type="text" id="website-icon" placeholder="🌐" maxlength="2">
+                  </div>
+                  <div class="form-group">
+                    <label for="website-mode">Open Mode:</label>
+                    <select id="website-mode">
+                      <option value="iframe" selected>Embedded (iframe)</option>
+                      <option value="newtab">New Tab</option>
+                      <option value="newwindow">New Window</option>
+                      <option value="privatetab">New Private Tab</option>
+                      <option value="privatewindow">New Private Window</option>
+                    </select>
+                    <small style="color: rgba(255,255,255,0.6); display: block; margin-top: 4px;">
+                      Tip: Use "Embedded" for most sites - it will auto-detect and fallback if needed.
+                    </small>
+                  </div>
+                  <button id="add-website-btn" class="primary-btn">Add Website</button>
+                </div>
+              </div>
+
+              <!-- Manage Websites Tab -->
+              <div id="manage-websites-tab" class="tab-content hidden">
+                <div class="settings-section">
+                  <div id="manage-websites-list" class="manage-list">
+                    <!-- Website items for management will be added here -->
+                  </div>
+                </div>
+              </div>
+
+              <!-- Behavior Tab -->
+              <div id="behavior-tab" class="tab-content hidden">
+                <div class="settings-section">
+                  <div class="form-group checkbox-group">
+                    <input type="checkbox" id="auto-close">
+                    <label for="auto-close">Auto-close sidepanel after opening link</label>
+                  </div>
+                  <div class="form-group checkbox-group">
+                    <input type="checkbox" id="show-urls">
+                    <label for="show-urls">Show URLs in website list</label>
+                  </div>
+                  <div class="form-group checkbox-group">
+                    <input type="checkbox" id="compact-mode">
+                    <label for="compact-mode">Compact mode</label>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Appearance Tab -->
+              <div id="appearance-tab" class="tab-content hidden">
+                <div class="settings-section">
+                  <h3>Background</h3>
+                  <div class="form-group">
+                    <label>Background Type:</label>
+                    <div class="icon-type-selector">
+                      <label class="icon-type-option">
+                        <input type="radio" name="bg-type" value="gradient" checked>
+                        <span>Gradient</span>
+                      </label>
+                      <label class="icon-type-option">
+                        <input type="radio" name="bg-type" value="solid">
+                        <span>Solid Color</span>
+                      </label>
+                      <label class="icon-type-option">
+                        <input type="radio" name="bg-type" value="image">
+                        <span>Image</span>
+                      </label>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="modal-footer">
+              <button id="save-sidepanel-settings" class="primary-btn">Save Settings</button>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Edit Website Modal -->
+        <div id="edit-website-modal" class="sidepanel-settings-modal hidden">
+          <div class="modal-content edit-modal">
+            <div class="modal-header">
+              <h2>Edit Website</h2>
+              <button id="close-edit" class="icon-btn">✕</button>
+            </div>
+            
+            <div class="modal-body">
+              <div class="settings-section">
+                <div class="form-group">
+                  <label for="edit-website-name">Name:</label>
+                  <input type="text" id="edit-website-name" placeholder="e.g., ChatGPT">
+                </div>
+                <div class="form-group">
+                  <label for="edit-website-url">URL:</label>
+                  <input type="url" id="edit-website-url" placeholder="https://example.com">
+                </div>
+                <div class="form-group">
+                  <label>Icon Type:</label>
+                  <div class="icon-type-selector">
+                    <label class="icon-type-option">
+                      <input type="radio" name="edit-icon-type" value="favicon">
+                      <span>Favicon</span>
+                    </label>
+                    <label class="icon-type-option">
+                      <input type="radio" name="edit-icon-type" value="emoji">
+                      <span>Emoji</span>
+                    </label>
+                    <label class="icon-type-option">
+                      <input type="radio" name="edit-icon-type" value="none">
+                      <span>No Icon</span>
+                    </label>
+                  </div>
+                </div>
+                <div class="form-group" id="edit-emoji-input-group" style="display: none;">
+                  <label for="edit-website-icon">Icon (emoji):</label>
+                  <input type="text" id="edit-website-icon" placeholder="🌐" maxlength="2">
+                </div>
+                <div class="form-group">
+                  <label for="edit-website-mode">Open Mode:</label>
+                  <select id="edit-website-mode">
+                    <option value="iframe">Embedded (iframe)</option>
+                    <option value="newtab">New Tab</option>
+                    <option value="newwindow">New Window</option>
+                    <option value="privatetab">New Private Tab</option>
+                    <option value="privatewindow">New Private Window</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+            
+            <div class="modal-footer">
+              <button id="save-edit" class="primary-btn">Save Changes</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
   <div id="settings-modal" class="hidden">
     <div class="modal-header">
@@ -415,5 +643,9 @@
   <script src="widgets/search-widget.js"></script>
   <script src="widgets/calculator-widget.js"></script>
   <script src="widgets/picture-widget.js"></script>
+  
+  <!-- Embedded sidepanel functionality -->
+  <script src="split-view.js"></script>
+  <script src="sidepanel-embedded.js"></script>
 </body>
 </html>

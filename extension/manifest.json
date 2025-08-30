@@ -1,14 +1,12 @@
 {
   "manifest_version": 3,
   "name": "Clean-Browsing",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "description": "Enhanced browsing with customizable dashboard, sidepanel, and productivity tools",
   "chrome_url_overrides": {
     "newtab": "newtab.html"
   },
   "permissions": [
-    "windows",
-    "sidePanel",
     "storage",
     "declarativeNetRequest",
     "declarativeNetRequestWithHostAccess"
@@ -16,14 +14,11 @@
   "host_permissions": [
     "<all_urls>"
   ],
-  "side_panel": {
-    "default_path": "sidepanel.html"
-  },
   "background": {
     "service_worker": "background.js"
   },
   "action": {
-    "default_title": "Toggle Sidepanel",
+    "default_title": "Clean-Browsing Dashboard",
     "default_icon": {
       "16": "resources/logo.png",
       "48": "resources/logo.png",
