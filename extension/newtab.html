@@ -621,21 +621,7 @@
   <script src="libs/dayjs/dayjs.min.js"></script>
   <script src="libs/dayjs/plugin/advancedFormat.js"></script>
   <script src="libs/dayjs/plugin/localizedFormat.js"></script>
-  <script>
-    // Extend Day.js plugins immediately after loading
-    if (typeof dayjs !== 'undefined') {
-      if (window.dayjs_plugin_advancedFormat) {
-        dayjs.extend(window.dayjs_plugin_advancedFormat);
-      }
-      if (window.dayjs_plugin_localizedFormat) {
-        dayjs.extend(window.dayjs_plugin_localizedFormat);
-      }
-      // Verify Day.js is working
-      console.log('Day.js loaded locally, version:', dayjs.version);
-    } else {
-      console.error('Day.js failed to load from local files');
-    }
-  </script>
+  <script src="libs/dayjs-init.js"></script>
   
   <!-- Widget implementations - load AFTER Day.js is ready -->
   <script src="widgets/clock-widget.js"></script>
