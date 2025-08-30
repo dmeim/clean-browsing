@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Test Embedded Sidepanel</title>
+  <style>
+    body { 
+      font-family: Arial, sans-serif; 
+      padding: 20px; 
+      background: #333; 
+      color: white; 
+    }
+    .test-result {
+      padding: 10px;
+      margin: 10px 0;
+      border-radius: 5px;
+    }
+    .pass { background: #2d5a27; }
+    .fail { background: #5a2727; }
+    .info { background: #274c5a; }
+    
+    /* Basic grid layout for testing */
+    .app-container {
+      display: grid;
+      grid-template-columns: 1fr 0;
+      height: 300px;
+      width: 100%;
+      transition: grid-template-columns 0.3s ease;
+      border: 1px solid #666;
+      margin: 20px 0;
+    }
+    
+    .main-content {
+      background: #444;
+      padding: 20px;
+      min-width: 0;
+    }
+    
+    .sidepanel-container {
+      background: rgba(0, 0, 0, 0.2);
+      backdrop-filter: blur(10px);
+      border-left: 1px solid rgba(255, 255, 255, 0.1);
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      min-width: 0;
+      display: flex;
+      flex-direction: row;
+    }
+    
+    .sidepanel-container.sidepanel-open {
+      opacity: 1;
+    }
+    
+    .sidepanel-resize-handle {
+      width: 6px;
+      background: rgba(255, 255, 255, 0.1);
+      cursor: ew-resize;
+    }
+    
+    .sidepanel-content {
+      flex: 1;
+      padding: 10px;
+      font-size: 12px;
+    }
+    
+    button {
+      background: #0066cc;
+      color: white;
+      border: none;
+      padding: 10px 15px;
+      margin: 5px;
+      cursor: pointer;
+      border-radius: 5px;
+    }
+    
+    button:hover {
+      background: #0052a3;
+    }
+  </style>
+</head>
+<body>
+  <h1>Embedded Sidepanel Test</h1>
+  
+  <div id="test-results">
+    <h2>Test Results</h2>
+  </div>
+  
+  <!-- Mock structure for testing -->
+  <div id="app-container" class="app-container">
+    <div id="main-content" class="main-content">
+      <h3>Main Content</h3>
+      <p>This is the main content area.</p>
+      <div id="action-buttons">
+        <button id="sidepanel-toggle-button" title="Toggle Sidepanel (Alt+S)">Toggle Panel</button>
+      </div>
+    </div>
+    
+    <div id="sidepanel-container" class="sidepanel-container sidepanel-closed">
+      <div class="sidepanel-resize-handle" title="Drag to resize"></div>
+      <div class="sidepanel-content">
+        <div class="sidepanel-header">
+          <div class="header-title">
+            <span>Quick Access</span>
+          </div>
+          <button id="sidepanel-close-btn" title="Close (Alt+S)">✕</button>
+        </div>
+        <div id="website-list" class="website-list">
+          <p>Website list would go here</p>
+        </div>
+        <div id="iframe-container" class="iframe-container hidden">
+          <iframe id="website-iframe" class="website-iframe"></iframe>
+        </div>
+        <div id="sidepanel-settings-modal" class="hidden">Settings modal</div>
+      </div>
+    </div>
+  </div>
+  
+  <div id="manual-tests">
+    <h2>Manual Test Controls</h2>
+    <button onclick="testToggle()">Test Toggle</button>
+    <button onclick="testAltS()">Test Alt+S</button>
+    <button onclick="testResize()">Test Resize</button>
+    <button onclick="runAllTests()">Run All Tests</button>
+  </div>
+
+  <script>
+    // Test functions
+    function addTestResult(testName, passed, message) {
+      const results = document.getElementById('test-results');
+      const div = document.createElement('div');
+      div.className = `test-result ${passed ? 'pass' : 'fail'}`;
+      div.innerHTML = `<strong>${testName}:</strong> ${passed ? 'PASS' : 'FAIL'} - ${message}`;
+      results.appendChild(div);
+    }
+    
+    function addInfo(message) {
+      const results = document.getElementById('test-results');
+      const div = document.createElement('div');
+      div.className = 'test-result info';
+      div.innerHTML = `<strong>INFO:</strong> ${message}`;
+      results.appendChild(div);
+    }
+    
+    function testToggle() {
+      try {
+        if (window.splitViewManager) {
+          const wasOpen = window.splitViewManager.isSidepanelOpen();
+          window.splitViewManager.toggle();
+          const isOpenNow = window.splitViewManager.isSidepanelOpen();
+          addTestResult('Toggle Functionality', wasOpen !== isOpenNow, `Panel state changed from ${wasOpen} to ${isOpenNow}`);
+        } else {
+          addTestResult('Toggle Functionality', false, 'splitViewManager not available');
+        }
+      } catch (e) {
+        addTestResult('Toggle Functionality', false, e.message);
+      }
+    }
+    
+    function testAltS() {
+      try {
+        // Simulate Alt+S key press
+        const event = new KeyboardEvent('keydown', {
+          key: 's',
+          altKey: true,
+          bubbles: true
+        });
+        document.dispatchEvent(event);
+        addTestResult('Alt+S Shortcut', true, 'Keyboard event dispatched successfully');
+      } catch (e) {
+        addTestResult('Alt+S Shortcut', false, e.message);
+      }
+    }
+    
+    function testResize() {
+      try {
+        if (window.splitViewManager) {
+          const currentWidth = window.splitViewManager.getSidepanelWidth();
+          window.splitViewManager.setSidepanelWidth(500);
+          const newWidth = window.splitViewManager.getSidepanelWidth();
+          addTestResult('Resize Functionality', newWidth === 500, `Width changed from ${currentWidth} to ${newWidth}`);
+        } else {
+          addTestResult('Resize Functionality', false, 'splitViewManager not available');
+        }
+      } catch (e) {
+        addTestResult('Resize Functionality', false, e.message);
+      }
+    }
+    
+    function runAllTests() {
+      // Clear previous results
+      document.getElementById('test-results').innerHTML = '<h2>Test Results</h2>';
+      
+      addInfo('Starting automated tests...');
+      
+      // Test 1: Check if scripts loaded
+      addTestResult('SplitViewManager Class', typeof SplitViewManager !== 'undefined', 'SplitViewManager class is available');
+      addTestResult('EmbeddedSidepanel Class', typeof EmbeddedSidepanel !== 'undefined', 'EmbeddedSidepanel class is available');
+      
+      // Test 2: Check if instances are created
+      addTestResult('splitViewManager Instance', window.splitViewManager instanceof SplitViewManager, 'splitViewManager instance created');
+      addTestResult('embeddedSidepanel Instance', window.embeddedSidepanel instanceof EmbeddedSidepanel, 'embeddedSidepanel instance created');
+      
+      // Test 3: Check DOM elements
+      const requiredElements = [
+        'app-container', 'sidepanel-container', 'sidepanel-toggle-button', 
+        'main-content', 'website-list', 'iframe-container'
+      ];
+      
+      requiredElements.forEach(id => {
+        const element = document.getElementById(id);
+        addTestResult(`DOM Element: ${id}`, element !== null, element ? 'Element found' : 'Element missing');
+      });
+      
+      // Test 4: Check API methods
+      if (window.splitViewManager) {
+        const methods = ['toggle', 'open', 'close', 'getSidepanelWidth', 'setSidepanelWidth', 'isSidepanelOpen'];
+        methods.forEach(method => {
+          addTestResult(`API Method: ${method}`, typeof window.splitViewManager[method] === 'function', `${method} method available`);
+        });
+      }
+      
+      addInfo('Automated tests completed. Use manual test buttons above.');
+    }
+    
+    // Load scripts in order
+    function loadScript(src) {
+      return new Promise((resolve, reject) => {
+        const script = document.createElement('script');
+        script.src = src;
+        script.onload = resolve;
+        script.onerror = reject;
+        document.head.appendChild(script);
+      });
+    }
+    
+    // Initialize when page loads
+    document.addEventListener('DOMContentLoaded', async () => {
+      addInfo('Loading test environment...');
+      
+      try {
+        await loadScript('extension/split-view.js');
+        addInfo('split-view.js loaded');
+        
+        await loadScript('extension/sidepanel-embedded.js');
+        addInfo('sidepanel-embedded.js loaded');
+        
+        // Wait a bit for initialization
+        setTimeout(() => {
+          addInfo('Scripts loaded. Click "Run All Tests" to test functionality.');
+        }, 500);
+        
+      } catch (error) {
+        addTestResult('Script Loading', false, `Failed to load scripts: ${error.message}`);
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,67 +1,29 @@
-// Background service worker for sidepanel panel management
-// Initialize sidepanel behavior based on user settings
-initializeSidepanelBehavior();
+// Background service worker for Clean-Browsing extension
+// Track active sessions for header modification
+let activeSessions = new Set();
 
-// Track active sidepanel sessions for header modification
-let activeSidepanelSessions = new Set();
-
-async function initializeSidepanelBehavior() {
-  try {
-    // Check if sidepanel is enabled in settings
-    const result = await chrome.storage.local.get(['sidebarSettings']);
-    const settings = result.sidebarSettings || getDefaultSidebarSettings();
-    
-    const isEnabled = settings.sidebarEnabled !== false; // Default to true if not set
-    
-    // Only enable panel behavior if user has it enabled
-    if (isEnabled) {
-      chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: true });
-      console.log('Sidepanel enabled');
-    } else {
-      chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: false });
-      console.log('Sidepanel disabled by user settings');
-    }
-  } catch (error) {
-    console.error('Error initializing sidepanel behavior:', error);
-    // Fallback to enabled if there's an error
-    chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: true });
-  }
-}
-
-// Listen for messages from the sidepanel and main extension
+// Listen for messages from the embedded sidepanel and main extension
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === 'getSidebarSettings') {
-    // Get sidepanel settings from storage
+    // Get embedded sidepanel settings from storage
     chrome.storage.local.get(['sidebarSettings'], (result) => {
       sendResponse(result.sidebarSettings || getDefaultSidebarSettings());
     });
     return true; // Keep message channel open for async response
   } else if (request.action === 'enableFrameBypass') {
     // Enable frame bypass for a specific URL
-    activeSidepanelSessions.add(request.url);
+    activeSessions.add(request.url);
     console.log('Frame bypass enabled for:', request.url);
     sendResponse({ success: true });
   } else if (request.action === 'disableFrameBypass') {
     // Disable frame bypass for a specific URL
-    activeSidepanelSessions.delete(request.url);
+    activeSessions.delete(request.url);
     console.log('Frame bypass disabled for:', request.url);
     sendResponse({ success: true });
   } else if (request.action === 'saveSidebarSettings') {
-    // Save sidepanel settings to storage
+    // Save sidebar settings to storage
     chrome.storage.local.set({ sidebarSettings: request.settings }, () => {
-      // Update sidepanel behavior when settings change
-      const isEnabled = request.settings.sidebarEnabled !== false;
-      try {
-        if (isEnabled) {
-          chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: true });
-          console.log('Sidepanel enabled');
-        } else {
-          chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: false });
-          console.log('Sidepanel disabled');
-        }
-      } catch (error) {
-        console.error('Error updating sidepanel behavior:', error);
-      }
+      console.log('Sidebar settings saved');
       sendResponse({ success: true });
     });
     return true;
