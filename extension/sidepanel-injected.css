@@ -2,7 +2,8 @@
 /* Transforms page content to create integrated sidepanel experience */
 
 /* Page wrapper for smooth content shifting */
-#clean-browsing-page-wrapper {
+#clean-browsing-page-wrapper,
+#clean-browsing-viewport-wrapper {
   transition: transform 0.3s ease !important;
   transform: translateX(0) !important;
   width: 100% !important;
@@ -271,7 +272,8 @@
 
 /* Responsive behavior */
 @media (max-width: 768px) {
-  #clean-browsing-page-wrapper {
+  #clean-browsing-page-wrapper,
+  #clean-browsing-viewport-wrapper {
     transform: translateX(-100vw) !important;
   }
   

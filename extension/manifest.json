@@ -61,7 +61,8 @@
         "sidepanel-embedded.js",
         "sidepanel-embedded.css",
         "split-view.js",
-        "resources/logo.png"
+        "resources/logo.png",
+        "sidepanel.css"
       ],
       "matches": ["<all_urls>"]
     }
