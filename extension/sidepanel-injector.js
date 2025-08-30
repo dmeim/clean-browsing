@@ -26,6 +26,8 @@
   let sidepanelManager = null;
   let sidebarSettings = null;
   let originalViewportMeta = null;
+  let iframeLoadTimer = null;
+  let bodyObserver = null;
   
   // Listen for messages from background script
   chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
@@ -91,6 +93,8 @@
       // Render website list
       try {
         renderWebsiteList();
+        // Apply appearance to panel content if present
+        try { applyAppearanceToPanel(); } catch (_) {}
       } catch (renderError) {
         console.error('❌ Clean-Browsing: Website list rendering failed:', renderError);
         showErrorMessage('Website list rendering failed');
@@ -209,7 +213,9 @@
         min-height: 100vh !important;
         transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
         transform: translateX(0) !important;
-        overflow: hidden !important;
+        /* Allow page to manage vertical scroll; hide only horizontal overflow via body */
+        overflow: visible !important;
+        box-sizing: border-box !important;
         z-index: 0 !important;
       `;
       
@@ -233,7 +239,8 @@
       const bodyStyles = `
         margin: 0 !important;
         padding: 0 !important;
-        overflow: hidden !important;
+        /* Keep vertical scrolling semantics intact; only prevent horizontal scroll */
+        overflow-x: hidden !important;
         position: relative !important;
       `;
       
@@ -244,11 +251,23 @@
         console.warn('⚠️ Clean-Browsing: Could not apply body styles directly, trying individual properties');
         document.body.style.setProperty('margin', '0', 'important');
         document.body.style.setProperty('padding', '0', 'important');
-        document.body.style.setProperty('overflow', 'hidden', 'important');
+        document.body.style.setProperty('overflow-x', 'hidden', 'important');
         document.body.style.setProperty('position', 'relative', 'important');
       }
-      
+
+      // Also ensure the root element can't introduce horizontal scroll
+      try {
+        document.documentElement.style.setProperty('overflow-x', 'hidden', 'important');
+      } catch (_) {}
+
       console.log('✅ Clean-Browsing: Viewport wrapper created');
+
+      // Begin observing for new body children so late-injected content is also shifted
+      try {
+        startBodyObserver();
+      } catch (obsErr) {
+        console.warn('⚠️ Clean-Browsing: Failed to start body observer:', obsErr);
+      }
       
     } catch (error) {
       console.error('❌ Clean-Browsing: Failed to create viewport wrapper:', error);
@@ -258,8 +277,11 @@
   
   function removeViewportWrapper() {
     console.log('🔄 Clean-Browsing: Removing viewport wrapper...');
-    
+
     if (viewportWrapper) {
+      // Stop observing body mutations
+      stopBodyObserver();
+
       // Move children back to body
       const wrapperChildren = Array.from(viewportWrapper.children);
       wrapperChildren.forEach(child => {
@@ -272,6 +294,7 @@
       
       // Restore original body styles
       document.body.style.cssText = '';
+      try { document.documentElement.style.removeProperty('overflow-x'); } catch (_) {}
       
       // Restore original viewport meta
       if (originalViewportMeta) {
@@ -280,6 +303,55 @@
           currentViewport.replaceWith(originalViewportMeta.cloneNode(true));
         }
       }
+    }
+  }
+
+  // Observe direct children of body so anything appended after injection also shifts with the page
+  function startBodyObserver() {
+    if (!document.body || !viewportWrapper) return;
+    if (bodyObserver) return; // already observing
+
+    bodyObserver = new MutationObserver((mutations) => {
+      for (const mutation of mutations) {
+        if (mutation.type !== 'childList') continue;
+        mutation.addedNodes.forEach((node) => {
+          try {
+            // Only handle element nodes
+            if (!(node instanceof Element)) return;
+
+            // Skip our own infra elements
+            const id = node.id || '';
+            if (id === 'clean-browsing-viewport-wrapper' ||
+                id === 'clean-browsing-shadow-host' ||
+                id === 'clean-browsing-fallback-host' ||
+                id.startsWith('clean-browsing-')) {
+              return;
+            }
+
+            // If it's already inside the wrapper, skip
+            if (node.parentElement === viewportWrapper) return;
+
+            // Move the node into the wrapper so transforms apply uniformly
+            // Temporarily disconnect to avoid feedback loops
+            bodyObserver.disconnect();
+            viewportWrapper.appendChild(node);
+            bodyObserver.observe(document.body, { childList: true });
+          } catch (e) {
+            console.warn('⚠️ Clean-Browsing: Failed to migrate new body child into wrapper:', node, e);
+          }
+        });
+      }
+    });
+
+    bodyObserver.observe(document.body, { childList: true });
+    console.log('✅ Clean-Browsing: Body observer started');
+  }
+
+  function stopBodyObserver() {
+    if (bodyObserver) {
+      try { bodyObserver.disconnect(); } catch (_) {}
+      bodyObserver = null;
+      console.log('✅ Clean-Browsing: Body observer stopped');
     }
   }
   
@@ -336,6 +408,12 @@
         const shadowStyles = document.createElement('style');
         shadowStyles.textContent = getShadowDOMStyles();
         shadowRoot.appendChild(shadowStyles);
+
+        // Also bring in existing sidepanel.css for exact look & feel
+        const link = document.createElement('link');
+        link.rel = 'stylesheet';
+        link.href = chrome.runtime.getURL('sidepanel.css');
+        shadowRoot.appendChild(link);
       } catch (stylesError) {
         console.error('❌ Clean-Browsing: Failed to inject Shadow DOM styles:', stylesError);
         throw new Error('Shadow DOM styles injection failed');
@@ -564,13 +642,13 @@
         background: #ffffff;
       }
       
-      /* Settings Modal */
-      .sidepanel-settings-modal {
-        position: fixed;
+      /* Settings Modal (confined to sidepanel host) */
+      .settings-modal {
+        position: absolute; /* relative to shadow host */
         top: 0;
         left: 0;
-        width: 100vw;
-        height: 100vh;
+        width: 100%;
+        height: 100%;
         background: rgba(0, 0, 0, 0.5);
         display: flex;
         align-items: center;
@@ -584,11 +662,12 @@
         backdrop-filter: blur(20px);
         border: 1px solid rgba(255, 255, 255, 0.1);
         border-radius: 12px;
-        width: 90vw;
-        max-width: 500px;
-        max-height: 80vh;
-        overflow: hidden;
+        width: calc(100% - 24px); /* full panel width with margin */
+        max-width: none;
+        max-height: calc(100% - 24px);
+        overflow: auto;
         color: #ffffff;
+        margin: 12px;
       }
       
       .modal-header {
@@ -645,6 +724,15 @@
       
       .form-group {
         margin-bottom: 16px;
+      }
+      .form-group.checkbox-group label { cursor: pointer; }
+      .icon-type-selector .icon-type-option input { accent-color: #6c63ff; }
+      .bg-options input[type="text"] {
+        background: rgba(255,255,255,0.1);
+        border: 1px solid rgba(255,255,255,0.2);
+        color: #fff;
+        border-radius: 6px;
+        padding: 6px 8px;
       }
       
       .form-group label {
@@ -743,52 +831,210 @@
               <span id="iframe-title"></span>
               <span id="iframe-current-url">Loading...</span>
             </div>
+            <div class="iframe-navigation">
+              <button id="nav-back" class="nav-btn" title="Back">⬅</button>
+              <button id="nav-refresh" class="nav-btn" title="Refresh">↻</button>
+            </div>
             <button id="open-in-tab" class="icon-btn" title="Open in new tab">↗</button>
           </div>
           <iframe id="website-iframe"></iframe>
         </div>
         
         <!-- Settings Modal -->
-        <div id="sidepanel-settings-modal" class="sidepanel-settings-modal hidden">
+        <div id="settings-modal" class="settings-modal hidden">
           <div class="modal-content">
             <div class="modal-header">
               <h2>Sidepanel Settings</h2>
-              <button id="close-sidepanel-settings" class="icon-btn" title="Close">✕</button>
+              <button id="close-settings" class="icon-btn" title="Close">✕</button>
             </div>
-            
-            <div class="settings-tabs">
-              <button data-tab="add-website" class="tab-btn active">Add Website</button>
-              <button data-tab="manage-websites" class="tab-btn">Manage</button>
-              <button data-tab="behavior" class="tab-btn">Behavior</button>
-            </div>
-            
+          
+          <div class="settings-tabs">
+            <button data-tab="add-website" class="tab-btn active">Add Website</button>
+            <button data-tab="manage-websites" class="tab-btn">Manage</button>
+            <button data-tab="behavior" class="tab-btn">Behavior</button>
+            <button data-tab="appearance" class="tab-btn">Appearance</button>
+          </div>
+          
             <div class="modal-body">
-              <div id="add-website-tab" class="tab-content">
+            <div id="add-website-tab" class="tab-content">
+              <div class="form-group">
+                <label>Name:</label>
+                <input type="text" id="website-name" placeholder="e.g., ChatGPT">
+              </div>
+              <div class="form-group">
+                <label>URL:</label>
+                <input type="url" id="website-url" placeholder="https://example.com">
+              </div>
+              <div class="form-group">
+                <label>Icon Type:</label>
+                <div class="icon-type-selector" style="display:flex; gap:12px;">
+                  <label class="icon-type-option" style="display:flex; align-items:center; gap:6px;">
+                    <input type="radio" name="icon-type" value="favicon" checked>
+                    <span>Favicon</span>
+                  </label>
+                  <label class="icon-type-option" style="display:flex; align-items:center; gap:6px;">
+                    <input type="radio" name="icon-type" value="emoji">
+                    <span>Emoji</span>
+                  </label>
+                  <label class="icon-type-option" style="display:flex; align-items:center; gap:6px;">
+                    <input type="radio" name="icon-type" value="none">
+                    <span>No Icon</span>
+                  </label>
+                </div>
+              </div>
+              <div class="form-group" id="emoji-input-group" style="display: none;">
+                <label>Icon (emoji):</label>
+                <input type="text" id="website-icon" placeholder="🌐" maxlength="2">
+              </div>
+              <div class="form-group">
+                <label>Open Mode:</label>
+                <select id="website-mode">
+                  <option value="iframe" selected>Embedded (iframe)</option>
+                  <option value="newtab">New Tab</option>
+                  <option value="newwindow">New Window</option>
+                </select>
+              </div>
+              <button id="add-website-btn" class="primary-btn">Add Website</button>
+            </div>
+            
+            <div id="manage-websites-tab" class="tab-content hidden">
+              <div id="manage-websites-list"></div>
+            </div>
+            
+            <div id="behavior-tab" class="tab-content hidden">
+              <div class="form-group checkbox-group" style="display:flex; align-items:center; gap:8px;">
+                <input type="checkbox" id="auto-close">
+                <label for="auto-close">Auto-close sidepanel after opening link</label>
+              </div>
+              <div class="form-group checkbox-group" style="display:flex; align-items:center; gap:8px;">
+                <input type="checkbox" id="show-urls">
+                <label for="show-urls">Show URLs in website list</label>
+              </div>
+              <div class="form-group checkbox-group" style="display:flex; align-items:center; gap:8px;">
+                <input type="checkbox" id="compact-mode">
+                <label for="compact-mode">Compact mode</label>
+              </div>
+            </div>
+
+            <div id="appearance-tab" class="tab-content hidden">
+              <div class="form-group">
+                <label>Background Type:</label>
+                <div class="icon-type-selector" style="display:flex; gap:12px;">
+                  <label class="icon-type-option" style="display:flex; align-items:center; gap:6px;">
+                    <input type="radio" name="bg-type" value="gradient" checked>
+                    <span>Gradient</span>
+                  </label>
+                  <label class="icon-type-option" style="display:flex; align-items:center; gap:6px;">
+                    <input type="radio" name="bg-type" value="solid">
+                    <span>Solid Color</span>
+                  </label>
+                  <label class="icon-type-option" style="display:flex; align-items:center; gap:6px;">
+                    <input type="radio" name="bg-type" value="image">
+                    <span>Image</span>
+                  </label>
+                </div>
+              </div>
+              <div id="gradient-options" class="bg-options">
                 <div class="form-group">
-                  <label>Name:</label>
-                  <input type="text" id="website-name" placeholder="e.g., ChatGPT">
+                  <label for="gradient-color1">Start Color:</label>
+                  <input type="color" id="gradient-color1" value="#667eea" style="margin-right:8px;">
+                  <input type="text" id="gradient-color1-text" value="#667eea" placeholder="#667eea">
                 </div>
                 <div class="form-group">
-                  <label>URL:</label>
-                  <input type="url" id="website-url" placeholder="https://example.com">
+                  <label for="gradient-color2">End Color:</label>
+                  <input type="color" id="gradient-color2" value="#764ba2" style="margin-right:8px;">
+                  <input type="text" id="gradient-color2-text" value="#764ba2" placeholder="#764ba2">
                 </div>
                 <div class="form-group">
-                  <label>Icon:</label>
-                  <input type="text" id="website-icon" placeholder="🌐">
+                  <label for="gradient-angle">Angle:</label>
+                  <input type="range" id="gradient-angle" min="0" max="360" value="135" style="margin:0 8px;">
+                  <span id="gradient-angle-value">135°</span>
                 </div>
-                <button id="add-website-btn" class="primary-btn">Add Website</button>
               </div>
-              
-              <div id="manage-websites-tab" class="tab-content hidden">
-                <div id="manage-websites-list"></div>
+              <div id="solid-options" class="bg-options hidden">
+                <div class="form-group">
+                  <label for="solid-color">Background Color:</label>
+                  <input type="color" id="solid-color" value="#667eea" style="margin-right:8px;">
+                  <input type="text" id="solid-color-text" value="#667eea" placeholder="#667eea">
+                </div>
               </div>
-              
-              <div id="behavior-tab" class="tab-content hidden">
-                <p>Behavior settings coming soon!</p>
+              <div id="image-options" class="bg-options hidden">
+                <div class="form-group">
+                  <label for="bg-image-upload">Background Image:</label>
+                  <input type="file" id="bg-image-upload" accept="image/*" style="margin-left:8px;">
+                  <button id="remove-bg-image" class="icon-btn" style="margin-left:8px; display:none;">Remove</button>
+                </div>
+                <div class="form-group">
+                  <label for="bg-image-opacity">Image Opacity:</label>
+                  <input type="range" id="bg-image-opacity" min="0" max="100" value="100" style="margin:0 8px;">
+                  <span id="bg-image-opacity-value">100%</span>
+                </div>
+                <div class="form-group">
+                  <label>Preset Gradients:</label>
+                  <div class="preset-gradients" style="display:flex; flex-wrap:wrap; gap:8px;">
+                    <button class="preset-gradient" data-gradient="135,#667eea,#764ba2" title="Purple Dream" style="width:28px;height:28px;border-radius:6px;border:1px solid rgba(255,255,255,0.2);background:linear-gradient(135deg,#667eea,#764ba2);"></button>
+                    <button class="preset-gradient" data-gradient="135,#f093fb,#f5576c" title="Pink Sunset" style="width:28px;height:28px;border-radius:6px;border:1px solid rgba(255,255,255,0.2);background:linear-gradient(135deg,#f093fb,#f5576c);"></button>
+                    <button class="preset-gradient" data-gradient="135,#4facfe,#00f2fe" title="Ocean Blue" style="width:28px;height:28px;border-radius:6px;border:1px solid rgba(255,255,255,0.2);background:linear-gradient(135deg,#4facfe,#00f2fe);"></button>
+                    <button class="preset-gradient" data-gradient="135,#43e97b,#38f9d7" title="Mint Fresh" style="width:28px;height:28px;border-radius:6px;border:1px solid rgba(255,255,255,0.2);background:linear-gradient(135deg,#43e97b,#38f9d7);"></button>
+                    <button class="preset-gradient" data-gradient="135,#fa709a,#fee140" title="Warm Sunrise" style="width:28px;height:28px;border-radius:6px;border:1px solid rgba(255,255,255,0.2);background:linear-gradient(135deg,#fa709a,#fee140);"></button>
+                    <button class="preset-gradient" data-gradient="135,#30cfd0,#330867" title="Deep Space" style="width:28px;height:28px;border-radius:6px;border:1px solid rgba(255,255,255,0.2);background:linear-gradient(135deg,#30cfd0,#330867);"></button>
+                    <button class="preset-gradient" data-gradient="135,#a8edea,#fed6e3" title="Soft Pastel" style="width:28px;height:28px;border-radius:6px;border:1px solid rgba(255,255,255,0.2);background:linear-gradient(135deg,#a8edea,#fed6e3);"></button>
+                    <button class="preset-gradient" data-gradient="135,#ff9a9e,#fecfef" title="Cotton Candy" style="width:28px;height:28px;border-radius:6px;border:1px solid rgba(255,255,255,0.2);background:linear-gradient(135deg,#ff9a9e,#fecfef);"></button>
+                  </div>
+                </div>
               </div>
+            </div>
+            <div class="modal-footer" style="padding: 12px 16px; border-top: 1px solid rgba(255,255,255,0.1); display:flex; justify-content:flex-end;">
+              <button id="save-settings" class="primary-btn" style="padding:10px 16px; border:none; border-radius:6px; background:#6c63ff; color:#fff;">Save Settings</button>
             </div>
           </div>
         </div>
+      </div>
+
+      <!-- Edit Website Modal -->
+      <div id="edit-website-modal" class="settings-modal hidden">
+        <div class="modal-content edit-modal">
+          <div class="modal-header">
+            <h2>Edit Website</h2>
+            <button id="close-edit" class="icon-btn">✕</button>
+          </div>
+          <div class="modal-body">
+            <div class="settings-section">
+              <div class="form-group">
+                <label for="edit-website-name">Name:</label>
+                <input type="text" id="edit-website-name" placeholder="e.g., ChatGPT">
+              </div>
+              <div class="form-group">
+                <label for="edit-website-url">URL:</label>
+                <input type="url" id="edit-website-url" placeholder="https://example.com">
+              </div>
+              <div class="form-group">
+                <label>Icon Type:</label>
+                <div class="icon-type-selector">
+                  <label class="icon-type-option"><input type="radio" name="edit-icon-type" value="favicon"><span>Favicon</span></label>
+                  <label class="icon-type-option"><input type="radio" name="edit-icon-type" value="emoji"><span>Emoji</span></label>
+                  <label class="icon-type-option"><input type="radio" name="edit-icon-type" value="none"><span>No Icon</span></label>
+                </div>
+              </div>
+              <div class="form-group" id="edit-emoji-input-group" style="display:none;">
+                <label for="edit-website-icon">Icon (emoji):</label>
+                <input type="text" id="edit-website-icon" placeholder="🌐" maxlength="2">
+              </div>
+              <div class="form-group">
+                <label for="edit-website-mode">Open Mode:</label>
+                <select id="edit-website-mode">
+                  <option value="iframe">Embedded (iframe)</option>
+                  <option value="newtab">New Tab</option>
+                  <option value="newwindow">New Window</option>
+                </select>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button id="save-edit" class="primary-btn">Save</button>
+          </div>
+        </div>
+      </div>
       </div>
     `;
   }
@@ -833,6 +1079,35 @@
         color: #ffffff !important;
       `;
       
+      // Minimal CSS to support modal and layout in fallback mode
+      const fallbackStyles = document.createElement('style');
+      fallbackStyles.textContent = `
+        .settings-modal {
+          position: absolute;
+          top: 0; left: 0;
+          width: 100%; height: 100%;
+          background: rgba(0,0,0,0.5);
+          display: none;
+          align-items: center;
+          justify-content: center;
+          z-index: 1000;
+          backdrop-filter: blur(5px);
+        }
+        .settings-modal:not(.hidden) { display: flex; }
+        .modal-content {
+          background: rgba(0,0,0,0.9);
+          border: 1px solid rgba(255,255,255,0.1);
+          border-radius: 12px;
+          width: calc(100% - 24px);
+          max-width: none;
+          max-height: calc(100% - 24px);
+          overflow: auto;
+          color: #fff;
+          margin: 12px;
+        }
+      `;
+
+      sidepanelContainer.appendChild(fallbackStyles);
       fallbackHost.appendChild(sidepanelContainer);
       document.body.appendChild(fallbackHost);
       
@@ -1016,7 +1291,9 @@
           // Use transform-based approach on viewport wrapper
           if (viewportWrapper) {
             viewportWrapper.style.transform = `translateX(-${this.sidepanelWidth}px)`;
-            viewportWrapper.style.width = `calc(100vw + ${this.sidepanelWidth}px)`;
+            // Keep wrapper width equal to viewport and create breathing room with padding
+            viewportWrapper.style.width = '100vw';
+            viewportWrapper.style.paddingRight = `${this.sidepanelWidth}px`;
           }
           
           // Update shadow host and show it
@@ -1038,6 +1315,7 @@
           if (viewportWrapper) {
             viewportWrapper.style.transform = 'translateX(0)';
             viewportWrapper.style.width = '100vw';
+            viewportWrapper.style.paddingRight = '0px';
           }
           
           // Hide shadow host by sliding it out
@@ -1178,6 +1456,12 @@
         }
       });
     }
+
+    // Iframe navigation controls
+    const navBack = querySelector('#nav-back');
+    const navRefresh = querySelector('#nav-refresh');
+    if (navBack) navBack.addEventListener('click', () => navigateIframe('back'));
+    if (navRefresh) navRefresh.addEventListener('click', () => navigateIframe('refresh'));
     
     // Keyboard shortcuts
     document.addEventListener('keydown', (e) => {
@@ -1233,100 +1517,37 @@
   function createWebsiteItem(website) {
     const item = document.createElement('div');
     item.className = 'website-item';
-    item.style.cssText = `
-      display: flex !important;
-      align-items: center !important;
-      gap: 10px !important;
-      padding: 10px 12px !important;
-      background: rgba(255, 255, 255, 0.1) !important;
-      backdrop-filter: blur(10px) !important;
-      border: 1px solid rgba(255, 255, 255, 0.2) !important;
-      border-radius: 8px !important;
-      cursor: pointer !important;
-      transition: all 0.3s ease !important;
-      min-height: 44px !important;
-      margin-bottom: 6px !important;
-    `;
+    const compact = !!sidebarSettings?.sidebarBehavior?.compactMode;
+    const showUrls = !!sidebarSettings?.sidebarBehavior?.showUrls;
+    if (compact) item.classList.add('compact');
+    if (showUrls) item.classList.add('show-urls');
     
     const icon = getWebsiteIcon(website);
-    const showUrls = sidebarSettings.sidebarBehavior.showUrls;
     
     item.innerHTML = `
       ${icon}
-      <div style="
-        flex: 1 !important;
-        min-width: 0 !important;
-        display: flex !important;
-        flex-direction: column !important;
-        gap: 2px !important;
-      ">
-        <div style="
-          font-weight: 500 !important;
-          font-size: 13px !important;
-          white-space: nowrap !important;
-          overflow: hidden !important;
-          text-overflow: ellipsis !important;
-        ">${website.name}</div>
-        ${showUrls ? `<div style="
-          font-size: 11px !important;
-          color: rgba(255, 255, 255, 0.7) !important;
-          white-space: nowrap !important;
-          overflow: hidden !important;
-          text-overflow: ellipsis !important;
-        ">${website.url}</div>` : ''}
+      <div class="website-info">
+        <div class="website-name">${website.name}</div>
+        ${showUrls ? `<div class="website-url">${website.url}</div>` : ''}
       </div>
     `;
     
     item.addEventListener('click', () => openWebsite(website));
-    item.addEventListener('mouseenter', () => {
-      item.style.background = 'rgba(255, 255, 255, 0.2)';
-      item.style.transform = 'translateX(2px)';
-    });
-    item.addEventListener('mouseleave', () => {
-      item.style.background = 'rgba(255, 255, 255, 0.1)';
-      item.style.transform = 'translateX(0)';
-    });
+    // hover handled by CSS
     
     return item;
   }
   
   function getWebsiteIcon(website) {
-    if (website.iconType === 'none') {
-      return '';
-    } else if (website.iconType === 'favicon' && website.favicon) {
-      return `<div style="
-        display: flex !important;
-        align-items: center !important;
-        justify-content: center !important;
-        width: 20px !important;
-        height: 20px !important;
-        flex-shrink: 0 !important;
-      ">
-        <img src="${website.favicon}" alt="" style="
-          width: 16px !important;
-          height: 16px !important;
-          object-fit: contain !important;
-        " onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-        <span style="
-          font-size: 16px !important;
-          display: none !important;
-          align-items: center !important;
-          justify-content: center !important;
-          width: 20px !important;
-          height: 20px !important;
-        ">${website.icon || '🌐'}</span>
-      </div>`;
-    } else if (website.iconType === 'emoji' || !website.iconType) {
-      return `<span style="
-        font-size: 16px !important;
-        display: flex !important;
-        align-items: center !important;
-        justify-content: center !important;
-        width: 20px !important;
-        height: 20px !important;
-      ">${website.icon || '🌐'}</span>`;
+    const iconType = website.iconType || 'emoji';
+    if (iconType === 'none') return '';
+    if (iconType === 'favicon' && website.favicon) {
+      return `<div class="website-icon-wrapper">
+                <img src="${website.favicon}" alt="" class="website-favicon" onerror="this.style.display='none'">
+              </div>`;
     }
-    return '';
+    const emoji = website.icon || '🌐';
+    return `<span class="website-icon">${emoji}</span>`;
   }
   
   function openWebsite(website) {
@@ -1349,32 +1570,44 @@
     const iframe = querySelector('#website-iframe');
     const iframeTitle = querySelector('#iframe-title');
     const iframeUrl = querySelector('#iframe-current-url');
-    
+
     // Hide website list, show iframe
     websiteList.style.display = 'none';
+    websiteList.classList.add('hidden');
+    // Ensure iframe container is visible and not marked hidden
+    iframeContainer.classList.remove('hidden');
     iframeContainer.style.display = 'flex';
+    // Ensure iframe is present/visible and remove any previous error blocks
+    const oldError = (iframeContainer && iframeContainer.querySelector) ? iframeContainer.querySelector('.iframe-error') : null;
+    if (oldError && oldError.remove) oldError.remove();
+    if (iframe) iframe.style.display = 'block';
     
     // Set title and URL
     iframeTitle.textContent = website.name;
     iframeUrl.textContent = website.url;
     
+    // Clear any prior timer
+    if (iframeLoadTimer) { try { clearTimeout(iframeLoadTimer); } catch (_) {} iframeLoadTimer = null; }
+
     // Handle iframe errors
     iframe.onerror = () => {
       console.log('❌ Clean-Browsing: Iframe error for:', website.name);
+      if (iframeLoadTimer) { try { clearTimeout(iframeLoadTimer); } catch (_) {} iframeLoadTimer = null; }
       showIframeError(website);
     };
-    
+
     iframe.onload = () => {
       console.log('✅ Clean-Browsing: Iframe loaded:', website.name);
+      if (iframeLoadTimer) { try { clearTimeout(iframeLoadTimer); } catch (_) {} iframeLoadTimer = null; }
     };
-    
-    // Set a timeout for slow sites
-    setTimeout(() => {
-      if (iframe.src === website.url) {
-        console.log('⏰ Clean-Browsing: Iframe timeout for:', website.name);
-        showIframeError(website);
-      }
-    }, 10000);
+
+    // Set a timeout for slow/blocked sites
+    iframeLoadTimer = setTimeout(() => {
+      // If onload did not clear this timer, treat as blocked
+      console.log('⏰ Clean-Browsing: Iframe load timed out for:', website.name);
+      showIframeError(website);
+      iframeLoadTimer = null;
+    }, 12000);
     
     // Load the URL
     iframe.src = website.url;
@@ -1384,20 +1617,50 @@
     const websiteList = querySelector('#website-list');
     const iframeContainer = querySelector('#iframe-container');
     const iframe = querySelector('#website-iframe');
-    
+
     // Clear iframe
     iframe.src = 'about:blank';
-    
+
     // Show website list, hide iframe
     iframeContainer.style.display = 'none';
+    iframeContainer.classList.add('hidden');
+    // Remove any error UI if present
+    const oldError = (iframeContainer && iframeContainer.querySelector) ? iframeContainer.querySelector('.iframe-error') : null;
+    if (oldError && oldError.remove) oldError.remove();
+    // Restore list
     websiteList.style.display = 'flex';
+    websiteList.classList.remove('hidden');
+  }
+
+  function navigateIframe(command) {
+    const iframe = querySelector('#website-iframe');
+    if (!iframe || !iframe.contentWindow) return;
+    try {
+      iframe.contentWindow.postMessage({ type: 'SIDEPANEL_NAVIGATE', command, requestId: Date.now() }, '*');
+    } catch (e) {
+      console.warn('Navigation postMessage failed (likely cross-origin restrictions):', e);
+      // Fallback: try limited direct actions when possible
+      if (command === 'refresh') {
+        iframe.src = iframe.src;
+      }
+    }
   }
   
   function showIframeError(website) {
     const iframeContainer = querySelector('#iframe-container');
-    
+    const iframe = querySelector('#website-iframe');
+    if (!iframeContainer) return;
+
+    // Hide the iframe but keep structure intact
+    if (iframe) iframe.style.display = 'none';
+
+    // Remove any previous error block
+    const existing = iframeContainer.querySelector('.iframe-error');
+    if (existing) existing.remove();
+
     // Create error display without inline handlers
     const errorElement = document.createElement('div');
+    errorElement.className = 'iframe-error';
     errorElement.style.cssText = `
       flex: 1 !important;
       display: flex !important;
@@ -1460,8 +1723,7 @@
       </div>
     `;
     
-    // Clear container and add error element
-    iframeContainer.innerHTML = '';
+    // Append error element under the header (and before/after iframe)
     iframeContainer.appendChild(errorElement);
     
     // Add proper event listeners
@@ -1490,10 +1752,22 @@
   
   function showSettingsModal() {
     console.log('🔧 Clean-Browsing: Showing settings modal');
-    const modal = querySelector('#sidepanel-settings-modal');
+    const modal = querySelector('#settings-modal');
     if (modal) {
       modal.classList.remove('hidden');
       setupSettingsModalListeners();
+      // Populate behavior checkboxes
+      const autoClose = querySelector('#auto-close');
+      const showUrls = querySelector('#show-urls');
+      const compact = querySelector('#compact-mode');
+      if (autoClose) autoClose.checked = !!sidebarSettings?.sidebarBehavior?.autoClose;
+      if (showUrls) showUrls.checked = !!sidebarSettings?.sidebarBehavior?.showUrls;
+      if (compact) compact.checked = !!sidebarSettings?.sidebarBehavior?.compactMode;
+
+      // Load appearance into controls and apply
+      loadAppearanceSettings();
+      // Render manage list
+      renderManageWebsitesList();
     } else {
       console.error('❌ Clean-Browsing: Settings modal not found!');
     }
@@ -1501,18 +1775,19 @@
   
   function hideSettingsModal() {
     console.log('🔧 Clean-Browsing: Hiding settings modal');
-    const modal = querySelector('#sidepanel-settings-modal');
+    const modal = querySelector('#settings-modal');
     if (modal) {
       modal.classList.add('hidden');
     }
   }
   
   function setupSettingsModalListeners() {
-    const modal = querySelector('#sidepanel-settings-modal');
+    const modal = querySelector('#settings-modal');
     if (!modal) return;
-    
+    if (modal.dataset.initialized === 'true') return;
+
     // Close button
-    const closeBtn = modal.querySelector('#close-sidepanel-settings');
+    const closeBtn = modal.querySelector('#close-settings');
     if (closeBtn) {
       closeBtn.addEventListener('click', hideSettingsModal);
     }
@@ -1525,20 +1800,70 @@
     
     // Add website functionality
     const addBtn = modal.querySelector('#add-website-btn');
-    if (addBtn) {
-      addBtn.addEventListener('click', addWebsite);
-    }
-    
+    if (addBtn) { addBtn.addEventListener('click', addWebsite); }
+    const saveBtn = modal.querySelector('#save-settings');
+    if (saveBtn) { saveBtn.addEventListener('click', async ()=>{ await chrome.storage.local.set({ sidebarSettings }); hideSettingsModal(); }); }
+
     // Close on backdrop click
     modal.addEventListener('click', (e) => {
-      if (e.target.classList.contains('sidepanel-settings-modal')) {
+      if (e.target.classList.contains('settings-modal')) {
         hideSettingsModal();
       }
     });
+
+    // Icon type show/hide emoji input
+    const iconTypeRadios = modal.querySelectorAll('input[name="icon-type"]');
+    const emojiGroup = modal.querySelector('#emoji-input-group');
+    iconTypeRadios.forEach(r => r.addEventListener('change', (e) => {
+      if (emojiGroup) emojiGroup.style.display = (e.target.value === 'emoji') ? 'block' : 'none';
+    }));
+
+    // Behavior checkbox listeners
+    const autoClose = querySelector('#auto-close');
+    const showUrls = querySelector('#show-urls');
+    const compact = querySelector('#compact-mode');
+    const saveBehavior = async () => {
+      try {
+        sidebarSettings.sidebarBehavior = sidebarSettings.sidebarBehavior || {};
+        sidebarSettings.sidebarBehavior.autoClose = !!autoClose?.checked;
+        sidebarSettings.sidebarBehavior.showUrls = !!showUrls?.checked;
+        sidebarSettings.sidebarBehavior.compactMode = !!compact?.checked;
+        await chrome.storage.local.set({ sidebarSettings });
+        renderWebsiteList();
+      } catch (e) { console.error('Failed to save behavior settings', e); }
+    };
+    if (autoClose) autoClose.addEventListener('change', saveBehavior);
+    if (showUrls) showUrls.addEventListener('change', saveBehavior);
+    if (compact) compact.addEventListener('change', saveBehavior);
+
+    // Appearance listeners
+    setupAppearanceListeners();
+
+    // Preset gradients
+    modal.querySelectorAll('.preset-gradient').forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        const data = btn.getAttribute('data-gradient')||''; // e.g., "135,#667eea,#764ba2"
+        const [angle,c1,c2] = data.split(',');
+        const ga = modal.querySelector('#gradient-angle');
+        const gav = modal.querySelector('#gradient-angle-value');
+        const gc1 = modal.querySelector('#gradient-color1');
+        const gc1t = modal.querySelector('#gradient-color1-text');
+        const gc2 = modal.querySelector('#gradient-color2');
+        const gc2t = modal.querySelector('#gradient-color2-text');
+        if (ga) ga.value = angle || '135';
+        if (gav) gav.textContent = (angle||'135') + '°';
+        if (gc1) gc1.value = c1 || '#667eea'; if (gc1t) gc1t.value = c1 || '#667eea';
+        if (gc2) gc2.value = c2 || '#764ba2'; if (gc2t) gc2t.value = c2 || '#764ba2';
+        const radio = modal.querySelector('input[name="bg-type"][value="gradient"]'); if (radio) radio.checked = true;
+        saveAppearanceFromControls();
+      });
+    });
+
+    modal.dataset.initialized = 'true';
   }
   
   function switchSettingsTab(tabName) {
-    const modal = querySelector('#sidepanel-settings-modal');
+    const modal = querySelector('#settings-modal');
     if (!modal) return;
     
     // Update tab buttons
@@ -1563,27 +1888,31 @@
   }
   
   async function addWebsite() {
-    const modal = querySelector('#sidepanel-settings-modal');
+    const modal = querySelector('#settings-modal');
     const nameInput = modal?.querySelector('#website-name');
     const urlInput = modal?.querySelector('#website-url');
     const iconInput = modal?.querySelector('#website-icon');
-    
+    const iconType = modal?.querySelector('input[name="icon-type"]:checked')?.value || 'favicon';
+    const modeSelect = modal?.querySelector('#website-mode');
+
     const name = nameInput?.value.trim();
     const url = urlInput?.value.trim();
     const icon = iconInput?.value.trim();
-    
+    const openMode = modeSelect?.value || 'iframe';
+
     if (!name || !url) {
       showMessage('Please enter both name and URL');
       return;
     }
-    
+
     const newWebsite = {
       id: Date.now().toString(),
       name: name,
       url: url,
       icon: icon || '🌐',
-      favicon: null,
-      openMode: 'iframe',
+      iconType,
+      favicon: iconType === 'favicon' ? getFaviconUrl(url) : null,
+      openMode,
       position: sidebarSettings.sidebarWebsites.length
     };
     
@@ -1598,14 +1927,241 @@
       if (urlInput) urlInput.value = '';
       if (iconInput) iconInput.value = '';
       
-      // Refresh website list
+      // Refresh website list and manage list
       renderWebsiteList();
+      renderManageWebsitesList();
       hideSettingsModal();
       
     } catch (error) {
       console.error('❌ Failed to save website:', error);
       showMessage('Failed to save website');
     }
+  }
+
+  // Utilities
+  function getFaviconUrl(websiteUrl) {
+    try {
+      const u = new URL(websiteUrl);
+      return `${u.protocol}//${u.hostname}/favicon.ico`;
+    } catch { return null; }
+  }
+
+  function renderManageWebsitesList() {
+    const list = querySelector('#manage-websites-list');
+    if (!list) return;
+    list.innerHTML = '';
+    const items = [...(sidebarSettings?.sidebarWebsites||[])].sort((a,b)=>a.position-b.position);
+    items.forEach((w, idx) => {
+      const row = document.createElement('div');
+      row.style.cssText = 'display:flex; align-items:center; gap:8px; padding:8px; border:1px solid rgba(255,255,255,0.2); border-radius:6px; margin-bottom:6px;';
+      const name = document.createElement('div');
+      name.textContent = w.name;
+      name.style.cssText = 'flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;';
+      const up = document.createElement('button'); up.className='icon-btn'; up.textContent='↑'; up.title='Move up';
+      const down = document.createElement('button'); down.className='icon-btn'; down.textContent='↓'; down.title='Move down';
+      const edit = document.createElement('button'); edit.className='icon-btn'; edit.textContent='✎'; edit.title='Edit';
+      const del = document.createElement('button'); del.className='icon-btn'; del.textContent='🗑'; del.title='Delete';
+      row.appendChild(name); row.appendChild(up); row.appendChild(down); row.appendChild(edit); row.appendChild(del);
+      list.appendChild(row);
+
+      up.disabled = idx===0; down.disabled = idx===items.length-1;
+      up.addEventListener('click', async ()=>{ reorderWebsite(w.id, -1); });
+      down.addEventListener('click', async ()=>{ reorderWebsite(w.id, +1); });
+      del.addEventListener('click', async ()=>{ await deleteWebsite(w.id); });
+      edit.addEventListener('click', ()=>{ openEditWebsiteModal(w); });
+    });
+  }
+
+  async function saveSettingsAndRefresh() {
+    await chrome.storage.local.set({ sidebarSettings });
+    renderWebsiteList();
+    renderManageWebsitesList();
+  }
+
+  async function deleteWebsite(id) {
+    sidebarSettings.sidebarWebsites = sidebarSettings.sidebarWebsites.filter(w=>w.id!==id);
+    // Reassign positions
+    sidebarSettings.sidebarWebsites.sort((a,b)=>a.position-b.position).forEach((w,i)=>w.position=i);
+    await saveSettingsAndRefresh();
+  }
+
+  async function reorderWebsite(id, delta) {
+    const arr = sidebarSettings.sidebarWebsites;
+    const idx = arr.findIndex(w=>w.id===id);
+    if (idx<0) return;
+    const swapIdx = idx+delta;
+    if (swapIdx<0 || swapIdx>=arr.length) return;
+    const tmpPos = arr[idx].position;
+    arr[idx].position = arr[swapIdx].position;
+    arr[swapIdx].position = tmpPos;
+    arr.sort((a,b)=>a.position-b.position);
+    await saveSettingsAndRefresh();
+  }
+
+  function openEditWebsiteModal(website) {
+    const modal = querySelector('#edit-website-modal'); if (!modal) return;
+    modal.classList.remove('hidden');
+    const name = modal.querySelector('#edit-website-name'); if (name) name.value = website.name||'';
+    const url = modal.querySelector('#edit-website-url'); if (url) url.value = website.url||'';
+    const mode = modal.querySelector('#edit-website-mode'); if (mode) mode.value = website.openMode||'iframe';
+    const iconTypeRadios = modal.querySelectorAll('input[name="edit-icon-type"]');
+    iconTypeRadios.forEach(r=>{ r.checked = (r.value === (website.iconType||'favicon')); });
+    const emojiGroup = modal.querySelector('#edit-emoji-input-group');
+    const emojiInput = modal.querySelector('#edit-website-icon'); if (emojiInput) emojiInput.value = website.icon||'';
+    if (emojiGroup) emojiGroup.style.display = (website.iconType==='emoji') ? 'block' : 'none';
+    // Listeners
+    iconTypeRadios.forEach(r=> r.addEventListener('change', (e)=>{
+      if (emojiGroup) emojiGroup.style.display = (e.target.value==='emoji') ? 'block' : 'none';
+    }));
+    const close = modal.querySelector('#close-edit'); if (close) close.onclick = ()=> modal.classList.add('hidden');
+    const save = modal.querySelector('#save-edit'); if (save) save.onclick = async ()=>{
+      website.name = name?.value?.trim() || website.name;
+      website.url = url?.value?.trim() || website.url;
+      website.openMode = mode?.value || website.openMode || 'iframe';
+      const sel = modal.querySelector('input[name="edit-icon-type"]:checked');
+      website.iconType = sel?.value || website.iconType || 'favicon';
+      website.icon = (website.iconType==='emoji') ? (emojiInput?.value?.trim()||'🌐') : website.icon;
+      website.favicon = website.iconType==='favicon' ? getFaviconUrl(website.url) : null;
+      await saveSettingsAndRefresh();
+      modal.classList.add('hidden');
+    };
+  }
+
+  // Appearance handling
+  function setupAppearanceListeners() {
+    const modal = querySelector('#sidepanel-settings-modal');
+    if (!modal) return;
+    const bgRadios = modal.querySelectorAll('input[name="bg-type"]');
+    const gradientOpt = modal.querySelector('#gradient-options');
+    const solidOpt = modal.querySelector('#solid-options');
+    const imageOpt = modal.querySelector('#image-options');
+    bgRadios.forEach(r=>r.addEventListener('change', ()=>{
+      const val = modal.querySelector('input[name="bg-type"]:checked')?.value||'gradient';
+      gradientOpt?.classList.add('hidden'); solidOpt?.classList.add('hidden'); imageOpt?.classList.add('hidden');
+      if (val==='gradient') gradientOpt?.classList.remove('hidden');
+      if (val==='solid') solidOpt?.classList.remove('hidden');
+      if (val==='image') imageOpt?.classList.remove('hidden');
+      // Save & apply immediately
+      saveAppearanceFromControls();
+    }));
+
+    const gc1 = modal.querySelector('#gradient-color1');
+    const gc1t = modal.querySelector('#gradient-color1-text');
+    const gc2 = modal.querySelector('#gradient-color2');
+    const gc2t = modal.querySelector('#gradient-color2-text');
+    const ga = modal.querySelector('#gradient-angle');
+    const gav = modal.querySelector('#gradient-angle-value');
+    const sc = modal.querySelector('#solid-color');
+    const sct = modal.querySelector('#solid-color-text');
+    const imgUpload = modal.querySelector('#bg-image-upload');
+    const imgRemove = modal.querySelector('#remove-bg-image');
+    const imgOpacity = modal.querySelector('#bg-image-opacity');
+    const imgOpacityVal = modal.querySelector('#bg-image-opacity-value');
+
+    const sync = () => saveAppearanceFromControls();
+    [gc1,gc1t,gc2,gc2t,sc,sct].forEach(el=>{ if (el) el.addEventListener('input', sync); });
+    if (ga) ga.addEventListener('input', ()=>{ if (gav) gav.textContent = ga.value+'°'; sync(); });
+    if (imgUpload) imgUpload.addEventListener('change', handleImageUpload);
+    if (imgRemove) imgRemove.addEventListener('click', removeBackgroundImage);
+    if (imgOpacity) imgOpacity.addEventListener('input', ()=>{ if (imgOpacityVal) imgOpacityVal.textContent = imgOpacity.value+'%'; sync(); });
+  }
+
+  function saveAppearanceFromControls() {
+    const modal = querySelector('#settings-modal'); if (!modal) return;
+    sidebarSettings.appearance = sidebarSettings.appearance || { backgroundType:'gradient', backgroundSettings:{} };
+    const type = modal.querySelector('input[name="bg-type"]:checked')?.value || 'gradient';
+    if (type==='gradient') {
+      const color1 = modal.querySelector('#gradient-color1')?.value||'#667eea';
+      const color2 = modal.querySelector('#gradient-color2')?.value||'#764ba2';
+      const angle = parseInt(modal.querySelector('#gradient-angle')?.value||'135',10);
+      sidebarSettings.appearance.backgroundType = 'gradient';
+      sidebarSettings.appearance.backgroundSettings = { color1, color2, angle };
+    } else if (type==='solid') {
+      const color = modal.querySelector('#solid-color')?.value||'#667eea';
+      sidebarSettings.appearance.backgroundType = 'solid';
+      sidebarSettings.appearance.backgroundSettings = { color };
+    } else if (type==='image') {
+      const opacity = (parseInt(modal.querySelector('#bg-image-opacity')?.value||'100',10))/100;
+      sidebarSettings.appearance.backgroundType = 'image';
+      sidebarSettings.appearance.backgroundSettings = { image: currentBackgroundImage||null, opacity };
+    }
+    applyAppearanceToPanel();
+    chrome.storage.local.set({ sidebarSettings }).catch(()=>{});
+  }
+
+  function loadAppearanceSettings() {
+    if (!sidebarSettings.appearance) {
+      sidebarSettings.appearance = { backgroundType:'gradient', backgroundSettings:{ color1:'#667eea', color2:'#764ba2', angle:135 } };
+    }
+    const modal = querySelector('#settings-modal'); if (!modal) return;
+    const { backgroundType, backgroundSettings } = sidebarSettings.appearance;
+    const sel = modal.querySelector(`input[name="bg-type"][value="${backgroundType}"]`);
+    if (sel) sel.checked = true;
+    modal.querySelectorAll('.bg-options').forEach(el=>el.classList.add('hidden'));
+    const active = modal.querySelector(`#${backgroundType}-options`); if (active) active.classList.remove('hidden');
+    if (backgroundType==='gradient') {
+      modal.querySelector('#gradient-color1').value = backgroundSettings.color1||'#667eea';
+      modal.querySelector('#gradient-color1-text').value = backgroundSettings.color1||'#667eea';
+      modal.querySelector('#gradient-color2').value = backgroundSettings.color2||'#764ba2';
+      modal.querySelector('#gradient-color2-text').value = backgroundSettings.color2||'#764ba2';
+      modal.querySelector('#gradient-angle').value = backgroundSettings.angle||135;
+      modal.querySelector('#gradient-angle-value').textContent = ((backgroundSettings.angle||135)+'°');
+    } else if (backgroundType==='solid') {
+      modal.querySelector('#solid-color').value = backgroundSettings.color||'#667eea';
+      modal.querySelector('#solid-color-text').value = backgroundSettings.color||'#667eea';
+    } else if (backgroundType==='image') {
+      currentBackgroundImage = backgroundSettings.image||null;
+      const rm = modal.querySelector('#remove-bg-image'); if (rm) rm.style.display = currentBackgroundImage ? 'block' : 'none';
+      const op = Math.round((backgroundSettings.opacity??1)*100);
+      modal.querySelector('#bg-image-opacity').value = op;
+      modal.querySelector('#bg-image-opacity-value').textContent = op+'%';
+    }
+    applyAppearanceToPanel();
+  }
+
+  function applyAppearanceToPanel() {
+    // Apply background to the sidepanel content area
+    const content = querySelector('.sidepanel-content');
+    if (!content) return;
+    const { backgroundType, backgroundSettings } = sidebarSettings.appearance || {};
+    if (backgroundType==='gradient') {
+      const { color1='#667eea', color2='#764ba2', angle=135 } = backgroundSettings||{};
+      content.style.background = `linear-gradient(${angle}deg, ${color1} 0%, ${color2} 100%)`;
+    } else if (backgroundType==='solid') {
+      const { color='#667eea' } = backgroundSettings||{};
+      content.style.background = color;
+    } else if (backgroundType==='image') {
+      const { image=null, opacity=1 } = backgroundSettings||{};
+      if (image) {
+        content.style.background = `linear-gradient(rgba(0,0,0,${1-opacity}), rgba(0,0,0,${1-opacity})), url('${image}') center/cover`;
+      } else {
+        content.style.background = '';
+      }
+    } else {
+      // default translucent
+      content.style.background = 'rgba(0,0,0,0.2)';
+    }
+  }
+
+  function handleImageUpload(e) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      currentBackgroundImage = ev.target?.result;
+      const rm = querySelector('#remove-bg-image'); if (rm) rm.style.display = 'block';
+      saveAppearanceFromControls();
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function removeBackgroundImage() {
+    currentBackgroundImage = null;
+    const up = querySelector('#bg-image-upload'); if (up) up.value = '';
+    const rm = querySelector('#remove-bg-image'); if (rm) rm.style.display = 'none';
+    // Switch back to gradient for a pleasant default
+    const g = querySelector('input[name="bg-type"][value="gradient"]'); if (g) g.checked = true;
+    saveAppearanceFromControls();
   }
   
   function showMessage(message) {
