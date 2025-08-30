@@ -1,12 +1,57 @@
-// Background service worker for Clean-Browsing extension
+// Background service worker for Clean-Browsing extension (cross-browser)
+// Minimal cross-browser API wrapper (Chrome/Firefox)
+const _api = (typeof browser !== 'undefined') ? browser : (typeof chrome !== 'undefined' ? chrome : undefined);
+const _isPromise = (v) => v && typeof v.then === 'function';
+const ext = {
+  storageGet: async (keys) => {
+    if (!_api?.storage?.local?.get) return {};
+    const out = _api.storage.local.get(keys);
+    return _isPromise(out) ? await out : await new Promise((resolve) => _api.storage.local.get(keys, resolve));
+  },
+  storageSet: async (obj) => {
+    if (!_api?.storage?.local?.set) return;
+    const out = _api.storage.local.set(obj);
+    return _isPromise(out) ? await out : await new Promise((resolve) => _api.storage.local.set(obj, resolve));
+  },
+  tabsCreate: async (opts) => {
+    const out = _api?.tabs?.create?.(opts);
+    return _isPromise(out) ? await out : await new Promise((resolve) => _api.tabs.create(opts, resolve));
+  },
+  tabsSendMessage: async (tabId, message) => {
+    const out = _api?.tabs?.sendMessage?.(tabId, message);
+    return _isPromise(out) ? await out : await new Promise((resolve, reject) => {
+      try { _api.tabs.sendMessage(tabId, message, resolve); } catch (e) { reject(e); }
+    });
+  },
+  executeScriptSafely: async ({ tabId }, func) => {
+    if (_api?.scripting?.executeScript) {
+      const out = _api.scripting.executeScript({ target: { tabId }, func });
+      return _isPromise(out) ? await out : await new Promise((resolve) => _api.scripting.executeScript({ target: { tabId }, func }, resolve));
+    }
+    if (_api?.tabs?.executeScript) {
+      const code = '(' + func.toString() + ')()';
+      const out = _api.tabs.executeScript(tabId, { code });
+      return _isPromise(out) ? await out : await new Promise((resolve) => _api.tabs.executeScript(tabId, { code }, resolve));
+    }
+    throw new Error('No script execution API available');
+  },
+  actionOnClicked: (handler) => {
+    if (_api?.action?.onClicked?.addListener) {
+      _api.action.onClicked.addListener(handler);
+    } else if (_api?.browserAction?.onClicked?.addListener) {
+      _api.browserAction.onClicked.addListener(handler);
+    }
+  }
+};
+
 // Track active sessions for header modification
 let activeSessions = new Set();
 
 // Listen for messages from the embedded sidepanel and main extension
-chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+_api.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === 'getSidebarSettings') {
     // Get embedded sidepanel settings from storage
-    chrome.storage.local.get(['sidebarSettings'], (result) => {
+    ext.storageGet(['sidebarSettings']).then((result) => {
       sendResponse(result.sidebarSettings || getDefaultSidebarSettings());
     });
     return true; // Keep message channel open for async response
@@ -22,14 +67,14 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     sendResponse({ success: true });
   } else if (request.action === 'saveSidebarSettings') {
     // Save sidebar settings to storage
-    chrome.storage.local.set({ sidebarSettings: request.settings }, () => {
+    ext.storageSet({ sidebarSettings: request.settings }).then(() => {
       console.log('Sidebar settings saved');
       sendResponse({ success: true });
     });
     return true;
   } else if (request.action === 'openInNewTab') {
     // Open URL in new tab
-    chrome.tabs.create({ url: request.url });
+    ext.tabsCreate({ url: request.url });
     sendResponse({ success: true });
   }
 });
@@ -97,7 +142,7 @@ function getDefaultSidebarSettings() {
 }
 
 // Handle extension icon click - inject embedded sidepanel on non-newtab pages
-chrome.action.onClicked.addListener(async (tab) => {
+ext.actionOnClicked(async (tab) => {
   console.log('🖱️ Extension button clicked for tab:', tab.id, 'URL:', tab.url);
   
   // Don't inject on new tab page (already has embedded panel) or extension/browser pages
@@ -113,7 +158,7 @@ chrome.action.onClicked.addListener(async (tab) => {
     // Check if content script is already injected by trying to send a message
     console.log('📨 Sending toggle message to content script...');
     
-    const response = await chrome.tabs.sendMessage(tab.id, { action: 'toggleSidepanel' });
+    const response = await ext.tabsSendMessage(tab.id, { action: 'toggleSidepanel' });
     console.log('✅ Sidepanel toggle successful:', response);
     
   } catch (error) {
@@ -122,16 +167,13 @@ chrome.action.onClicked.addListener(async (tab) => {
     
     // Additional debugging - check if we can inject scripts
     try {
-      const results = await chrome.scripting.executeScript({
-        target: { tabId: tab.id },
-        func: () => {
-          return {
-            url: window.location.href,
-            hasCleanBrowsingContainer: !!document.getElementById('clean-browsing-sidepanel-overlay'),
-            documentReady: document.readyState,
-            cspHeaders: document.querySelector('meta[http-equiv="Content-Security-Policy"]')?.content || 'none'
-          };
-        }
+      const results = await ext.executeScriptSafely({ tabId: tab.id }, () => {
+        return {
+          url: window.location.href,
+          hasCleanBrowsingContainer: !!document.getElementById('clean-browsing-sidepanel-overlay'),
+          documentReady: document.readyState,
+          cspHeaders: document.querySelector('meta[http-equiv="Content-Security-Policy"]')?.content || 'none'
+        };
       });
       
       console.log('🔍 Page analysis:', results[0].result);
