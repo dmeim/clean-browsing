@@ -670,8 +670,8 @@ body::before {
 #widget-list button {
   width: 100%;
   margin-bottom: 0.5rem;
-  padding: 1rem 1.25rem;
-  min-height: 44px;
+  padding: 1rem 1.5rem !important;
+  min-height: 48px !important;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -687,11 +687,11 @@ body::before {
 
 /* Ensure widget config action buttons are comfortably sized */
 .widget-config-buttons button {
-  padding: 0.875rem 1.25rem;
-  min-height: 44px;
-  min-width: 120px;
-  font-size: 0.95rem;
-  line-height: 1.2;
+  padding: 1rem 1.5rem !important;
+  min-height: 48px !important;
+  min-width: 120px !important;
+  font-size: 0.95rem !important;
+  line-height: 1.2 !important;
 }
 
 /* Widget configuration specific styling */
@@ -701,9 +701,9 @@ body::before {
 }
 
 /* Ensure content-area buttons are comfortably sized, but keep icon-sized controls small */
-.modal-content button:not(.remove-image):not(.preset-gradient-btn):not(.reset-to-global) {
-  min-height: 44px;
-  padding: 0.875rem 1.25rem;
+.modal-content button:not(.remove-image):not(.preset-gradient-btn):not(.reset-to-global):not(.preset-gradient) {
+  min-height: 48px !important;
+  padding: 1rem 1.5rem !important;
 }
 
 #widget-settings-tab .input-group:last-of-type,
@@ -790,7 +790,7 @@ body::before {
 
 .settings-tabs button {
   flex: 1;
-  padding: 1.125rem 1.5rem;
+  padding: 1.25rem 1.75rem !important;
   background: transparent;
   border: none;
   color: rgba(255, 255, 255, 0.7);
@@ -1004,14 +1004,14 @@ label {
 }
 
 .primary-button {
-  background: linear-gradient(135deg, rgba(120, 119, 198, 0.8) 0%, rgba(120, 119, 198, 1) 100%);
-  border: 1px solid rgba(120, 119, 198, 1);
-  font-weight: 600;
-  text-transform: uppercase;
-  font-size: 0.9rem;
-  letter-spacing: 0.5px;
-  padding: 1rem 1.75rem;
-  min-height: 44px;
+  background: linear-gradient(135deg, rgba(120, 119, 198, 0.8) 0%, rgba(120, 119, 198, 1) 100%) !important;
+  border: 1px solid rgba(120, 119, 198, 1) !important;
+  font-weight: 600 !important;
+  text-transform: uppercase !important;
+  font-size: 0.9rem !important;
+  letter-spacing: 0.5px !important;
+  padding: 1rem 1.75rem !important;
+  min-height: 48px !important;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -1069,27 +1069,27 @@ label {
 }
 
 button {
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  color: #fff;
-  padding: 0.875rem 1.25rem;
-  border-radius: 10px;
-  cursor: pointer;
-  font-family: inherit;
-  font-weight: 500;
-  backdrop-filter: blur(10px);
-  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-  position: relative;
-  overflow: hidden;
+  background: rgba(255, 255, 255, 0.08) !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  color: #fff !important;
+  padding: 1rem 1.5rem !important;
+  border-radius: 10px !important;
+  cursor: pointer !important;
+  font-family: inherit !important;
+  font-weight: 500 !important;
+  backdrop-filter: blur(10px) !important;
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
+  position: relative !important;
+  overflow: hidden !important;
   box-shadow: 
     0 2px 8px rgba(0, 0, 0, 0.1),
     inset 0 1px 0 rgba(255, 255, 255, 0.1);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 42px;
-  line-height: 1.2;
-  font-size: 0.95rem;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  min-height: 48px !important;
+  line-height: 1.2 !important;
+  font-size: 0.95rem !important;
 }
 
 button::before {
@@ -1174,11 +1174,11 @@ button:active {
 }
 
 .secondary-button {
-  background: rgba(255, 119, 198, 0.1);
-  border-color: rgba(255, 119, 198, 0.3);
-  color: rgba(255, 119, 198, 1);
-  padding: 0.875rem 1.5rem;
-  min-height: 44px;
+  background: rgba(255, 119, 198, 0.1) !important;
+  border-color: rgba(255, 119, 198, 0.3) !important;
+  color: rgba(255, 119, 198, 1) !important;
+  padding: 1rem 1.75rem !important;
+  min-height: 48px !important;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -1351,8 +1351,8 @@ input[type="color"]::-webkit-color-swatch-wrapper {
 .modal-content.layout-wide #widget-list button {
   margin-bottom: 0.25rem;
   font-size: 0.95rem;
-  padding: 0.875rem 1.25rem;
-  min-height: 44px;
+  padding: 1rem 1.5rem;
+  min-height: 48px;
 }
 
 /* Compact widget settings */
@@ -1882,7 +1882,7 @@ select option {
 
 .config-quick-actions button {
   flex: 1;
-  min-height: 44px;
+  min-height: 48px;
 }
 
 /* Advanced Config Actions */
@@ -1896,8 +1896,8 @@ select option {
 .config-actions button {
   flex: 1;
   min-width: 150px;
-  padding: 0.875rem 1.25rem;
-  min-height: 44px;
+  padding: 1rem 1.5rem;
+  min-height: 48px;
   font-weight: 500;
 }
 
@@ -1910,7 +1910,7 @@ select option {
   cursor: pointer;
   transition: all 0.2s ease;
   font-size: 0.9rem;
-  min-height: 44px;
+  min-height: 48px;
 }
 
 .secondary-button:hover {
@@ -2096,9 +2096,9 @@ select option {
   background: rgba(220, 53, 69, 0.8);
   color: white;
   border: none;
-  padding: 0.875rem 1.5rem;
+  padding: 1rem 1.75rem;
   border-radius: 6px;
-  min-height: 44px;
+  min-height: 48px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -2187,8 +2187,8 @@ select option {
 .storage-actions button {
   flex: 1;
   min-width: 140px;
-  padding: 0.875rem 1.25rem;
-  min-height: 44px;
+  padding: 1rem 1.5rem;
+  min-height: 48px;
   border: none;
   border-radius: 6px;
   cursor: pointer;
@@ -2215,8 +2215,8 @@ select option {
 .danger-button {
   background: rgba(220, 53, 69, 0.8);
   color: white;
-  padding: 0.875rem 1.5rem;
-  min-height: 44px;
+  padding: 1rem 1.75rem;
+  min-height: 48px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
