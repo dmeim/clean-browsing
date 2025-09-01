@@ -269,10 +269,25 @@ async function openInIframe(website) {
   setupUrlClickHandler(iframeCurrentUrl, website.url);
   
   // Enable frame bypass for this URL
-  await chrome.runtime.sendMessage({ 
-    action: 'enableFrameBypass', 
-    url: website.url 
-  });
+  try {
+    const response = await chrome.runtime.sendMessage({ 
+      action: 'enableFrameBypass', 
+      url: website.url 
+    });
+    
+    if (!response.success) {
+      console.warn('Frame bypass failed:', response.error);
+      if (response.fallback) {
+        console.log('Fallback available:', response.fallback);
+      }
+      // Continue anyway - iframe might still work or will fallback to new tab
+    } else {
+      console.log('Frame bypass enabled using:', response.browser);
+    }
+  } catch (error) {
+    console.error('Error enabling frame bypass:', error);
+    // Continue anyway - iframe might still work or will fallback to new tab
+  }
   
   // Add a small delay to ensure header rules are active
   await new Promise(resolve => setTimeout(resolve, 100));
@@ -760,10 +775,21 @@ async function backToList() {
   
   // Disable frame bypass if we had a URL loaded
   if (currentWebsiteUrl) {
-    await chrome.runtime.sendMessage({ 
-      action: 'disableFrameBypass', 
-      url: currentWebsiteUrl 
-    });
+    try {
+      const response = await chrome.runtime.sendMessage({ 
+        action: 'disableFrameBypass', 
+        url: currentWebsiteUrl 
+      });
+      
+      if (!response.success) {
+        console.warn('Frame bypass cleanup failed:', response.error);
+      } else {
+        console.log('Frame bypass disabled for:', currentWebsiteUrl);
+      }
+    } catch (error) {
+      console.error('Error disabling frame bypass:', error);
+      // Continue cleanup anyway
+    }
   }
   
   // Show website list, hide iframe

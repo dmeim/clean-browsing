@@ -670,6 +670,13 @@ body::before {
 #widget-list button {
   width: 100%;
   margin-bottom: 0.5rem;
+  padding: 1rem 1.25rem;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.95rem;
+  line-height: 1.2;
 }
 
 .widget-config-buttons {
@@ -678,10 +685,25 @@ body::before {
   margin-top: 1.5rem;
 }
 
+/* Ensure widget config action buttons are comfortably sized */
+.widget-config-buttons button {
+  padding: 0.875rem 1.25rem;
+  min-height: 44px;
+  min-width: 120px;
+  font-size: 0.95rem;
+  line-height: 1.2;
+}
+
 /* Widget configuration specific styling */
 #widget-settings-tab .input-group,
 #widget-list .input-group {
   margin-bottom: 1rem;
+}
+
+/* Ensure content-area buttons are comfortably sized, but keep icon-sized controls small */
+.modal-content button:not(.remove-image):not(.preset-gradient-btn):not(.reset-to-global) {
+  min-height: 44px;
+  padding: 0.875rem 1.25rem;
 }
 
 #widget-settings-tab .input-group:last-of-type,
@@ -768,17 +790,22 @@ body::before {
 
 .settings-tabs button {
   flex: 1;
-  padding: 1rem 1.5rem;
+  padding: 1.125rem 1.5rem;
   background: transparent;
   border: none;
   color: rgba(255, 255, 255, 0.7);
   cursor: pointer;
   font-weight: 500;
-  font-size: 0.9rem;
+  font-size: 0.95rem;
   transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   position: relative;
   overflow: hidden;
   border-radius: 0;
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1.2;
 }
 
 .settings-tabs button::before {
@@ -981,9 +1008,14 @@ label {
   border: 1px solid rgba(120, 119, 198, 1);
   font-weight: 600;
   text-transform: uppercase;
-  font-size: 0.8rem;
+  font-size: 0.9rem;
   letter-spacing: 0.5px;
-  padding: 0.75rem 1.5rem;
+  padding: 1rem 1.75rem;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1.2;
 }
 
 .primary-button:hover {
@@ -1040,7 +1072,7 @@ button {
   background: rgba(255, 255, 255, 0.08);
   border: 1px solid rgba(255, 255, 255, 0.15);
   color: #fff;
-  padding: 0.6rem 1rem;
+  padding: 0.875rem 1.25rem;
   border-radius: 10px;
   cursor: pointer;
   font-family: inherit;
@@ -1052,6 +1084,12 @@ button {
   box-shadow: 
     0 2px 8px rgba(0, 0, 0, 0.1),
     inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 42px;
+  line-height: 1.2;
+  font-size: 0.95rem;
 }
 
 button::before {
@@ -1139,6 +1177,12 @@ button:active {
   background: rgba(255, 119, 198, 0.1);
   border-color: rgba(255, 119, 198, 0.3);
   color: rgba(255, 119, 198, 1);
+  padding: 0.875rem 1.5rem;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1.2;
 }
 
 .secondary-button:hover {
@@ -1306,8 +1350,9 @@ input[type="color"]::-webkit-color-swatch-wrapper {
 
 .modal-content.layout-wide #widget-list button {
   margin-bottom: 0.25rem;
-  font-size: 0.9rem;
-  padding: 0.5rem 0.75rem;
+  font-size: 0.95rem;
+  padding: 0.875rem 1.25rem;
+  min-height: 44px;
 }
 
 /* Compact widget settings */
@@ -1837,6 +1882,7 @@ select option {
 
 .config-quick-actions button {
   flex: 1;
+  min-height: 44px;
 }
 
 /* Advanced Config Actions */
@@ -1850,7 +1896,8 @@ select option {
 .config-actions button {
   flex: 1;
   min-width: 150px;
-  padding: 0.75rem 1rem;
+  padding: 0.875rem 1.25rem;
+  min-height: 44px;
   font-weight: 500;
 }
 
@@ -1863,6 +1910,7 @@ select option {
   cursor: pointer;
   transition: all 0.2s ease;
   font-size: 0.9rem;
+  min-height: 44px;
 }
 
 .secondary-button:hover {
@@ -2048,8 +2096,13 @@ select option {
   background: rgba(220, 53, 69, 0.8);
   color: white;
   border: none;
-  padding: 0.6rem 1.2rem;
+  padding: 0.875rem 1.5rem;
   border-radius: 6px;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1.2;
   cursor: pointer;
   font-size: 0.9rem;
   transition: all 0.3s ease;
@@ -2134,7 +2187,8 @@ select option {
 .storage-actions button {
   flex: 1;
   min-width: 140px;
-  padding: 8px 12px;
+  padding: 0.875rem 1.25rem;
+  min-height: 44px;
   border: none;
   border-radius: 6px;
   cursor: pointer;
@@ -2161,6 +2215,12 @@ select option {
 .danger-button {
   background: rgba(220, 53, 69, 0.8);
   color: white;
+  padding: 0.875rem 1.5rem;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1.2;
 }
 
 .danger-button:hover {
@@ -2242,5 +2302,3 @@ select option {
     grid-template-columns: 1fr;
   }
 }
-
-

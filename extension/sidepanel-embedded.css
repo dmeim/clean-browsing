@@ -121,17 +121,18 @@
   background: rgba(255, 255, 255, 0.1);
   border: 1px solid rgba(255, 255, 255, 0.2);
   color: #ffffff;
-  padding: 4px 8px;
+  padding: 8px 10px;
   border-radius: 6px;
   cursor: pointer;
   font-size: 14px;
   transition: all 0.2s ease;
-  display: flex;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 24px;
-  height: 24px;
+  min-width: 36px;
+  min-height: 36px;
   flex-shrink: 0;
+  line-height: 1;
 }
 
 .icon-btn:hover {
@@ -365,28 +366,6 @@
   flex-wrap: wrap;
 }
 
-/* Toggle button styles */
-#sidepanel-toggle-button {
-  position: relative;
-}
-
-#sidepanel-toggle-button.active {
-  background: rgba(108, 99, 255, 0.3);
-  border-color: rgba(108, 99, 255, 0.5);
-  color: #ffffff;
-}
-
-#sidepanel-toggle-button.active::after {
-  content: '';
-  position: absolute;
-  top: -2px;
-  right: -2px;
-  width: 8px;
-  height: 8px;
-  background: #6c63ff;
-  border-radius: 50%;
-  box-shadow: 0 0 4px rgba(108, 99, 255, 0.6);
-}
 
 /* Modals inside sidepanel */
 .sidepanel-settings-modal {
