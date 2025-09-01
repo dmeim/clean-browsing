@@ -20,6 +20,13 @@
       const out = _api.storage.local.set(obj);
       return _isPromise(out) ? await out : await new Promise((resolve) => _api.storage.local.set(obj, resolve));
     },
+    sendMessage: async (message) => {
+      if (!_api?.runtime?.sendMessage) return {};
+      const out = _api.runtime.sendMessage(message);
+      return _isPromise(out) ? await out : await new Promise((resolve, reject) => {
+        try { _api.runtime.sendMessage(message, resolve); } catch (e) { reject(e); }
+      });
+    },
     getURL: (path) => _api?.runtime?.getURL ? _api.runtime.getURL(path) : path,
     onMessageAddListener: (handler) => _api?.runtime?.onMessage?.addListener(handler)
   };
@@ -45,6 +52,7 @@
   let originalViewportMeta = null;
   let iframeLoadTimer = null;
   let bodyObserver = null;
+  let currentWebsiteUrl = null;
   
   // Listen for messages from background script
   ext.onMessageAddListener((request, sender, sendResponse) => {
@@ -556,17 +564,18 @@
         background: rgba(255, 255, 255, 0.1);
         border: 1px solid rgba(255, 255, 255, 0.2);
         color: #ffffff;
-        padding: 4px 8px;
+        padding: 8px 10px;
         border-radius: 6px;
         cursor: pointer;
         font-size: 14px;
         transition: all 0.2s ease;
-        display: flex;
+        display: inline-flex;
         align-items: center;
         justify-content: center;
-        min-width: 24px;
-        height: 24px;
+        min-width: 36px;
+        min-height: 36px;
         flex-shrink: 0;
+        line-height: 1;
       }
       
       .icon-btn:hover {
@@ -709,7 +718,7 @@
       
       .tab-btn {
         flex: 1;
-        padding: 12px 16px;
+        padding: 14px 16px;
         background: transparent;
         border: none;
         color: rgba(255, 255, 255, 0.7);
@@ -717,6 +726,11 @@
         font-size: 14px;
         border-bottom: 2px solid transparent;
         transition: all 0.2s ease;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 44px;
+        line-height: 1.2;
       }
       
       .tab-btn.active {
@@ -779,13 +793,18 @@
         background: #6c63ff;
         color: #ffffff;
         border: none;
-        padding: 10px 20px;
+        padding: 12px 24px;
         border-radius: 6px;
         font-weight: 500;
         cursor: pointer;
         font-size: 14px;
         width: 100%;
         transition: all 0.2s ease;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 42px;
+        line-height: 1.2;
       }
       
       .primary-btn:hover {
@@ -1153,6 +1172,12 @@
         fallbackHost.remove();
       }
       
+      // Disable frame bypass if active
+      if (currentWebsiteUrl) {
+        try { ext.sendMessage({ action: 'disableFrameBypass', url: currentWebsiteUrl }).catch(()=>{}); } catch (_) {}
+        currentWebsiteUrl = null;
+      }
+
       // Remove viewport wrapper
       removeViewportWrapper();
       
@@ -1606,6 +1631,8 @@
     // Clear any prior timer
     if (iframeLoadTimer) { try { clearTimeout(iframeLoadTimer); } catch (_) {} iframeLoadTimer = null; }
 
+    let hasLoadStarted = false;
+    
     // Handle iframe errors
     iframe.onerror = () => {
       console.log('❌ Clean-Browsing: Iframe error for:', website.name);
@@ -1614,20 +1641,54 @@
     };
 
     iframe.onload = () => {
-      console.log('✅ Clean-Browsing: Iframe loaded:', website.name);
+      hasLoadStarted = true;
+      // Check if the iframe actually loaded content
+      try {
+        // Try to access iframe's content window - will throw if cross-origin blocked
+        const iframeDoc = iframe.contentDocument || iframe.contentWindow?.document;
+        if (!iframeDoc || iframeDoc.location.href === 'about:blank') {
+          console.log('⚠️ Clean-Browsing: Iframe loaded but empty for:', website.name);
+          showIframeError(website);
+          return;
+        }
+      } catch (e) {
+        // Cross-origin access denied is actually OK - means content loaded
+        console.log('✅ Clean-Browsing: Iframe loaded (cross-origin):', website.name);
+      }
+      
+      console.log('✅ Clean-Browsing: Iframe loaded successfully:', website.name);
       if (iframeLoadTimer) { try { clearTimeout(iframeLoadTimer); } catch (_) {} iframeLoadTimer = null; }
     };
 
-    // Set a timeout for slow/blocked sites
+    // Enable temporary header bypass via background (Firefox/Chrome)
+    if (currentWebsiteUrl && currentWebsiteUrl !== website.url) {
+      try { ext.sendMessage({ action: 'disableFrameBypass', url: currentWebsiteUrl }).catch(()=>{}); } catch (_) {}
+    }
+    currentWebsiteUrl = website.url;
+    (async () => {
+      try {
+        const resp = await ext.sendMessage({ action: 'enableFrameBypass', url: website.url });
+        if (!resp?.success) {
+          console.warn('Frame bypass not enabled:', resp?.error || 'unknown');
+        }
+      } catch (e) {
+        console.warn('Failed to request frame bypass:', e);
+      }
+      // Give the browser a brief moment to apply rules
+      await new Promise(r => setTimeout(r, 200));
+      // Load the URL after rules are applied
+      try { iframe.src = website.url; } catch (_) {}
+    })();
+
+    // Set a shorter timeout for faster fallback
     iframeLoadTimer = setTimeout(() => {
       // If onload did not clear this timer, treat as blocked
-      console.log('⏰ Clean-Browsing: Iframe load timed out for:', website.name);
-      showIframeError(website);
+      if (!hasLoadStarted) {
+        console.log('⏰ Clean-Browsing: Iframe load timed out for:', website.name);
+        showIframeError(website);
+      }
       iframeLoadTimer = null;
-    }, 12000);
-    
-    // Load the URL
-    iframe.src = website.url;
+    }, 5000); // Reduced from 12000ms to 5000ms for faster fallback
   }
   
   function backToList() {
@@ -1647,6 +1708,12 @@
     // Restore list
     websiteList.style.display = 'flex';
     websiteList.classList.remove('hidden');
+
+    // Disable frame bypass rules for last URL
+    if (currentWebsiteUrl) {
+      try { ext.sendMessage({ action: 'disableFrameBypass', url: currentWebsiteUrl }).catch(()=>{}); } catch (_) {}
+      currentWebsiteUrl = null;
+    }
   }
 
   function navigateIframe(command) {
@@ -1664,107 +1731,56 @@
   }
   
   function showIframeError(website) {
-    const iframeContainer = querySelector('#iframe-container');
-    const iframe = querySelector('#website-iframe');
-    if (!iframeContainer) return;
-
-    // Hide the iframe but keep structure intact
-    if (iframe) iframe.style.display = 'none';
-
-    // Remove any previous error block
-    const existing = iframeContainer.querySelector('.iframe-error');
-    if (existing) existing.remove();
-
-    // Create error display without inline handlers
-    const errorElement = document.createElement('div');
-    errorElement.className = 'iframe-error';
-    errorElement.style.cssText = `
-      flex: 1 !important;
-      display: flex !important;
-      align-items: center !important;
-      justify-content: center !important;
-      padding: 20px !important;
-      background: rgba(0, 0, 0, 0.1) !important;
-    `;
+    // Show a message that the site can't be embedded
+    console.log('🚫 Clean-Browsing: Site cannot be embedded, opening in new tab:', website.name);
     
-    errorElement.innerHTML = `
-      <div class="error-content" style="
-        text-align: center !important;
-        max-width: 300px !important;
-        padding: 20px !important;
-        background: rgba(255, 255, 255, 0.1) !important;
-        border-radius: 8px !important;
-        backdrop-filter: blur(10px) !important;
-      ">
-        <h3 style="
-          color: #ffffff !important;
-          margin: 0 0 10px 0 !important;
-          font-size: 16px !important;
-          font-weight: 600 !important;
-        ">Cannot load ${website.name}</h3>
-        <p style="
-          color: rgba(255, 255, 255, 0.7) !important;
-          margin: 0 0 20px 0 !important;
-          font-size: 14px !important;
-          line-height: 1.4 !important;
-        ">This site cannot be loaded in an iframe.</p>
-        <div class="error-actions" style="
-          display: flex !important;
-          gap: 10px !important;
-          justify-content: center !important;
-          flex-wrap: wrap !important;
-        ">
-          <button class="open-in-tab-btn" data-url="${website.url}" style="
-            background: #6c63ff !important;
-            color: #ffffff !important;
-            border: none !important;
-            padding: 10px 16px !important;
-            border-radius: 6px !important;
-            font-weight: 500 !important;
-            cursor: pointer !important;
-            transition: all 0.2s ease !important;
-            font-size: 14px !important;
-          ">Open in New Tab</button>
-          <button class="back-to-list-btn" style="
-            background: rgba(255, 255, 255, 0.1) !important;
-            border: 1px solid rgba(255, 255, 255, 0.2) !important;
-            color: #ffffff !important;
-            padding: 4px 8px !important;
-            border-radius: 6px !important;
-            cursor: pointer !important;
-            font-size: 14px !important;
-            min-width: 24px !important;
-            height: 24px !important;
-          ">Back to List</button>
-        </div>
-      </div>
-    `;
+    // Known sites that block iframe embedding
+    const knownBlockedSites = [
+      'google.com',
+      'youtube.com',
+      'facebook.com',
+      'twitter.com',
+      'x.com',
+      'instagram.com',
+      'linkedin.com',
+      'reddit.com',
+      'amazon.com',
+      'netflix.com'
+    ];
     
-    // Append error element under the header (and before/after iframe)
-    iframeContainer.appendChild(errorElement);
-    
-    // Add proper event listeners
-    const openTabBtn = errorElement.querySelector('.open-in-tab-btn');
-    const backBtn = errorElement.querySelector('.back-to-list-btn');
-    
-    if (openTabBtn) {
-      openTabBtn.addEventListener('click', () => {
-        const url = openTabBtn.getAttribute('data-url');
-        if (url) {
-          window.open(url, '_blank');
-        }
-      });
+    const isKnownBlocked = knownBlockedSites.some(site => website.url.includes(site));
+    if (isKnownBlocked) {
+      console.log('ℹ️ Clean-Browsing: This is a known site that blocks iframe embedding');
     }
     
-    if (backBtn) {
-      backBtn.addEventListener('click', () => {
+    // Transparent fallback: open in a new tab via background (avoids popup blockers)
+    (async () => {
+      try {
+        await ext.sendMessage({ action: 'openInNewTab', url: website.url });
+        showMessage(`${website.name} opened in new tab (iframe blocked by site)`);
+      } catch (_) {
+        try { 
+          window.open(website.url, '_blank'); 
+          showMessage(`${website.name} opened in new tab`);
+        } catch (_) {
+          showMessage(`Failed to open ${website.name}`);
+        }
+      }
+      // Return UI to list view and cleanup rules
+      try {
         if (typeof backToList === 'function') {
           backToList();
         } else if (window.embeddedSidepanel?.backToList) {
           window.embeddedSidepanel.backToList();
         }
-      });
-    }
+      } catch (_) {}
+      // Optionally close the sidepanel if user set autoClose
+      try {
+        if (sidebarSettings?.sidebarBehavior?.autoClose && sidepanelManager?.close) {
+          sidepanelManager.close();
+        }
+      } catch (_) {}
+    })();
   }
   
   function showSettingsModal() {

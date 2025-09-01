@@ -40,16 +40,8 @@ class SplitViewManager {
   }
   
   setupEventListeners() {
-    // Toggle button
-    const toggleButton = document.getElementById('sidepanel-toggle-button');
+    // Close button
     const closeButton = document.getElementById('sidepanel-close-btn');
-    
-    if (toggleButton) {
-      toggleButton.addEventListener('click', (e) => {
-        e.preventDefault();
-        this.toggle();
-      });
-    }
     
     if (closeButton) {
       closeButton.addEventListener('click', (e) => {
@@ -192,12 +184,6 @@ class SplitViewManager {
       this.sidepanelContainer.classList.add('sidepanel-closed');
     }
     
-    // Update toggle button appearance
-    const toggleButton = document.getElementById('sidepanel-toggle-button');
-    if (toggleButton) {
-      toggleButton.classList.toggle('active', this.isOpen);
-      toggleButton.title = this.isOpen ? 'Close Sidepanel (Alt+S)' : 'Open Sidepanel (Alt+S)';
-    }
   }
   
   saveState() {
