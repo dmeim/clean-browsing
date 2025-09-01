@@ -135,29 +135,35 @@
         window.open(searchUrl, '_blank');
         break;
       case 'newWindow':
-        // Use Chrome extension API to create a proper new window
-        if (chrome && chrome.windows) {
-          chrome.windows.create({
+        // Use unified extension API to create a proper new window
+        if (typeof ExtensionAPI !== 'undefined') {
+          ExtensionAPI.windows.create({
             url: searchUrl,
             width: 1024,
             height: 768
+          }).catch(() => {
+            // Fallback if extension API fails
+            window.open(searchUrl, '_blank');
           });
         } else {
-          // Fallback for when chrome.windows is not available
+          // Fallback for when ExtensionAPI is not available
           window.open(searchUrl, '_blank');
         }
         break;
       case 'incognito':
-        // Use Chrome extension API to create a new incognito window
-        if (chrome && chrome.windows) {
-          chrome.windows.create({
+        // Use unified extension API to create a new incognito window
+        if (typeof ExtensionAPI !== 'undefined') {
+          ExtensionAPI.windows.create({
             url: searchUrl,
             incognito: true,
             width: 1024,
             height: 768
+          }).catch(() => {
+            // Fallback if extension API fails
+            window.open(searchUrl, '_blank');
           });
         } else {
-          // Fallback for when chrome.windows is not available
+          // Fallback for when ExtensionAPI is not available
           window.open(searchUrl, '_blank');
         }
         break;

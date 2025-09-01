@@ -81,7 +81,7 @@ const defaultSettings = {
       {
         id: 'chatgpt',
         name: 'ChatGPT',
-        url: 'https://chat.openai.com',
+        url: 'https://chatgpt.com',
         icon: '🤖',
         openMode: 'iframe',  // Try iframe first, will auto-fallback if blocked
         position: 2
@@ -162,9 +162,9 @@ function loadSettings() {
       s.sidebarSettings.sidebarWebsites = s.sidebarSettings.sidebarWebsites || defaultSettings.sidebarSettings.sidebarWebsites;
       s.sidebarSettings.sidebarBehavior = { ...defaultSettings.sidebarSettings.sidebarBehavior, ...(s.sidebarSettings.sidebarBehavior || {}) };
     }
-    // Also sync with chrome.storage for sidepanel access
-    if (chrome.storage && chrome.storage.local) {
-      chrome.storage.local.set({ sidebarSettings: s.sidebarSettings });
+    // Also sync with ExtensionAPI storage for sidepanel access
+    if (typeof ExtensionAPI !== 'undefined') {
+      ExtensionAPI.storage.set({ sidebarSettings: s.sidebarSettings }).catch(() => {});
     }
     s.widgets = (s.widgets || defaultSettings.widgets).map(w => ({
       ...w,
@@ -181,9 +181,9 @@ function loadSettings() {
 
 function saveSettings(s) {
   localStorage.setItem('settings', JSON.stringify(s));
-  // Also sync sidepanel settings with chrome.storage for sidepanel access
-  if (chrome.storage && chrome.storage.local && s.sidebarSettings) {
-    chrome.storage.local.set({ sidebarSettings: s.sidebarSettings });
+  // Also sync sidepanel settings with ExtensionAPI storage for sidepanel access
+  if (typeof ExtensionAPI !== 'undefined' && s.sidebarSettings) {
+    ExtensionAPI.storage.set({ sidebarSettings: s.sidebarSettings }).catch(() => {});
   }
 }
 

@@ -1,34 +1,58 @@
 // Robust sidepanel injector with Shadow DOM and viewport wrapper system
 // Uses advanced CSS isolation and unified resize mechanism across all websites
-// NO external script dependencies - everything is bundled here
+// Uses unified cross-browser API wrapper
 
 (function() {
   'use strict';
   
   console.log('🚀 Clean-Browsing: Advanced sidepanel injector loading...');
-  // Cross-browser API shim
+  
+  // Load shared modules
+  const defaultSettingsScript = document.createElement('script');
+  defaultSettingsScript.src = chrome?.runtime?.getURL('default-settings.js') || browser?.runtime?.getURL('default-settings.js');
+  document.head.appendChild(defaultSettingsScript);
+  
+  const uiModuleScript = document.createElement('script');
+  uiModuleScript.src = chrome?.runtime?.getURL('sidepanel-ui.js') || browser?.runtime?.getURL('sidepanel-ui.js');
+  document.head.appendChild(uiModuleScript);
+  
+  // Create minimal cross-browser wrapper for content script
   const _api = (typeof browser !== 'undefined') ? browser : (typeof chrome !== 'undefined' ? chrome : undefined);
   const _isPromise = (v) => v && typeof v.then === 'function';
-  const ext = {
-    storageGet: async (keys) => {
-      if (!_api?.storage?.local?.get) return {};
-      const out = _api.storage.local.get(keys);
-      return _isPromise(out) ? await out : await new Promise((resolve) => _api.storage.local.get(keys, resolve));
+  
+  // Minimal ExtensionAPI for content script use
+  const ExtensionAPI = {
+    storage: {
+      async get(keys) {
+        if (!_api?.storage?.local?.get) return {};
+        const result = _api.storage.local.get(keys);
+        return _isPromise(result) ? await result : await new Promise(resolve => _api.storage.local.get(keys, resolve));
+      },
+      async set(obj) {
+        if (!_api?.storage?.local?.set) return;
+        const result = _api.storage.local.set(obj);
+        return _isPromise(result) ? await result : await new Promise(resolve => _api.storage.local.set(obj, resolve));
+      }
     },
-    storageSet: async (obj) => {
-      if (!_api?.storage?.local?.set) return;
-      const out = _api.storage.local.set(obj);
-      return _isPromise(out) ? await out : await new Promise((resolve) => _api.storage.local.set(obj, resolve));
-    },
-    sendMessage: async (message) => {
-      if (!_api?.runtime?.sendMessage) return {};
-      const out = _api.runtime.sendMessage(message);
-      return _isPromise(out) ? await out : await new Promise((resolve, reject) => {
-        try { _api.runtime.sendMessage(message, resolve); } catch (e) { reject(e); }
-      });
-    },
-    getURL: (path) => _api?.runtime?.getURL ? _api.runtime.getURL(path) : path,
-    onMessageAddListener: (handler) => _api?.runtime?.onMessage?.addListener(handler)
+    runtime: {
+      async sendMessage(message) {
+        if (!_api?.runtime?.sendMessage) return {};
+        const result = _api.runtime.sendMessage(message);
+        return _isPromise(result) ? await result : await new Promise((resolve, reject) => {
+          try { _api.runtime.sendMessage(message, resolve); } catch (e) { reject(e); }
+        });
+      },
+      getURL(path) {
+        return _api?.runtime?.getURL ? _api.runtime.getURL(path) : path;
+      },
+      onMessage: {
+        addListener(handler) {
+          if (_api?.runtime?.onMessage?.addListener) {
+            _api.runtime.onMessage.addListener(handler);
+          }
+        }
+      }
+    }
   };
   
   // Only inject on main pages, not iframes
@@ -53,9 +77,10 @@
   let iframeLoadTimer = null;
   let bodyObserver = null;
   let currentWebsiteUrl = null;
+  let currentBackgroundImage = null;
   
   // Listen for messages from background script
-  ext.onMessageAddListener((request, sender, sendResponse) => {
+  ExtensionAPI.runtime.onMessage.addListener((request, sender, sendResponse) => {
     console.log('📨 Clean-Browsing: Message received:', request);
     
     if (request.action === 'toggleSidepanel') {
@@ -160,7 +185,7 @@
     console.log('📚 Clean-Browsing: Loading settings...');
     
     try {
-      const result = await ext.storageGet(['sidebarSettings']);
+      const result = await ExtensionAPI.storage.get(['sidebarSettings']);
       sidebarSettings = result.sidebarSettings || getDefaultSidebarSettings();
       console.log('✅ Clean-Browsing: Settings loaded:', sidebarSettings);
     } catch (error) {
@@ -170,29 +195,22 @@
   }
   
   function getDefaultSidebarSettings() {
+    // Use shared settings if available, otherwise fallback
+    if (typeof DefaultSettings !== 'undefined' && DefaultSettings.getDefaultSidebarSettings) {
+      const settings = DefaultSettings.getDefaultSidebarSettings();
+      // Add iconType to websites for compatibility with content script
+      settings.sidebarWebsites.forEach(website => {
+        if (!website.iconType) {
+          website.iconType = 'favicon';
+        }
+      });
+      return settings;
+    }
+    
+    // Fallback settings (minimal)
     return {
       sidebarEnabled: true,
       sidebarWebsites: [
-        {
-          id: 'wikipedia',
-          name: 'Wikipedia',
-          url: 'https://en.wikipedia.org',
-          icon: '📚',
-          favicon: 'https://en.wikipedia.org/favicon.ico',
-          iconType: 'favicon',
-          openMode: 'iframe',
-          position: 0
-        },
-        {
-          id: 'archive',
-          name: 'Internet Archive',
-          url: 'https://archive.org',
-          icon: '📁',
-          favicon: 'https://archive.org/favicon.ico',
-          iconType: 'favicon',
-          openMode: 'iframe',
-          position: 1
-        },
         {
           id: 'chatgpt',
           name: 'ChatGPT',
@@ -201,7 +219,7 @@
           favicon: 'https://chatgpt.com/favicon.ico',
           iconType: 'favicon',
           openMode: 'iframe',
-          position: 2
+          position: 0
         }
       ],
       sidebarBehavior: {
@@ -431,13 +449,15 @@
       // Inject complete CSS reset and sidepanel styles into Shadow DOM
       try {
         const shadowStyles = document.createElement('style');
-        shadowStyles.textContent = getShadowDOMStyles();
+        shadowStyles.textContent = (typeof SidepanelUI !== 'undefined' && SidepanelUI.getShadowDOMStyles) ? 
+          SidepanelUI.getShadowDOMStyles() : 
+          '/* Shadow DOM styles not loaded */';
         shadowRoot.appendChild(shadowStyles);
 
         // Also bring in existing sidepanel.css for exact look & feel
         const link = document.createElement('link');
         link.rel = 'stylesheet';
-        link.href = ext.getURL('sidepanel.css');
+        link.href = ExtensionAPI.runtime.getURL('sidepanel.css');
         shadowRoot.appendChild(link);
       } catch (stylesError) {
         console.error('❌ Clean-Browsing: Failed to inject Shadow DOM styles:', stylesError);
@@ -448,7 +468,9 @@
       try {
         sidepanelContainer = document.createElement('div');
         sidepanelContainer.className = 'sidepanel-container';
-        sidepanelContainer.innerHTML = getSidepanelHTML();
+        sidepanelContainer.innerHTML = (typeof SidepanelUI !== 'undefined' && SidepanelUI.getSidepanelHTML) ? 
+          SidepanelUI.getSidepanelHTML() : 
+          '<div>Sidepanel UI module not loaded</div>';
         
         shadowRoot.appendChild(sidepanelContainer);
       } catch (htmlError) {
@@ -1101,7 +1123,9 @@
       // Create the sidepanel structure directly (no Shadow DOM)
       sidepanelContainer = document.createElement('div');
       sidepanelContainer.className = 'sidepanel-container';
-      sidepanelContainer.innerHTML = getSidepanelHTML();
+      sidepanelContainer.innerHTML = (typeof SidepanelUI !== 'undefined' && SidepanelUI.getSidepanelHTML) ? 
+        SidepanelUI.getSidepanelHTML() : 
+        '<div>Sidepanel UI module not loaded</div>';
       
       // Apply styles directly to container
       sidepanelContainer.style.cssText = `
@@ -1174,7 +1198,7 @@
       
       // Disable frame bypass if active
       if (currentWebsiteUrl) {
-        try { ext.sendMessage({ action: 'disableFrameBypass', url: currentWebsiteUrl }).catch(()=>{}); } catch (_) {}
+        try { ExtensionAPI.runtime.sendMessage({ action: 'disableFrameBypass', url: currentWebsiteUrl }).catch(()=>{}); } catch (_) {}
         currentWebsiteUrl = null;
       }
 
@@ -1530,7 +1554,7 @@
     
     websiteList.innerHTML = '';
     
-    if (!sidebarSettings.sidebarWebsites.length) {
+    if (!sidebarSettings || !sidebarSettings.sidebarWebsites || !sidebarSettings.sidebarWebsites.length) {
       websiteList.innerHTML = `
         <div style="
           text-align: center !important;
@@ -1549,8 +1573,14 @@
     const sortedWebsites = [...sidebarSettings.sidebarWebsites].sort((a, b) => a.position - b.position);
     
     sortedWebsites.forEach(website => {
-      const websiteItem = createWebsiteItem(website);
-      websiteList.appendChild(websiteItem);
+      try {
+        const websiteItem = createWebsiteItem(website);
+        if (websiteItem) {
+          websiteList.appendChild(websiteItem);
+        }
+      } catch (error) {
+        console.error('❌ Clean-Browsing: Failed to create website item:', website, error);
+      }
     });
     
     console.log('✅ Clean-Browsing: Website list rendered');
@@ -1607,15 +1637,28 @@
   }
   
   function openInIframe(website) {
+    if (!website || !website.url) {
+      console.error('❌ Clean-Browsing: Invalid website object:', website);
+      return;
+    }
+
     const websiteList = querySelector('#website-list');
     const iframeContainer = querySelector('#iframe-container');
     const iframe = querySelector('#website-iframe');
     const iframeTitle = querySelector('#iframe-title');
     const iframeUrl = querySelector('#iframe-current-url');
 
-    // Hide website list, show iframe
-    websiteList.style.display = 'none';
-    websiteList.classList.add('hidden');
+    // Validate required elements
+    if (!websiteList || !iframeContainer || !iframe || !iframeTitle || !iframeUrl) {
+      console.error('❌ Clean-Browsing: Required iframe elements not found');
+      showIframeError(website);
+      return;
+    }
+
+    try {
+      // Hide website list, show iframe
+      websiteList.style.display = 'none';
+      websiteList.classList.add('hidden');
     // Ensure iframe container is visible and not marked hidden
     iframeContainer.classList.remove('hidden');
     iframeContainer.style.display = 'flex';
@@ -1662,12 +1705,12 @@
 
     // Enable temporary header bypass via background (Firefox/Chrome)
     if (currentWebsiteUrl && currentWebsiteUrl !== website.url) {
-      try { ext.sendMessage({ action: 'disableFrameBypass', url: currentWebsiteUrl }).catch(()=>{}); } catch (_) {}
+      try { ExtensionAPI.runtime.sendMessage({ action: 'disableFrameBypass', url: currentWebsiteUrl }).catch(()=>{}); } catch (_) {}
     }
     currentWebsiteUrl = website.url;
     (async () => {
       try {
-        const resp = await ext.sendMessage({ action: 'enableFrameBypass', url: website.url });
+        const resp = await ExtensionAPI.runtime.sendMessage({ action: 'enableFrameBypass', url: website.url });
         if (!resp?.success) {
           console.warn('Frame bypass not enabled:', resp?.error || 'unknown');
         }
@@ -1689,6 +1732,10 @@
       }
       iframeLoadTimer = null;
     }, 5000); // Reduced from 12000ms to 5000ms for faster fallback
+    } catch (error) {
+      console.error('❌ Clean-Browsing: Error in openInIframe:', error);
+      showIframeError(website);
+    }
   }
   
   function backToList() {
@@ -1711,7 +1758,7 @@
 
     // Disable frame bypass rules for last URL
     if (currentWebsiteUrl) {
-      try { ext.sendMessage({ action: 'disableFrameBypass', url: currentWebsiteUrl }).catch(()=>{}); } catch (_) {}
+      try { ExtensionAPI.runtime.sendMessage({ action: 'disableFrameBypass', url: currentWebsiteUrl }).catch(()=>{}); } catch (_) {}
       currentWebsiteUrl = null;
     }
   }
@@ -1756,7 +1803,7 @@
     // Transparent fallback: open in a new tab via background (avoids popup blockers)
     (async () => {
       try {
-        await ext.sendMessage({ action: 'openInNewTab', url: website.url });
+        await ExtensionAPI.runtime.sendMessage({ action: 'openInNewTab', url: website.url });
         showMessage(`${website.name} opened in new tab (iframe blocked by site)`);
       } catch (_) {
         try { 
@@ -1835,7 +1882,7 @@
     const addBtn = modal.querySelector('#add-website-btn');
     if (addBtn) { addBtn.addEventListener('click', addWebsite); }
     const saveBtn = modal.querySelector('#save-settings');
-    if (saveBtn) { saveBtn.addEventListener('click', async ()=>{ await ext.storageSet({ sidebarSettings }); hideSettingsModal(); }); }
+    if (saveBtn) { saveBtn.addEventListener('click', async ()=>{ await ExtensionAPI.storage.set({ sidebarSettings }); hideSettingsModal(); }); }
 
     // Close on backdrop click
     modal.addEventListener('click', (e) => {
@@ -1861,7 +1908,7 @@
         sidebarSettings.sidebarBehavior.autoClose = !!autoClose?.checked;
         sidebarSettings.sidebarBehavior.showUrls = !!showUrls?.checked;
         sidebarSettings.sidebarBehavior.compactMode = !!compact?.checked;
-        await ext.storageSet({ sidebarSettings });
+        await ExtensionAPI.storage.set({ sidebarSettings });
         renderWebsiteList();
       } catch (e) { console.error('Failed to save behavior settings', e); }
     };
@@ -1952,7 +1999,7 @@
     sidebarSettings.sidebarWebsites.push(newWebsite);
     
     try {
-      await ext.storageSet({ sidebarSettings });
+      await ExtensionAPI.storage.set({ sidebarSettings });
       console.log('✅ Website added:', newWebsite);
       
       // Clear form
@@ -2006,7 +2053,7 @@
   }
 
   async function saveSettingsAndRefresh() {
-    await ext.storageSet({ sidebarSettings });
+    await ExtensionAPI.storage.set({ sidebarSettings });
     renderWebsiteList();
     renderManageWebsitesList();
   }
@@ -2062,7 +2109,7 @@
 
   // Appearance handling
   function setupAppearanceListeners() {
-    const modal = querySelector('#sidepanel-settings-modal');
+    const modal = querySelector('#settings-modal');
     if (!modal) return;
     const bgRadios = modal.querySelectorAll('input[name="bg-type"]');
     const gradientOpt = modal.querySelector('#gradient-options');
@@ -2119,7 +2166,7 @@
       sidebarSettings.appearance.backgroundSettings = { image: currentBackgroundImage||null, opacity };
     }
     applyAppearanceToPanel();
-    ext.storageSet({ sidebarSettings }).catch(()=>{});
+    ExtensionAPI.storage.set({ sidebarSettings }).catch(()=>{});
   }
 
   function loadAppearanceSettings() {

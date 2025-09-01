@@ -1,4 +1,6 @@
-// Sidepanel panel JavaScript
+// Sidepanel panel JavaScript - Cross-browser compatible
+// ExtensionAPI is available via HTML script loading
+
 let sidebarSettings = null;
 let currentWebsiteUrl = null;
 let currentBackgroundImage = null;
@@ -118,31 +120,38 @@ function loadSidebarSettings() {
     }
     
     // Fallback to background script storage
-    chrome.runtime.sendMessage({ action: 'getSidebarSettings' }, (response) => {
+    ExtensionAPI.runtime.sendMessage({ action: 'getSidebarSettings' }).then((response) => {
       console.log('Loading sidepanel settings from background script');
       resolve(response);
+    }).catch((error) => {
+      console.error('Error loading sidebar settings:', error);
+      resolve(getDefaultSidebarSettings());
     });
   });
 }
 
 // Save settings to background script and sync with main extension settings
-function saveSidebarSettings() {
-  return new Promise((resolve) => {
-    chrome.runtime.sendMessage({ 
+async function saveSidebarSettings() {
+  try {
+    const response = await ExtensionAPI.runtime.sendMessage({ 
       action: 'saveSidebarSettings', 
       settings: sidebarSettings 
-    }, (response) => {
-      // Also sync with main extension settings in localStorage for export/import
-      try {
-        const mainSettings = JSON.parse(localStorage.getItem('settings') || '{}');
-        mainSettings.sidebarSettings = sidebarSettings;
-        localStorage.setItem('settings', JSON.stringify(mainSettings));
-      } catch (e) {
-        console.log('Could not sync with main settings:', e);
-      }
-      resolve(response);
     });
-  });
+    
+    // Also sync with main extension settings in localStorage for export/import
+    try {
+      const mainSettings = JSON.parse(localStorage.getItem('settings') || '{}');
+      mainSettings.sidebarSettings = sidebarSettings;
+      localStorage.setItem('settings', JSON.stringify(mainSettings));
+    } catch (e) {
+      console.log('Could not sync with main settings:', e);
+    }
+    
+    return response;
+  } catch (error) {
+    console.error('Error saving sidebar settings:', error);
+    return { success: false, error: error.message };
+  }
 }
 
 // Render the website list
@@ -206,19 +215,19 @@ function openWebsite(website) {
       openInIframe(website);
       break;
     case 'newtab':
-      chrome.tabs.create({ url: website.url });
+      ExtensionAPI.tabs.create({ url: website.url });
       if (sidebarSettings.sidebarBehavior.autoClose) {
         window.close();
       }
       break;
     case 'newwindow':
-      chrome.windows.create({ url: website.url });
+      ExtensionAPI.windows.create({ url: website.url });
       if (sidebarSettings.sidebarBehavior.autoClose) {
         window.close();
       }
       break;
     case 'privatetab':
-      chrome.windows.create({ 
+      ExtensionAPI.windows.create({ 
         url: website.url, 
         incognito: true 
       });
@@ -227,7 +236,7 @@ function openWebsite(website) {
       }
       break;
     case 'privatewindow':
-      chrome.windows.create({ 
+      ExtensionAPI.windows.create({ 
         url: website.url, 
         incognito: true,
         type: 'normal'
@@ -238,7 +247,7 @@ function openWebsite(website) {
       break;
     default:
       // Fallback to new tab
-      chrome.tabs.create({ url: website.url });
+      ExtensionAPI.tabs.create({ url: website.url });
       if (sidebarSettings.sidebarBehavior.autoClose) {
         window.close();
       }
@@ -270,7 +279,7 @@ async function openInIframe(website) {
   
   // Enable frame bypass for this URL
   try {
-    const response = await chrome.runtime.sendMessage({ 
+    const response = await ExtensionAPI.runtime.sendMessage({ 
       action: 'enableFrameBypass', 
       url: website.url 
     });
@@ -697,7 +706,7 @@ function handleIframeError(website, errorType = 'unknown') {
   stopUrlTracking();
   
   // Open in new tab
-  chrome.runtime.sendMessage({ 
+  ExtensionAPI.runtime.sendMessage({ 
     action: 'openInNewTab', 
     url: website.url 
   });
@@ -776,7 +785,7 @@ async function backToList() {
   // Disable frame bypass if we had a URL loaded
   if (currentWebsiteUrl) {
     try {
-      const response = await chrome.runtime.sendMessage({ 
+      const response = await ExtensionAPI.runtime.sendMessage({ 
         action: 'disableFrameBypass', 
         url: currentWebsiteUrl 
       });
@@ -864,7 +873,7 @@ function setupEventListeners() {
     console.log('Opening in new tab:', urlToOpen);
     
     if (urlToOpen && urlToOpen !== 'about:blank') {
-      chrome.runtime.sendMessage({ 
+      ExtensionAPI.runtime.sendMessage({ 
         action: 'openInNewTab', 
         url: urlToOpen 
       });
@@ -1447,4 +1456,66 @@ function loadAppearanceSettings() {
       document.getElementById('bg-image-opacity-value').textContent = opacityPercent + '%';
     }
   }
+}
+
+// Default sidepanel settings fallback
+function getDefaultSidebarSettings() {
+  return {
+    sidebarEnabled: true,
+    sidebarWebsites: [
+      {
+        id: 'wikipedia',
+        name: 'Wikipedia',
+        url: 'https://en.wikipedia.org',
+        icon: '📚',
+        favicon: 'https://en.wikipedia.org/favicon.ico',
+        openMode: 'iframe',
+        position: 0
+      },
+      {
+        id: 'archive',
+        name: 'Internet Archive',
+        url: 'https://archive.org',
+        icon: '📁',
+        favicon: 'https://archive.org/favicon.ico',
+        openMode: 'iframe',
+        position: 1
+      },
+      {
+        id: 'chatgpt',
+        name: 'ChatGPT',
+        url: 'https://chatgpt.com',
+        icon: '🤖',
+        favicon: 'https://chatgpt.com/favicon.ico',
+        openMode: 'iframe',
+        position: 2
+      },
+      {
+        id: 'claude',
+        name: 'Claude',
+        url: 'https://claude.ai',
+        icon: '🧠',
+        favicon: 'https://claude.ai/favicon.ico',
+        openMode: 'iframe',
+        position: 3
+      },
+      {
+        id: 'github',
+        name: 'GitHub',
+        url: 'https://github.com',
+        icon: '💻',
+        favicon: 'https://github.com/favicon.ico',
+        openMode: 'iframe',
+        position: 4
+      }
+    ],
+    sidebarBehavior: {
+      autoClose: false,
+      defaultOpenMode: 'iframe',
+      showIcons: true,
+      compactMode: false,
+      useFavicons: false,
+      showUrls: false
+    }
+  };
 }
