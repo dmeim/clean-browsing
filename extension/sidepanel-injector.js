@@ -998,7 +998,7 @@
                 <div class="form-group">
                   <label for="bg-image-upload">Background Image:</label>
                   <input type="file" id="bg-image-upload" accept="image/*" style="margin-left:8px;">
-                  <button id="remove-bg-image" class="icon-btn" style="margin-left:8px; display:none;">Remove</button>
+                  <button id="remove-bg-image" class="icon-btn" style="display:none; margin-left:8px;">Remove</button>
                 </div>
                 <div class="form-group">
                   <label for="bg-image-opacity">Image Opacity:</label>
@@ -1008,20 +1008,20 @@
                 <div class="form-group">
                   <label>Preset Gradients:</label>
                   <div class="preset-gradients" style="display:flex; flex-wrap:wrap; gap:8px;">
-                    <button class="preset-gradient" data-gradient="135,#667eea,#764ba2" title="Purple Dream" style="width:28px;height:28px;border-radius:6px;border:1px solid rgba(255,255,255,0.2);background:linear-gradient(135deg,#667eea,#764ba2);"></button>
-                    <button class="preset-gradient" data-gradient="135,#f093fb,#f5576c" title="Pink Sunset" style="width:28px;height:28px;border-radius:6px;border:1px solid rgba(255,255,255,0.2);background:linear-gradient(135deg,#f093fb,#f5576c);"></button>
-                    <button class="preset-gradient" data-gradient="135,#4facfe,#00f2fe" title="Ocean Blue" style="width:28px;height:28px;border-radius:6px;border:1px solid rgba(255,255,255,0.2);background:linear-gradient(135deg,#4facfe,#00f2fe);"></button>
-                    <button class="preset-gradient" data-gradient="135,#43e97b,#38f9d7" title="Mint Fresh" style="width:28px;height:28px;border-radius:6px;border:1px solid rgba(255,255,255,0.2);background:linear-gradient(135deg,#43e97b,#38f9d7);"></button>
-                    <button class="preset-gradient" data-gradient="135,#fa709a,#fee140" title="Warm Sunrise" style="width:28px;height:28px;border-radius:6px;border:1px solid rgba(255,255,255,0.2);background:linear-gradient(135deg,#fa709a,#fee140);"></button>
-                    <button class="preset-gradient" data-gradient="135,#30cfd0,#330867" title="Deep Space" style="width:28px;height:28px;border-radius:6px;border:1px solid rgba(255,255,255,0.2);background:linear-gradient(135deg,#30cfd0,#330867);"></button>
-                    <button class="preset-gradient" data-gradient="135,#a8edea,#fed6e3" title="Soft Pastel" style="width:28px;height:28px;border-radius:6px;border:1px solid rgba(255,255,255,0.2);background:linear-gradient(135deg,#a8edea,#fed6e3);"></button>
-                    <button class="preset-gradient" data-gradient="135,#ff9a9e,#fecfef" title="Cotton Candy" style="width:28px;height:28px;border-radius:6px;border:1px solid rgba(255,255,255,0.2);background:linear-gradient(135deg,#ff9a9e,#fecfef);"></button>
+                    <button class="preset-gradient" data-gradient="135,#667eea,#764ba2" title="Purple Dream"></button>
+                    <button class="preset-gradient" data-gradient="135,#f093fb,#f5576c" title="Pink Sunset"></button>
+                    <button class="preset-gradient" data-gradient="135,#4facfe,#00f2fe" title="Ocean Blue"></button>
+                    <button class="preset-gradient" data-gradient="135,#43e97b,#38f9d7" title="Mint Fresh"></button>
+                    <button class="preset-gradient" data-gradient="135,#fa709a,#fee140" title="Warm Sunrise"></button>
+                    <button class="preset-gradient" data-gradient="135,#30cfd0,#330867" title="Deep Space"></button>
+                    <button class="preset-gradient" data-gradient="135,#a8edea,#fed6e3" title="Soft Pastel"></button>
+                    <button class="preset-gradient" data-gradient="135,#ff9a9e,#fecfef" title="Cotton Candy"></button>
                   </div>
                 </div>
               </div>
             </div>
             <div class="modal-footer" style="padding: 12px 16px; border-top: 1px solid rgba(255,255,255,0.1); display:flex; justify-content:flex-end;">
-              <button id="save-settings" class="primary-btn" style="padding:10px 16px; border:none; border-radius:6px; background:#6c63ff; color:#fff;">Save Settings</button>
+              <button id="save-settings" class="primary-btn">Save Settings</button>
             </div>
           </div>
         </div>
