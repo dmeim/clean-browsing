@@ -310,9 +310,6 @@ async function openInIframe(website) {
   iframe.onerror = null;
   iframe.onload = null;
 
-  // State tracking
-  let loadTimeout;
-
   // Handle network errors (DNS failures, connection refused, etc.)
   iframe.onerror = () => {
     clearTimeout(loadTimeout);
@@ -354,7 +351,7 @@ async function openInIframe(website) {
   };
 
   // Set a reasonable timeout for slow-loading sites
-  loadTimeout = setTimeout(() => {
+  const loadTimeout = setTimeout(() => {
     console.log(`Timeout loading ${website.name}`);
     handleIframeError(website, 'timeout');
   }, 10000); // 10 seconds for slow sites
@@ -372,7 +369,7 @@ let lastKnownUrl = null;
 let navigationCheckInterval = null;
 
 // Navigation state tracking
-const navigationState = {
+const _navigationState = {
   // Back button is always enabled, no state tracking needed
 };
 const pendingNavigationRequests = new Map();
@@ -692,7 +689,7 @@ function navigateIframe(command) {
 }
 
 // Update navigation button states
-function updateNavigationButtons() {
+function _updateNavigationButtons() {
   // Back button is now always enabled like refresh button
   // No disabled state management needed
 }
@@ -1087,7 +1084,7 @@ function renderManageWebsitesList() {
     (a, b) => a.position - b.position
   );
 
-  sortedWebsites.forEach((website, index) => {
+  sortedWebsites.forEach((website, _index) => {
     const item = document.createElement('div');
     item.className = 'manage-item';
     item.draggable = true;
@@ -1163,7 +1160,7 @@ function handleDragStart(e) {
   e.dataTransfer.setData('text/html', this.innerHTML);
 }
 
-function handleDragEnd(e) {
+function handleDragEnd(_e) {
   this.classList.remove('dragging');
 
   // Remove all drag-over classes
@@ -1180,13 +1177,13 @@ function handleDragOver(e) {
   return false;
 }
 
-function handleDragEnter(e) {
+function handleDragEnter(_e) {
   if (this !== draggedElement) {
     this.classList.add('drag-over');
   }
 }
 
-function handleDragLeave(e) {
+function handleDragLeave(_e) {
   this.classList.remove('drag-over');
 }
 

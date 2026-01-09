@@ -61,8 +61,9 @@
       if (
         e.target.classList.contains('resize-handle') ||
         e.target.classList.contains('widget-action')
-      )
+      ) {
         return;
+      }
 
       // Focus the input so typing can begin immediately
       input.focus();

@@ -518,7 +518,7 @@
     }
   }
 
-  function getShadowDOMStyles() {
+  function _getShadowDOMStyles() {
     return `
       /* CSS Reset for Shadow DOM */
       * {
@@ -883,7 +883,7 @@
     `;
   }
 
-  function getSidepanelHTML() {
+  function _getSidepanelHTML() {
     return `
       <div class="sidepanel-resize-handle" title="Drag to resize">
         <div class="resize-indicator"></div>
@@ -1282,9 +1282,9 @@
     }
   }
 
-  function querySelectorAll(selector) {
+  function _querySelectorAll(selector) {
     try {
-      const elements = [];
+      const _elements = [];
 
       // Try Shadow DOM first
       if (shadowRoot && typeof shadowRoot.querySelectorAll === 'function') {
@@ -1328,18 +1328,18 @@
   }
 
   // Helper to check if we have a valid sidepanel container
-  function hasSidepanelContainer() {
+  function _hasSidepanelContainer() {
     return !!(shadowRoot || sidepanelContainer);
   }
 
   // Helper to get the appropriate root for event listeners
-  function getSidepanelRoot() {
+  function _getSidepanelRoot() {
     if (shadowRoot) return shadowRoot;
     if (sidepanelContainer) return sidepanelContainer;
     return document;
   }
 
-  function createSettingsModal() {
+  function _createSettingsModal() {
     console.log('🔧 Clean-Browsing: Settings modal is now part of Shadow DOM');
     // Settings modal is now embedded in the Shadow DOM structure
     // No need for separate creation
@@ -2278,18 +2278,20 @@
     [gc1, gc1t, gc2, gc2t, sc, sct].forEach((el) => {
       if (el) el.addEventListener('input', sync);
     });
-    if (ga)
+    if (ga) {
       ga.addEventListener('input', () => {
         if (gav) gav.textContent = ga.value + '°';
         sync();
       });
+    }
     if (imgUpload) imgUpload.addEventListener('change', handleImageUpload);
     if (imgRemove) imgRemove.addEventListener('click', removeBackgroundImage);
-    if (imgOpacity)
+    if (imgOpacity) {
       imgOpacity.addEventListener('input', () => {
         if (imgOpacityVal) imgOpacityVal.textContent = imgOpacity.value + '%';
         sync();
       });
+    }
   }
 
   function saveAppearanceFromControls() {

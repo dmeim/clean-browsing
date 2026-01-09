@@ -55,7 +55,7 @@ function renderCalculatorWidget(widget, index) {
   widgetGrid.appendChild(container);
 }
 
-function setupCalculatorLogic(container, widget, index) {
+function setupCalculatorLogic(container, widget, _index) {
   const display = container.querySelector('.calc-text');
   const buttons = container.querySelectorAll('.calc-btn');
 

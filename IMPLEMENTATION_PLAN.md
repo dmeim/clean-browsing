@@ -191,15 +191,17 @@ This plan merges existing TODOs with critical bugs discovered through comprehens
   - ✅ `.gitignore` expanded with comprehensive patterns
   - ✅ `switch-manifest.sh` removed
 
-### 5.2 Build System & Packaging Improvements  
+### ✅ ~~5.2 Build System & Packaging Improvements (MOSTLY RESOLVED)~~
 - **Current State**: `package.json` has working Firefox packaging script
 - **Good Practices Already Implemented**:
   - ✅ `npm run package` excludes `.DS_Store` via rsync
   - ✅ Version pulled from manifest automatically
-- **Improvements**:
+  - ✅ `npm run lint` - ESLint with 0 errors
+  - ✅ `npm run lint:fix` - Auto-fix lint issues
+  - ✅ `npm run format` - Prettier formatting
+  - ✅ `npm run format:check` - Check formatting
+- **Remaining**:
   - [ ] **Add validation** of package contents before distribution
-  - [ ] **Add lint script** placeholder
-- **Priority**: 🟢 LOW
 
 ### 5.3 CI/CD Pipeline Enhancements
 - **Current State**: Basic validation exists
@@ -210,10 +212,14 @@ This plan merges existing TODOs with critical bugs discovered through comprehens
 - **Priority**: 🟢 LOW
 
 ### ✅ ~~5.4 Code Quality & Development Tools (RESOLVED)~~
-- **Status**: COMPLETED
-  - ✅ ESLint configuration (`.eslintrc.json`)
+- **Status**: COMPLETED - **0 errors, 34 warnings** (down from 182 problems)
+  - ✅ ESLint configuration (`.eslintrc.json`) with WebExtension globals
   - ✅ Prettier configuration (`.prettierrc`, `.prettierignore`)
   - ✅ Package.json lint scripts (`npm run lint`, `npm run format`)
+  - ✅ Fixed `configQuickAll` undefined variable bug in settings.js
+  - ✅ Configured cross-file globals (settings, renderWidgets, widgetGrid, etc.)
+  - ✅ Tuned rules for extension architecture (empty catches, self-assign, case declarations)
+  - ⏳ Remaining 34 warnings are informational (unused vars used cross-file, `==` vs `===`)
   - ⏳ Pre-commit hooks (optional, future enhancement)
 
 ---
@@ -285,7 +291,8 @@ This plan merges existing TODOs with critical bugs discovered through comprehens
 - LICENSE updated
 - v0.5.0 release notes
 - .gitignore expanded
-- ESLint/Prettier configuration
+- ESLint/Prettier configuration (0 errors, 34 warnings)
+- Fixed `configQuickAll` undefined bug
 - ARIA labels for accessibility
 - Keyboard navigation for modals
 - Focus management in modals
@@ -295,6 +302,7 @@ This plan merges existing TODOs with critical bugs discovered through comprehens
 - Sidepanel resize/positioning (needs testing)
 
 ### ⏳ Pending
+- Address remaining 34 ESLint warnings (informational)
 - Color contrast audit
 - Skeleton loading states
 

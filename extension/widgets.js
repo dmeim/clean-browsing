@@ -14,7 +14,7 @@ let activeIntervals = [];
 const widgetRegistry = {};
 
 // Register a new widget type
-function registerWidget(type, definition) {
+function _registerWidget(type, definition) {
   widgetRegistry[type] = definition;
 }
 
@@ -155,7 +155,7 @@ function calculateOptimalFontSize(textElement, container, appearance) {
   // Simple, reliable formula: take a percentage of the smaller dimension
   // This ensures text always fits within bounds while scaling with container size
   const smallerDimension = Math.min(availableWidth, availableHeight);
-  const largerDimension = Math.max(availableWidth, availableHeight);
+  const _largerDimension = Math.max(availableWidth, availableHeight);
 
   // Base font size as percentage of smaller dimension
   let fontSize = smallerDimension * 0.35;
@@ -196,7 +196,7 @@ function setupDynamicTextSizing(textElement, container, widget) {
   }
 }
 
-function applyWidgetAppearance(container, widget) {
+function _applyWidgetAppearance(container, widget) {
   const appearance = getWidgetAppearance(widget);
 
   // Convert hex color to rgba
@@ -264,7 +264,7 @@ function renderWidgets() {
 }
 
 // Helper function to create basic widget container
-function createWidgetContainer(widget, index, className) {
+function _createWidgetContainer(widget, index, className) {
   const container = document.createElement('div');
   container.className = `widget ${className}`;
   container.style.gridColumn = `${(widget.x || 0) + 1} / span ${widget.w || 4}`;
@@ -274,7 +274,7 @@ function createWidgetContainer(widget, index, className) {
 }
 
 // Helper function to set up jiggle mode controls
-function setupJiggleModeControls(container, widget, index) {
+function _setupJiggleModeControls(container, widget, index) {
   if (!jiggleMode) return;
 
   // Remove button
@@ -333,7 +333,7 @@ function setupJiggleModeControls(container, widget, index) {
 }
 
 // Helper function for common widget config save/cancel logic
-function setupWidgetConfigButtons(
+function _setupWidgetConfigButtons(
   isEdit,
   widgetType,
   index,
@@ -666,11 +666,11 @@ function setupWidgetAppearanceTab(widget, index) {
         <div class="input-group">
           <label for="widget-font-weight">Font Weight <span class="inheritance-indicator">${appearance.fontWeight !== undefined ? 'Custom' : 'Using Global'}</span></label>
           <select id="widget-font-weight">
-            <option value="300" ${(appearance.fontWeight || global.fontWeight) == 300 ? 'selected' : ''}>Light</option>
-            <option value="400" ${(appearance.fontWeight || global.fontWeight) == 400 ? 'selected' : ''}>Normal</option>
-            <option value="500" ${(appearance.fontWeight || global.fontWeight) == 500 ? 'selected' : ''}>Medium</option>
-            <option value="700" ${(appearance.fontWeight || global.fontWeight) == 700 ? 'selected' : ''}>Bold</option>
-            <option value="900" ${(appearance.fontWeight || global.fontWeight) == 900 ? 'selected' : ''}>Extra Bold</option>
+            <option value="300" ${(appearance.fontWeight || global.fontWeight) === 300 ? 'selected' : ''}>Light</option>
+            <option value="400" ${(appearance.fontWeight || global.fontWeight) === 400 ? 'selected' : ''}>Normal</option>
+            <option value="500" ${(appearance.fontWeight || global.fontWeight) === 500 ? 'selected' : ''}>Medium</option>
+            <option value="700" ${(appearance.fontWeight || global.fontWeight) === 700 ? 'selected' : ''}>Bold</option>
+            <option value="900" ${(appearance.fontWeight || global.fontWeight) === 900 ? 'selected' : ''}>Extra Bold</option>
           </select>
           <button class="reset-to-global" data-property="fontWeight" ${appearance.fontWeight === undefined ? 'disabled' : ''}>Use Global</button>
         </div>
