@@ -364,10 +364,10 @@ let lastKnownUrl = null;
 let navigationCheckInterval = null;
 
 // Navigation state tracking
-let navigationState = {
+const navigationState = {
   // Back button is always enabled, no state tracking needed
 };
-let pendingNavigationRequests = new Map();
+const pendingNavigationRequests = new Map();
 
 // Start tracking URL changes in iframe (enhanced approach)
 function startUrlTracking(iframe, urlElement) {

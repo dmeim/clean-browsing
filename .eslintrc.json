@@ -15,10 +15,27 @@
     "ExtensionAPI": "readonly",
     "DefaultSettings": "readonly",
     "dayjs": "readonly",
-    "importScripts": "readonly"
+    "importScripts": "readonly",
+    "module": "readonly",
+    "define": "readonly",
+    "settings": "writable",
+    "saveSettings": "readonly",
+    "loadSettings": "readonly",
+    "renderWidgets": "readonly",
+    "registerWidget": "readonly",
+    "widgetGrid": "writable",
+    "widgetList": "writable",
+    "activeIntervals": "writable",
+    "createWidgetContainer": "readonly",
+    "applyWidgetAppearance": "readonly",
+    "setupJiggleModeControls": "readonly",
+    "setupWidgetConfigButtons": "readonly",
+    "saveAndRender": "readonly",
+    "initSidebarSettings": "readonly",
+    "SidepanelUI": "readonly"
   },
   "rules": {
-    "no-unused-vars": ["warn", { "argsIgnorePattern": "^_" }],
+    "no-unused-vars": ["warn", { "argsIgnorePattern": "^_", "varsIgnorePattern": "^_" }],
     "no-console": "off",
     "prefer-const": "warn",
     "eqeqeq": ["warn", "smart"],
@@ -26,7 +43,11 @@
     "no-var": "warn",
     "no-throw-literal": "warn",
     "no-useless-escape": "warn",
-    "no-prototype-builtins": "warn"
+    "no-prototype-builtins": "warn",
+    "no-case-declarations": "off",
+    "no-empty": ["warn", { "allowEmptyCatch": true }],
+    "no-self-assign": "off",
+    "no-redeclare": ["error", { "builtinGlobals": false }]
   },
   "ignorePatterns": [
     "node_modules/",

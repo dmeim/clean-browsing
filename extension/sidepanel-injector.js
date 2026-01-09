@@ -1262,7 +1262,7 @@
   
   function querySelectorAll(selector) {
     try {
-      let elements = [];
+      const elements = [];
       
       // Try Shadow DOM first
       if (shadowRoot && typeof shadowRoot.querySelectorAll === 'function') {
@@ -2097,7 +2097,7 @@
       if (emojiGroup) emojiGroup.style.display = (e.target.value==='emoji') ? 'block' : 'none';
     }));
     const close = modal.querySelector('#close-edit'); if (close) close.onclick = ()=> modal.classList.add('hidden');
-    const save = modal.querySelector('#save-edit'); if (save) save.onclick = async ()=>{
+    const save = modal.querySelector('#save-edit'); if (save) {save.onclick = async ()=>{
       website.name = name?.value?.trim() || website.name;
       website.url = url?.value?.trim() || website.url;
       website.openMode = mode?.value || website.openMode || 'iframe';
@@ -2107,7 +2107,7 @@
       website.favicon = website.iconType==='favicon' ? getFaviconUrl(website.url) : null;
       await saveSettingsAndRefresh();
       modal.classList.add('hidden');
-    };
+    };}
   }
 
   // Appearance handling
