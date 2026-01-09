@@ -1,5 +1,5 @@
 // Clock Widget Implementation
-(function() {
+(function () {
   'use strict';
 
   function renderClockWidget(widget, index) {
@@ -7,7 +7,7 @@
 
     const span = document.createElement('span');
     container.appendChild(span);
-    
+
     // Apply appearance styling (includes text size and all other appearance settings)
     applyWidgetAppearance(container, widget);
 
@@ -28,9 +28,10 @@
       if (widget.settings && widget.settings.daylightSavings === false && isDST(now)) {
         now = new Date(now.getTime() - 3600000);
       }
-      const locale = widget.settings && widget.settings.locale && widget.settings.locale !== 'auto'
-        ? widget.settings.locale
-        : navigator.language;
+      const locale =
+        widget.settings && widget.settings.locale && widget.settings.locale !== 'auto'
+          ? widget.settings.locale
+          : navigator.language;
       const opts = { hour: 'numeric', minute: 'numeric', hour12: !widget.settings.use24h };
       if (widget.settings.showSeconds) opts.second = 'numeric';
       let timeString = now.toLocaleTimeString(locale, opts);
@@ -58,8 +59,8 @@
         flashing: options.flashing,
         locale: options.locale,
         use24h: options.use24h,
-        daylightSavings: options.daylightSavings
-      }
+        daylightSavings: options.daylightSavings,
+      },
     };
     settings.widgets.push(widget);
     saveAndRender();
@@ -97,7 +98,7 @@
       flashing: document.getElementById('clock-flashing').checked,
       use24h: document.getElementById('clock-use-24h').checked,
       daylightSavings: document.getElementById('clock-daylight').checked,
-      locale: document.getElementById('clock-locale').value.trim() || 'auto'
+      locale: document.getElementById('clock-locale').value.trim() || 'auto',
     }));
   }
 
@@ -105,7 +106,6 @@
   registerWidget('clock', {
     name: 'Clock',
     render: renderClockWidget,
-    openConfig: openClockConfig
+    openConfig: openClockConfig,
   });
-
 })();

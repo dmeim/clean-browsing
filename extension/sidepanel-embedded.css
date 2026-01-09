@@ -366,7 +366,6 @@
   flex-wrap: wrap;
 }
 
-
 /* Modals inside sidepanel */
 .sidepanel-settings-modal {
   position: fixed;
@@ -555,7 +554,7 @@
   margin-bottom: 8px;
 }
 
-.checkbox-group input[type="checkbox"] {
+.checkbox-group input[type='checkbox'] {
   width: auto;
   margin: 0;
 }
@@ -584,7 +583,7 @@
   .app-container {
     grid-template-columns: 1fr;
   }
-  
+
   .sidepanel-container {
     position: fixed;
     top: 0;
@@ -595,19 +594,19 @@
     border-left: none;
     background: rgba(0, 0, 0, 0.9);
   }
-  
+
   .sidepanel-container.sidepanel-closed {
     transform: translateX(100%);
   }
-  
+
   .sidepanel-container.sidepanel-open {
     transform: translateX(0);
   }
-  
+
   .sidepanel-resize-handle {
     display: none;
   }
-  
+
   .sidepanel-settings-modal .modal-content {
     width: 95vw;
     max-height: 90vh;
@@ -618,20 +617,20 @@
   .sidepanel-header {
     padding: 8px 12px;
   }
-  
+
   .website-list {
     padding: 6px;
   }
-  
+
   .website-item {
     padding: 8px 10px;
     min-height: 40px;
   }
-  
+
   .website-name {
     font-size: 12px;
   }
-  
+
   .website-url {
     font-size: 10px;
   }

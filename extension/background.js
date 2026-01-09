@@ -37,7 +37,7 @@ function clearContext(contextKey) {
 }
 
 function getContextKeyFromTabId(tabId) {
-  return (typeof tabId === 'number' && tabId >= 0) ? tabId : null;
+  return typeof tabId === 'number' && tabId >= 0 ? tabId : null;
 }
 
 function getContextKeyFromSender(sender) {
@@ -74,8 +74,11 @@ ExtensionAPI.tabs.onRemoved.addListener((tabId) => {
 
 // Session cleanup - remove old sessions after timeout
 function cleanupOldSessions() {
-  const totalSessions = Array.from(sessionsByContext.values()).reduce((sum, set) => sum + set.size, 0);
-  
+  const totalSessions = Array.from(sessionsByContext.values()).reduce(
+    (sum, set) => sum + set.size,
+    0
+  );
+
   if (totalSessions > 50) {
     console.warn(`Large number of active sessions detected (${totalSessions}) - consider cleanup`);
   }
@@ -88,7 +91,7 @@ setInterval(cleanupOldSessions, 5 * 60 * 1000); // Every 5 minutes
 console.log(`Setting up ${ExtensionAPI.browser.name} webRequest header modification`);
 
 ExtensionAPI.webRequest.onHeadersReceived.addListener(
-  function(details) {
+  function (details) {
     try {
       // Only modify headers for sub_frame requests (iframe content)
       if (details.type !== 'sub_frame') {
@@ -109,25 +112,27 @@ ExtensionAPI.webRequest.onHeadersReceived.addListener(
       // Remove problematic headers that block iframe embedding
       const headersToRemove = [
         'x-frame-options',
-        'content-security-policy', 
+        'content-security-policy',
         'x-content-security-policy',
         'x-content-type-options',
         'permissions-policy',
         'cross-origin-opener-policy',
-        'cross-origin-embedder-policy'
+        'cross-origin-embedder-policy',
       ];
-      
+
       const responseHeaders = details.responseHeaders || [];
-      const filteredHeaders = responseHeaders.filter(header => {
+      const filteredHeaders = responseHeaders.filter((header) => {
         return !headersToRemove.includes(header.name.toLowerCase());
       });
-      
+
       // Only return modified headers if we actually removed something
       if (filteredHeaders.length < responseHeaders.length) {
-        console.log(`Modified headers for ${details.url} (removed ${responseHeaders.length - filteredHeaders.length} headers) [context=${contextKey}]`);
+        console.log(
+          `Modified headers for ${details.url} (removed ${responseHeaders.length - filteredHeaders.length} headers) [context=${contextKey}]`
+        );
         return { responseHeaders: filteredHeaders };
       }
-      
+
       return {};
     } catch (error) {
       console.error('Error in webRequest header modification:', error);
@@ -135,13 +140,13 @@ ExtensionAPI.webRequest.onHeadersReceived.addListener(
       return {};
     }
   },
-  { urls: ["<all_urls>"] },
-  ["blocking", "responseHeaders"]
+  { urls: ['<all_urls>'] },
+  ['blocking', 'responseHeaders']
 );
 
 // Follow redirects: if a sub_frame redirects within an active tab session, include the new origin
 ExtensionAPI.webRequest.onBeforeRedirect.addListener(
-  function(details) {
+  function (details) {
     try {
       if (details.type !== 'sub_frame') return;
       const contextKey = getContextKeyFromDetails(details);
@@ -153,7 +158,7 @@ ExtensionAPI.webRequest.onBeforeRedirect.addListener(
       // ignore parse errors
     }
   },
-  { urls: ["<all_urls>"] }
+  { urls: ['<all_urls>'] }
 );
 
 // Listen for messages from the extension
@@ -176,28 +181,28 @@ ExtensionAPI.runtime.onMessage.addListener(async (request, sender, sendResponse)
           if (!request.url || typeof request.url !== 'string') {
             throw new Error('Invalid URL provided');
           }
-          
+
           const url = new URL(request.url);
-          
+
           // Enable frame bypass for this tab + origin
           const contextKey = getContextKeyFromSender(sender);
           if (contextKey !== null) {
             addOriginForContext(contextKey, url.origin);
           }
-          
+
           console.log(`Frame bypass enabled for: ${url.origin} (context ${contextKey ?? 'n/a'})`);
-          
-          sendResponse({ 
-            success: true, 
+
+          sendResponse({
+            success: true,
             browser: ExtensionAPI.browser.name,
-            method: 'webRequest'
+            method: 'webRequest',
           });
         } catch (error) {
           console.error('Error enabling frame bypass:', error);
-          sendResponse({ 
-            success: false, 
+          sendResponse({
+            success: false,
             error: error.message,
-            fallback: 'URL will open in new tab instead'
+            fallback: 'URL will open in new tab instead',
           });
         }
         return true;
@@ -218,19 +223,19 @@ ExtensionAPI.runtime.onMessage.addListener(async (request, sender, sendResponse)
             // If no URL, clear all for context
             clearContext(contextKey);
           }
-          
+
           console.log(`Frame bypass disabled for context ${contextKey ?? 'n/a'}`);
-          
-          sendResponse({ 
-            success: true, 
+
+          sendResponse({
+            success: true,
             browser: ExtensionAPI.browser.name,
-            method: 'webRequest'
+            method: 'webRequest',
           });
         } catch (error) {
           console.error('Error disabling frame bypass:', error);
-          sendResponse({ 
-            success: false, 
-            error: error.message
+          sendResponse({
+            success: false,
+            error: error.message,
           });
         }
         return true;
@@ -252,10 +257,10 @@ ExtensionAPI.runtime.onMessage.addListener(async (request, sender, sendResponse)
           if (!request.url || typeof request.url !== 'string') {
             throw new Error('Invalid URL provided');
           }
-          
+
           // Test URL validity
           new URL(request.url);
-          
+
           // Open URL in new tab
           await ExtensionAPI.tabs.create({ url: request.url });
           sendResponse({ success: true });
@@ -297,29 +302,28 @@ ExtensionAPI.action.onClicked.addListener(async (tab) => {
       console.error('Sidebar toggle failed, falling back to injected sidepanel:', sidebarError);
     }
   }
-  
+
   // Don't inject on new tab page (already has embedded panel) or extension/browser pages
-  const excludedPrefixes = [
-    'moz-extension://', 'about:', 'resource://', 'chrome://'
-  ];
-  const isExcludedUrl = excludedPrefixes.some(prefix => tab.url?.startsWith(prefix));
-  
+  const excludedPrefixes = ['moz-extension://', 'about:', 'resource://', 'chrome://'];
+  const isExcludedUrl = excludedPrefixes.some((prefix) => tab.url?.startsWith(prefix));
+
   if (!tab.url || isExcludedUrl) {
     console.log('⏭️ Skipping sidepanel injection for excluded URL:', tab.url);
     return;
   }
-  
+
   try {
     // Check if content script is already injected by trying to send a message
     console.log('📨 Sending toggle message to content script...');
-    
+
     const response = await ExtensionAPI.tabs.sendMessage(tab.id, { action: 'toggleSidepanel' });
     console.log('✅ Sidepanel toggle successful:', response);
-    
   } catch (error) {
     console.log('❌ Content script not responding:', error.message);
-    console.log('🔧 This likely means the content script failed to inject or the page has restrictive CSP');
-    
+    console.log(
+      '🔧 This likely means the content script failed to inject or the page has restrictive CSP'
+    );
+
     // Additional debugging - check if we can inject scripts
     try {
       const results = await ExtensionAPI.executeScript({ tabId: tab.id }, () => {
@@ -327,18 +331,18 @@ ExtensionAPI.action.onClicked.addListener(async (tab) => {
           url: window.location.href,
           hasCleanBrowsingContainer: !!document.getElementById('clean-browsing-sidepanel-overlay'),
           documentReady: document.readyState,
-          cspHeaders: document.querySelector('meta[http-equiv="Content-Security-Policy"]')?.content || 'none'
+          cspHeaders:
+            document.querySelector('meta[http-equiv="Content-Security-Policy"]')?.content || 'none',
         };
       });
-      
+
       console.log('🔍 Page analysis:', results[0].result);
-      
+
       if (results[0].result.hasCleanBrowsingContainer) {
         console.log('⚠️ Sidepanel container already exists but content script not responding');
       } else {
         console.log('ℹ️ No sidepanel container found - content script may have failed to load');
       }
-      
     } catch (scriptError) {
       console.error('🚫 Cannot execute scripts on this page:', scriptError.message);
       console.log('💡 This usually means:');

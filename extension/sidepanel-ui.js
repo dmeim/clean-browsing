@@ -4,7 +4,7 @@
  * Extracted from sidepanel-injector.js for better maintainability
  */
 
-(function(global) {
+(function (global) {
   'use strict';
 
   function getSidepanelHTML() {
@@ -593,10 +593,11 @@
     module.exports = { getSidepanelHTML, getShadowDOMStyles };
   } else if (typeof define === 'function' && define.amd) {
     // AMD
-    define(function() { return { getSidepanelHTML, getShadowDOMStyles }; });
+    define(function () {
+      return { getSidepanelHTML, getShadowDOMStyles };
+    });
   } else {
     // Browser global
     global.SidepanelUI = { getSidepanelHTML, getShadowDOMStyles };
   }
-
 })(this);

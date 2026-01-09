@@ -2,25 +2,27 @@
 // Uses advanced CSS isolation and unified resize mechanism across all websites
 // Uses unified cross-browser API wrapper
 
-(function() {
+(function () {
   'use strict';
-  
+
   console.log('🚀 Clean-Browsing: Advanced sidepanel injector loading...');
-  
-  const runtime = (typeof browser !== 'undefined' && browser.runtime) ? browser.runtime : null;
+
+  const runtime = typeof browser !== 'undefined' && browser.runtime ? browser.runtime : null;
 
   // Load shared modules
   const defaultSettingsScript = document.createElement('script');
-  defaultSettingsScript.src = runtime?.getURL ? runtime.getURL('default-settings.js') : 'default-settings.js';
+  defaultSettingsScript.src = runtime?.getURL
+    ? runtime.getURL('default-settings.js')
+    : 'default-settings.js';
   document.head.appendChild(defaultSettingsScript);
-  
+
   const uiModuleScript = document.createElement('script');
   uiModuleScript.src = runtime?.getURL ? runtime.getURL('sidepanel-ui.js') : 'sidepanel-ui.js';
   document.head.appendChild(uiModuleScript);
-  
+
   // Create minimal cross-browser wrapper for content script
-  const _api = (typeof browser !== 'undefined') ? browser : undefined;
-  
+  const _api = typeof browser !== 'undefined' ? browser : undefined;
+
   // Minimal ExtensionAPI for content script use
   const ExtensionAPI = {
     storage: {
@@ -35,7 +37,7 @@
           return;
         }
         return await _api.storage.local.set(obj);
-      }
+      },
     },
     runtime: {
       async sendMessage(message) {
@@ -52,24 +54,24 @@
           if (_api?.runtime?.onMessage?.addListener) {
             _api.runtime.onMessage.addListener(handler);
           }
-        }
-      }
-    }
+        },
+      },
+    },
   };
-  
+
   // Only inject on main pages, not iframes
   if (window.top !== window.self) {
     console.log('🔄 Clean-Browsing: Skipping iframe injection');
     return;
   }
-  
+
   // Don't inject on the new tab page (already has embedded sidepanel)
   const newTabUrl = runtime?.getURL ? runtime.getURL('newtab.html') : null;
   if (newTabUrl && window.location.href.startsWith(newTabUrl)) {
     console.log('🔄 Clean-Browsing: Skipping new tab page');
     return;
   }
-  
+
   let isInjected = false;
   let viewportWrapper = null;
   let shadowRoot = null;
@@ -81,11 +83,11 @@
   let bodyObserver = null;
   let currentWebsiteUrl = null;
   let currentBackgroundImage = null;
-  
+
   // Listen for messages from background script
   ExtensionAPI.runtime.onMessage.addListener((request, sender, sendResponse) => {
     console.log('📨 Clean-Browsing: Message received:', request);
-    
+
     if (request.action === 'toggleSidepanel') {
       try {
         toggleSidepanel();
@@ -97,10 +99,10 @@
     }
     return true;
   });
-  
+
   function toggleSidepanel() {
     console.log('🔄 Clean-Browsing: Toggle sidepanel, isInjected:', isInjected);
-    
+
     if (!isInjected) {
       injectSidepanel();
     } else {
@@ -109,50 +111,55 @@
       }
     }
   }
-  
+
   async function injectSidepanel() {
     if (isInjected) {
       console.log('⚠️ Clean-Browsing: Already injected, skipping');
       return;
     }
-    
+
     console.log('🚀 Clean-Browsing: Starting injection...');
-    
+
     try {
       // Load settings first
       await loadSidebarSettings();
-      
+
       // Create viewport wrapper for smooth content shifting
       createViewportWrapper();
-      
+
       let shadowHost;
       try {
         // Try Shadow DOM approach first
         shadowHost = createShadowDOMSidepanel();
         console.log('✅ Clean-Browsing: Using Shadow DOM approach');
       } catch (shadowError) {
-        console.warn('⚠️ Clean-Browsing: Shadow DOM failed, falling back to simple overlay:', shadowError);
+        console.warn(
+          '⚠️ Clean-Browsing: Shadow DOM failed, falling back to simple overlay:',
+          shadowError
+        );
         shadowHost = createFallbackSidepanel();
       }
-      
+
       // Initialize functionality
       initializeSidepanelManager();
-      
+
       // Initialize manager with shadow host
       if (shadowHost && sidepanelManager) {
         sidepanelManager.init(shadowHost);
       }
-      
+
       // Render website list
       try {
         renderWebsiteList();
         // Apply appearance to panel content if present
-        try { applyAppearanceToPanel(); } catch (_) {}
+        try {
+          applyAppearanceToPanel();
+        } catch (_) {}
       } catch (renderError) {
         console.error('❌ Clean-Browsing: Website list rendering failed:', renderError);
         showErrorMessage('Website list rendering failed');
       }
-      
+
       // Open the panel with delay and error handling
       setTimeout(() => {
         try {
@@ -165,28 +172,27 @@
           showErrorMessage('Failed to open sidepanel');
         }
       }, 100);
-      
+
       isInjected = true;
       console.log('✅ Clean-Browsing: Injection completed successfully');
-      
     } catch (error) {
       console.error('❌ Clean-Browsing: Critical injection failure:', error);
-      
+
       // Attempt cleanup on failure
       try {
         cleanupSidepanel();
       } catch (cleanupError) {
         console.error('❌ Clean-Browsing: Cleanup also failed:', cleanupError);
       }
-      
+
       showErrorMessage('Failed to initialize sidepanel: ' + error.message);
       isInjected = false;
     }
   }
-  
+
   async function loadSidebarSettings() {
     console.log('📚 Clean-Browsing: Loading settings...');
-    
+
     try {
       const result = await ExtensionAPI.storage.get(['sidebarSettings']);
       sidebarSettings = result.sidebarSettings || getDefaultSidebarSettings();
@@ -196,20 +202,20 @@
       sidebarSettings = getDefaultSidebarSettings();
     }
   }
-  
+
   function getDefaultSidebarSettings() {
     // Use shared settings if available, otherwise fallback
     if (typeof DefaultSettings !== 'undefined' && DefaultSettings.getDefaultSidebarSettings) {
       const settings = DefaultSettings.getDefaultSidebarSettings();
       // Add iconType to websites for compatibility with content script
-      settings.sidebarWebsites.forEach(website => {
+      settings.sidebarWebsites.forEach((website) => {
         if (!website.iconType) {
           website.iconType = 'favicon';
         }
       });
       return settings;
     }
-    
+
     // Fallback settings (minimal)
     return {
       sidebarEnabled: true,
@@ -222,20 +228,20 @@
           favicon: 'https://chatgpt.com/favicon.ico',
           iconType: 'favicon',
           openMode: 'iframe',
-          position: 0
-        }
+          position: 0,
+        },
       ],
       sidebarBehavior: {
         autoClose: false,
         showUrls: true,
-        compactMode: false
-      }
+        compactMode: false,
+      },
     };
   }
-  
+
   function createViewportWrapper() {
     console.log('📦 Clean-Browsing: Creating viewport wrapper system...');
-    
+
     try {
       // Avoid creating multiple wrappers
       if (document.getElementById('clean-browsing-viewport-wrapper')) {
@@ -243,13 +249,13 @@
         viewportWrapper = document.getElementById('clean-browsing-viewport-wrapper');
         return;
       }
-      
+
       // Store original viewport meta for restoration
       const existingViewport = document.querySelector('meta[name="viewport"]');
       if (existingViewport) {
         originalViewportMeta = existingViewport.cloneNode(true);
       }
-      
+
       // Create viewport wrapper that will contain the entire page
       viewportWrapper = document.createElement('div');
       viewportWrapper.id = 'clean-browsing-viewport-wrapper';
@@ -264,23 +270,25 @@
         box-sizing: border-box !important;
         z-index: 0 !important;
       `;
-      
+
       // Gracefully move body children into the wrapper
       const bodyChildren = Array.from(document.body.children);
-      bodyChildren.forEach(child => {
+      bodyChildren.forEach((child) => {
         try {
-          if (child.id !== 'clean-browsing-viewport-wrapper' && 
-              !child.id.startsWith('clean-browsing-')) {
+          if (
+            child.id !== 'clean-browsing-viewport-wrapper' &&
+            !child.id.startsWith('clean-browsing-')
+          ) {
             viewportWrapper.appendChild(child);
           }
         } catch (error) {
           console.warn('⚠️ Clean-Browsing: Could not move child element:', child, error);
         }
       });
-      
+
       // Add wrapper to body
       document.body.appendChild(viewportWrapper);
-      
+
       // Style the body for proper containment with fallbacks
       const bodyStyles = `
         margin: 0 !important;
@@ -289,12 +297,14 @@
         overflow-x: hidden !important;
         position: relative !important;
       `;
-      
+
       // Try to apply styles safely
       try {
         document.body.style.cssText += bodyStyles;
       } catch (error) {
-        console.warn('⚠️ Clean-Browsing: Could not apply body styles directly, trying individual properties');
+        console.warn(
+          '⚠️ Clean-Browsing: Could not apply body styles directly, trying individual properties'
+        );
         document.body.style.setProperty('margin', '0', 'important');
         document.body.style.setProperty('padding', '0', 'important');
         document.body.style.setProperty('overflow-x', 'hidden', 'important');
@@ -314,13 +324,12 @@
       } catch (obsErr) {
         console.warn('⚠️ Clean-Browsing: Failed to start body observer:', obsErr);
       }
-      
     } catch (error) {
       console.error('❌ Clean-Browsing: Failed to create viewport wrapper:', error);
       throw new Error('Viewport wrapper creation failed: ' + error.message);
     }
   }
-  
+
   function removeViewportWrapper() {
     console.log('🔄 Clean-Browsing: Removing viewport wrapper...');
 
@@ -330,18 +339,20 @@
 
       // Move children back to body
       const wrapperChildren = Array.from(viewportWrapper.children);
-      wrapperChildren.forEach(child => {
+      wrapperChildren.forEach((child) => {
         document.body.appendChild(child);
       });
-      
+
       // Remove wrapper
       viewportWrapper.remove();
       viewportWrapper = null;
-      
+
       // Restore original body styles
       document.body.style.cssText = '';
-      try { document.documentElement.style.removeProperty('overflow-x'); } catch (_) {}
-      
+      try {
+        document.documentElement.style.removeProperty('overflow-x');
+      } catch (_) {}
+
       // Restore original viewport meta
       if (originalViewportMeta) {
         const currentViewport = document.querySelector('meta[name="viewport"]');
@@ -367,10 +378,12 @@
 
             // Skip our own infra elements
             const id = node.id || '';
-            if (id === 'clean-browsing-viewport-wrapper' ||
-                id === 'clean-browsing-shadow-host' ||
-                id === 'clean-browsing-fallback-host' ||
-                id.startsWith('clean-browsing-')) {
+            if (
+              id === 'clean-browsing-viewport-wrapper' ||
+              id === 'clean-browsing-shadow-host' ||
+              id === 'clean-browsing-fallback-host' ||
+              id.startsWith('clean-browsing-')
+            ) {
               return;
             }
 
@@ -383,7 +396,11 @@
             viewportWrapper.appendChild(node);
             bodyObserver.observe(document.body, { childList: true });
           } catch (e) {
-            console.warn('⚠️ Clean-Browsing: Failed to migrate new body child into wrapper:', node, e);
+            console.warn(
+              '⚠️ Clean-Browsing: Failed to migrate new body child into wrapper:',
+              node,
+              e
+            );
           }
         });
       }
@@ -395,15 +412,17 @@
 
   function stopBodyObserver() {
     if (bodyObserver) {
-      try { bodyObserver.disconnect(); } catch (_) {}
+      try {
+        bodyObserver.disconnect();
+      } catch (_) {}
       bodyObserver = null;
       console.log('✅ Clean-Browsing: Body observer stopped');
     }
   }
-  
+
   function createShadowDOMSidepanel() {
     console.log('🏗️ Clean-Browsing: Creating Shadow DOM sidepanel...');
-    
+
     try {
       // Check for existing shadow host
       const existing = document.getElementById('clean-browsing-shadow-host');
@@ -411,11 +430,11 @@
         console.log('⚠️ Clean-Browsing: Shadow host already exists, reusing');
         return existing;
       }
-      
+
       // Create host element for Shadow DOM
       const shadowHost = document.createElement('div');
       shadowHost.id = 'clean-browsing-shadow-host';
-      
+
       // Apply styles with error handling
       try {
         shadowHost.style.cssText = `
@@ -440,7 +459,7 @@
         shadowHost.style.setProperty('z-index', '2147483647', 'important');
         shadowHost.style.setProperty('transform', 'translateX(100%)', 'important');
       }
-      
+
       // Create Shadow DOM for complete style isolation
       try {
         shadowRoot = shadowHost.attachShadow({ mode: 'closed' });
@@ -448,13 +467,14 @@
         console.error('❌ Clean-Browsing: Shadow DOM not supported:', shadowError);
         throw new Error('Shadow DOM creation failed - browser may not support Shadow DOM');
       }
-      
+
       // Inject complete CSS reset and sidepanel styles into Shadow DOM
       try {
         const shadowStyles = document.createElement('style');
-        shadowStyles.textContent = (typeof SidepanelUI !== 'undefined' && SidepanelUI.getShadowDOMStyles) ? 
-          SidepanelUI.getShadowDOMStyles() : 
-          '/* Shadow DOM styles not loaded */';
+        shadowStyles.textContent =
+          typeof SidepanelUI !== 'undefined' && SidepanelUI.getShadowDOMStyles
+            ? SidepanelUI.getShadowDOMStyles()
+            : '/* Shadow DOM styles not loaded */';
         shadowRoot.appendChild(shadowStyles);
 
         // Also bring in existing sidepanel.css for exact look & feel
@@ -466,21 +486,22 @@
         console.error('❌ Clean-Browsing: Failed to inject Shadow DOM styles:', stylesError);
         throw new Error('Shadow DOM styles injection failed');
       }
-      
+
       // Create the sidepanel structure inside Shadow DOM
       try {
         sidepanelContainer = document.createElement('div');
         sidepanelContainer.className = 'sidepanel-container';
-        sidepanelContainer.innerHTML = (typeof SidepanelUI !== 'undefined' && SidepanelUI.getSidepanelHTML) ? 
-          SidepanelUI.getSidepanelHTML() : 
-          '<div>Sidepanel UI module not loaded</div>';
-        
+        sidepanelContainer.innerHTML =
+          typeof SidepanelUI !== 'undefined' && SidepanelUI.getSidepanelHTML
+            ? SidepanelUI.getSidepanelHTML()
+            : '<div>Sidepanel UI module not loaded</div>';
+
         shadowRoot.appendChild(sidepanelContainer);
       } catch (htmlError) {
         console.error('❌ Clean-Browsing: Failed to create sidepanel HTML structure:', htmlError);
         throw new Error('Sidepanel HTML structure creation failed');
       }
-      
+
       // Add to document body
       try {
         document.body.appendChild(shadowHost);
@@ -488,16 +509,15 @@
         console.error('❌ Clean-Browsing: Failed to append shadow host to body:', appendError);
         throw new Error('Shadow host append failed');
       }
-      
+
       console.log('✅ Clean-Browsing: Shadow DOM sidepanel created');
       return shadowHost;
-      
     } catch (error) {
       console.error('❌ Clean-Browsing: Shadow DOM sidepanel creation failed:', error);
       throw new Error('Shadow DOM sidepanel creation failed: ' + error.message);
     }
   }
-    
+
   function getShadowDOMStyles() {
     return `
       /* CSS Reset for Shadow DOM */
@@ -862,7 +882,7 @@
       }
     `;
   }
-  
+
   function getSidepanelHTML() {
     return `
       <div class="sidepanel-resize-handle" title="Drag to resize">
@@ -1099,15 +1119,15 @@
       </div>
     `;
   }
-  
+
   function createFallbackSidepanel() {
     console.log('🔧 Clean-Browsing: Creating fallback sidepanel (no Shadow DOM)...');
-    
+
     try {
       // Create a simple overlay without Shadow DOM
       const fallbackHost = document.createElement('div');
       fallbackHost.id = 'clean-browsing-fallback-host';
-      
+
       // Apply inline styles for maximum compatibility
       fallbackHost.style.cssText = `
         position: fixed !important;
@@ -1122,14 +1142,15 @@
         overflow: hidden !important;
         font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif !important;
       `;
-      
+
       // Create the sidepanel structure directly (no Shadow DOM)
       sidepanelContainer = document.createElement('div');
       sidepanelContainer.className = 'sidepanel-container';
-      sidepanelContainer.innerHTML = (typeof SidepanelUI !== 'undefined' && SidepanelUI.getSidepanelHTML) ? 
-        SidepanelUI.getSidepanelHTML() : 
-        '<div>Sidepanel UI module not loaded</div>';
-      
+      sidepanelContainer.innerHTML =
+        typeof SidepanelUI !== 'undefined' && SidepanelUI.getSidepanelHTML
+          ? SidepanelUI.getSidepanelHTML()
+          : '<div>Sidepanel UI module not loaded</div>';
+
       // Apply styles directly to container
       sidepanelContainer.style.cssText = `
         display: flex !important;
@@ -1141,7 +1162,7 @@
         border-left: 1px solid rgba(255, 255, 255, 0.1) !important;
         color: #ffffff !important;
       `;
-      
+
       // Minimal CSS to support modal and layout in fallback mode
       const fallbackStyles = document.createElement('style');
       fallbackStyles.textContent = `
@@ -1173,54 +1194,56 @@
       sidepanelContainer.appendChild(fallbackStyles);
       fallbackHost.appendChild(sidepanelContainer);
       document.body.appendChild(fallbackHost);
-      
+
       console.log('✅ Clean-Browsing: Fallback sidepanel created');
       return fallbackHost;
-      
     } catch (error) {
       console.error('❌ Clean-Browsing: Fallback sidepanel creation also failed:', error);
       throw new Error('Both Shadow DOM and fallback approaches failed');
     }
   }
-  
+
   function cleanupSidepanel() {
     console.log('🧹 Clean-Browsing: Cleaning up sidepanel...');
-    
+
     try {
       // Remove Shadow DOM host
       const shadowHost = document.getElementById('clean-browsing-shadow-host');
       if (shadowHost) {
         shadowHost.remove();
       }
-      
+
       // Remove fallback host
       const fallbackHost = document.getElementById('clean-browsing-fallback-host');
       if (fallbackHost) {
         fallbackHost.remove();
       }
-      
+
       // Disable frame bypass if active
       if (currentWebsiteUrl) {
-        try { ExtensionAPI.runtime.sendMessage({ action: 'disableFrameBypass', url: currentWebsiteUrl }).catch(()=>{}); } catch (_) {}
+        try {
+          ExtensionAPI.runtime
+            .sendMessage({ action: 'disableFrameBypass', url: currentWebsiteUrl })
+            .catch(() => {});
+        } catch (_) {}
         currentWebsiteUrl = null;
       }
 
       // Remove viewport wrapper
       removeViewportWrapper();
-      
+
       // Reset variables
       shadowRoot = null;
       sidepanelContainer = null;
       sidepanelManager = null;
       isInjected = false;
-      
+
       console.log('✅ Clean-Browsing: Cleanup completed');
-      
     } catch (error) {
       console.error('❌ Clean-Browsing: Cleanup failed:', error);
     }
   }
-  
+
   // Enhanced helper functions to query elements in both Shadow DOM and fallback modes
   function querySelector(selector) {
     try {
@@ -1232,7 +1255,7 @@
           return element;
         }
       }
-      
+
       // Try fallback container (no Shadow DOM support)
       if (sidepanelContainer && typeof sidepanelContainer.querySelector === 'function') {
         const element = sidepanelContainer.querySelector(selector);
@@ -1241,7 +1264,7 @@
           return element;
         }
       }
-      
+
       // Try direct document search for global elements (least preferred)
       if (selector.startsWith('#clean-browsing-')) {
         const element = document.querySelector(selector);
@@ -1250,77 +1273,81 @@
           return element;
         }
       }
-      
+
       console.warn(`Clean-Browsing: Element ${selector} not found in any scope`);
       return null;
-      
     } catch (error) {
       console.error(`Clean-Browsing: Error querying ${selector}:`, error);
       return null;
     }
   }
-  
+
   function querySelectorAll(selector) {
     try {
       const elements = [];
-      
+
       // Try Shadow DOM first
       if (shadowRoot && typeof shadowRoot.querySelectorAll === 'function') {
         const shadowElements = shadowRoot.querySelectorAll(selector);
         if (shadowElements.length > 0) {
-          console.debug(`Clean-Browsing: Found ${shadowElements.length} ${selector} elements in Shadow DOM`);
+          console.debug(
+            `Clean-Browsing: Found ${shadowElements.length} ${selector} elements in Shadow DOM`
+          );
           return shadowElements;
         }
       }
-      
+
       // Try fallback container
       if (sidepanelContainer && typeof sidepanelContainer.querySelectorAll === 'function') {
         const containerElements = sidepanelContainer.querySelectorAll(selector);
         if (containerElements.length > 0) {
-          console.debug(`Clean-Browsing: Found ${containerElements.length} ${selector} elements in fallback container`);
+          console.debug(
+            `Clean-Browsing: Found ${containerElements.length} ${selector} elements in fallback container`
+          );
           return containerElements;
         }
       }
-      
+
       // Try document for global elements
       if (selector.startsWith('#clean-browsing-') || selector.startsWith('.clean-browsing-')) {
         const documentElements = document.querySelectorAll(selector);
         if (documentElements.length > 0) {
-          console.debug(`Clean-Browsing: Found ${documentElements.length} ${selector} elements in document`);
+          console.debug(
+            `Clean-Browsing: Found ${documentElements.length} ${selector} elements in document`
+          );
           return documentElements;
         }
       }
-      
+
       console.warn(`Clean-Browsing: No ${selector} elements found in any scope`);
       return [];
-      
     } catch (error) {
       console.error(`Clean-Browsing: Error querying all ${selector}:`, error);
       return [];
     }
   }
-  
+
   // Helper to check if we have a valid sidepanel container
   function hasSidepanelContainer() {
     return !!(shadowRoot || sidepanelContainer);
   }
-  
+
   // Helper to get the appropriate root for event listeners
   function getSidepanelRoot() {
     if (shadowRoot) return shadowRoot;
     if (sidepanelContainer) return sidepanelContainer;
     return document;
   }
-  
+
   function createSettingsModal() {
     console.log('🔧 Clean-Browsing: Settings modal is now part of Shadow DOM');
     // Settings modal is now embedded in the Shadow DOM structure
     // No need for separate creation
   }
-  
+
   function initializeSidepanelManager() {
     console.log('⚙️ Clean-Browsing: Initializing advanced manager...');
-    
+
     // Advanced unified manager with viewport wrapper
     sidepanelManager = {
       isOpen: false,
@@ -1328,23 +1355,23 @@
       minSidepanelWidth: 300,
       maxSidepanelWidth: 800,
       shadowHost: null,
-      
+
       init(shadowHostElement) {
         this.shadowHost = shadowHostElement;
       },
-      
+
       open() {
         console.log('📂 Clean-Browsing: Opening sidepanel');
         this.isOpen = true;
         this.updateLayout();
       },
-      
+
       close() {
         console.log('📁 Clean-Browsing: Closing sidepanel');
         this.isOpen = false;
         this.updateLayout();
       },
-      
+
       toggle() {
         if (this.isOpen) {
           this.close();
@@ -1352,11 +1379,11 @@
           this.open();
         }
       },
-      
+
       updateLayout() {
         if (this.isOpen) {
           console.log(`📏 Clean-Browsing: Opening layout with width ${this.sidepanelWidth}px`);
-          
+
           // Use transform-based approach on viewport wrapper
           if (viewportWrapper) {
             viewportWrapper.style.transform = `translateX(-${this.sidepanelWidth}px)`;
@@ -1364,158 +1391,158 @@
             viewportWrapper.style.width = '100vw';
             viewportWrapper.style.paddingRight = `${this.sidepanelWidth}px`;
           }
-          
+
           // Update shadow host and show it
           if (this.shadowHost) {
             this.shadowHost.style.width = `${this.sidepanelWidth}px`;
             this.shadowHost.style.transform = 'translateX(0)';
           }
-          
+
           // Trigger resize event to help websites adapt
           setTimeout(() => {
             window.dispatchEvent(new Event('resize'));
           }, 100);
-          
+
           console.log('✅ Clean-Browsing: Sidepanel opened with transform approach');
         } else {
           console.log('📏 Clean-Browsing: Closing layout');
-          
+
           // Restore viewport wrapper
           if (viewportWrapper) {
             viewportWrapper.style.transform = 'translateX(0)';
             viewportWrapper.style.width = '100vw';
             viewportWrapper.style.paddingRight = '0px';
           }
-          
+
           // Hide shadow host by sliding it out
           if (this.shadowHost) {
             this.shadowHost.style.transform = 'translateX(100%)';
           }
-          
+
           // Trigger resize event to help websites adapt back
           setTimeout(() => {
             window.dispatchEvent(new Event('resize'));
           }, 100);
-          
+
           console.log('✅ Clean-Browsing: Sidepanel closed, viewport restored');
         }
-      }
+      },
     };
-    
+
     // Set up event listeners
     setupEventListeners();
-    
+
     // Set up resize handlers
     setupResizeHandlers();
-    
+
     console.log('✅ Clean-Browsing: Manager initialized');
-    
+
     function setupResizeHandlers() {
       console.log('🔧 Clean-Browsing: Setting up resize handlers...');
-    
+
       const handle = querySelector('.sidepanel-resize-handle');
       if (!handle) {
         console.error('❌ Clean-Browsing: Resize handle not found!');
         return;
       }
-      
+
       let isResizing = false;
       let startX = 0;
       let startWidth = 0;
-      
+
       const handleMouseDown = (e) => {
         if (!sidepanelManager.isOpen) return;
-        
+
         console.log('🔄 Clean-Browsing: Starting resize...');
         isResizing = true;
         startX = e.clientX;
         startWidth = sidepanelManager.sidepanelWidth;
-        
+
         document.body.style.cursor = 'ew-resize';
         document.body.style.userSelect = 'none';
-        
+
         e.preventDefault();
       };
-      
+
       const handleMouseMove = (e) => {
         if (!isResizing) return;
-        
+
         // Calculate delta (negative because dragging from right side)
         const deltaX = startX - e.clientX;
         const newWidth = Math.max(
           sidepanelManager.minSidepanelWidth,
           Math.min(sidepanelManager.maxSidepanelWidth, startWidth + deltaX)
         );
-        
+
         sidepanelManager.sidepanelWidth = newWidth;
         sidepanelManager.updateLayout();
       };
-      
+
       const handleMouseUp = () => {
         if (!isResizing) return;
-        
+
         console.log('✅ Clean-Browsing: Resize completed, width:', sidepanelManager.sidepanelWidth);
         isResizing = false;
-        
+
         document.body.style.cursor = '';
         document.body.style.userSelect = '';
       };
-      
+
       // Mouse events
       handle.addEventListener('mousedown', handleMouseDown);
       document.addEventListener('mousemove', handleMouseMove);
       document.addEventListener('mouseup', handleMouseUp);
-      
+
       // Touch events for mobile
       handle.addEventListener('touchstart', (e) => {
         const touch = e.touches[0];
         handleMouseDown({ clientX: touch.clientX, preventDefault: () => e.preventDefault() });
       });
-      
+
       document.addEventListener('touchmove', (e) => {
         if (isResizing && e.touches.length > 0) {
           const touch = e.touches[0];
           handleMouseMove({ clientX: touch.clientX });
         }
       });
-      
+
       document.addEventListener('touchend', () => {
         if (isResizing) {
           handleMouseUp();
         }
       });
-      
+
       console.log('✅ Clean-Browsing: Resize handlers set up');
     }
   }
-  
+
   function setupEventListeners() {
     const closeBtn = querySelector('#sidepanel-close-btn');
     const settingsBtn = querySelector('#sidepanel-settings-btn');
     const backBtn = querySelector('#back-to-list');
     const openInTabBtn = querySelector('#open-in-tab');
-    
+
     if (closeBtn) {
       closeBtn.addEventListener('click', () => {
         console.log('🔄 Clean-Browsing: Close button clicked');
         sidepanelManager.close();
       });
     }
-    
+
     if (settingsBtn) {
       settingsBtn.addEventListener('click', () => {
         console.log('⚙️ Clean-Browsing: Settings button clicked');
         showSettingsModal();
       });
     }
-    
+
     if (backBtn) {
       backBtn.addEventListener('click', () => {
         console.log('⬅️ Clean-Browsing: Back button clicked');
         backToList();
       });
     }
-    
+
     if (openInTabBtn) {
       openInTabBtn.addEventListener('click', () => {
         console.log('↗️ Clean-Browsing: Open in tab clicked');
@@ -1531,7 +1558,7 @@
     const navRefresh = querySelector('#nav-refresh');
     if (navBack) navBack.addEventListener('click', () => navigateIframe('back'));
     if (navRefresh) navRefresh.addEventListener('click', () => navigateIframe('refresh'));
-    
+
     // Keyboard shortcuts
     document.addEventListener('keydown', (e) => {
       if (e.altKey && e.key === 's') {
@@ -1545,19 +1572,23 @@
       }
     });
   }
-  
+
   function renderWebsiteList() {
     console.log('📝 Clean-Browsing: Rendering website list...');
-    
+
     const websiteList = querySelector('#website-list');
     if (!websiteList) {
       console.error('❌ Clean-Browsing: Website list container not found');
       return;
     }
-    
+
     websiteList.innerHTML = '';
-    
-    if (!sidebarSettings || !sidebarSettings.sidebarWebsites || !sidebarSettings.sidebarWebsites.length) {
+
+    if (
+      !sidebarSettings ||
+      !sidebarSettings.sidebarWebsites ||
+      !sidebarSettings.sidebarWebsites.length
+    ) {
       websiteList.innerHTML = `
         <div style="
           text-align: center !important;
@@ -1571,11 +1602,13 @@
       `;
       return;
     }
-    
+
     // Sort websites by position
-    const sortedWebsites = [...sidebarSettings.sidebarWebsites].sort((a, b) => a.position - b.position);
-    
-    sortedWebsites.forEach(website => {
+    const sortedWebsites = [...sidebarSettings.sidebarWebsites].sort(
+      (a, b) => a.position - b.position
+    );
+
+    sortedWebsites.forEach((website) => {
       try {
         const websiteItem = createWebsiteItem(website);
         if (websiteItem) {
@@ -1585,10 +1618,10 @@
         console.error('❌ Clean-Browsing: Failed to create website item:', website, error);
       }
     });
-    
+
     console.log('✅ Clean-Browsing: Website list rendered');
   }
-  
+
   function createWebsiteItem(website) {
     const item = document.createElement('div');
     item.className = 'website-item';
@@ -1596,9 +1629,9 @@
     const showUrls = !!sidebarSettings?.sidebarBehavior?.showUrls;
     if (compact) item.classList.add('compact');
     if (showUrls) item.classList.add('show-urls');
-    
+
     const icon = getWebsiteIcon(website);
-    
+
     item.innerHTML = `
       ${icon}
       <div class="website-info">
@@ -1606,13 +1639,13 @@
         ${showUrls ? `<div class="website-url">${website.url}</div>` : ''}
       </div>
     `;
-    
+
     item.addEventListener('click', () => openWebsite(website));
     // hover handled by CSS
-    
+
     return item;
   }
-  
+
   function getWebsiteIcon(website) {
     const iconType = website.iconType || 'emoji';
     if (iconType === 'none') return '';
@@ -1624,10 +1657,10 @@
     const emoji = website.icon || '🌐';
     return `<span class="website-icon">${emoji}</span>`;
   }
-  
+
   function openWebsite(website) {
     console.log('🌐 Clean-Browsing: Opening website:', website.name);
-    
+
     if (website.openMode === 'iframe') {
       openInIframe(website);
     } else {
@@ -1638,7 +1671,7 @@
       }
     }
   }
-  
+
   function openInIframe(website) {
     if (!website || !website.url) {
       console.error('❌ Clean-Browsing: Invalid website object:', website);
@@ -1662,85 +1695,112 @@
       // Hide website list, show iframe
       websiteList.style.display = 'none';
       websiteList.classList.add('hidden');
-    // Ensure iframe container is visible and not marked hidden
-    iframeContainer.classList.remove('hidden');
-    iframeContainer.style.display = 'flex';
-    // Ensure iframe is present/visible and remove any previous error blocks
-    const oldError = (iframeContainer && iframeContainer.querySelector) ? iframeContainer.querySelector('.iframe-error') : null;
-    if (oldError && oldError.remove) oldError.remove();
-    if (iframe) iframe.style.display = 'block';
-    
-    // Set title and URL
-    iframeTitle.textContent = website.name;
-    iframeUrl.textContent = website.url;
-    
-    // Clear any prior timer
-    if (iframeLoadTimer) { try { clearTimeout(iframeLoadTimer); } catch (_) {} iframeLoadTimer = null; }
+      // Ensure iframe container is visible and not marked hidden
+      iframeContainer.classList.remove('hidden');
+      iframeContainer.style.display = 'flex';
+      // Ensure iframe is present/visible and remove any previous error blocks
+      const oldError =
+        iframeContainer && iframeContainer.querySelector
+          ? iframeContainer.querySelector('.iframe-error')
+          : null;
+      if (oldError && oldError.remove) oldError.remove();
+      if (iframe) iframe.style.display = 'block';
 
-    let hasLoadStarted = false;
-    
-    // Handle iframe errors
-    iframe.onerror = () => {
-      console.log('❌ Clean-Browsing: Iframe error for:', website.name);
-      if (iframeLoadTimer) { try { clearTimeout(iframeLoadTimer); } catch (_) {} iframeLoadTimer = null; }
-      showIframeError(website);
-    };
+      // Set title and URL
+      iframeTitle.textContent = website.name;
+      iframeUrl.textContent = website.url;
 
-    iframe.onload = () => {
-      hasLoadStarted = true;
-      // Check if the iframe actually loaded content
-      try {
-        // Try to access iframe's content window - will throw if cross-origin blocked
-        const iframeDoc = iframe.contentDocument || iframe.contentWindow?.document;
-        if (!iframeDoc || iframeDoc.location.href === 'about:blank') {
-          console.log('⚠️ Clean-Browsing: Iframe loaded but empty for:', website.name);
-          showIframeError(website);
-          return;
-        }
-      } catch (e) {
-        // Cross-origin access denied is actually OK - means content loaded
-        console.log('✅ Clean-Browsing: Iframe loaded (cross-origin):', website.name);
+      // Clear any prior timer
+      if (iframeLoadTimer) {
+        try {
+          clearTimeout(iframeLoadTimer);
+        } catch (_) {}
+        iframeLoadTimer = null;
       }
-      
-      console.log('✅ Clean-Browsing: Iframe loaded successfully:', website.name);
-      if (iframeLoadTimer) { try { clearTimeout(iframeLoadTimer); } catch (_) {} iframeLoadTimer = null; }
-    };
 
-    // Enable temporary header bypass via background (Firefox/Chrome)
-    if (currentWebsiteUrl && currentWebsiteUrl !== website.url) {
-      try { ExtensionAPI.runtime.sendMessage({ action: 'disableFrameBypass', url: currentWebsiteUrl }).catch(()=>{}); } catch (_) {}
-    }
-    currentWebsiteUrl = website.url;
-    (async () => {
-      try {
-        const resp = await ExtensionAPI.runtime.sendMessage({ action: 'enableFrameBypass', url: website.url });
-        if (!resp?.success) {
-          console.warn('Frame bypass not enabled:', resp?.error || 'unknown');
+      let hasLoadStarted = false;
+
+      // Handle iframe errors
+      iframe.onerror = () => {
+        console.log('❌ Clean-Browsing: Iframe error for:', website.name);
+        if (iframeLoadTimer) {
+          try {
+            clearTimeout(iframeLoadTimer);
+          } catch (_) {}
+          iframeLoadTimer = null;
         }
-      } catch (e) {
-        console.warn('Failed to request frame bypass:', e);
-      }
-      // Give the browser a brief moment to apply rules
-      await new Promise(r => setTimeout(r, 200));
-      // Load the URL after rules are applied
-      try { iframe.src = website.url; } catch (_) {}
-    })();
-
-    // Set a shorter timeout for faster fallback
-    iframeLoadTimer = setTimeout(() => {
-      // If onload did not clear this timer, treat as blocked
-      if (!hasLoadStarted) {
-        console.log('⏰ Clean-Browsing: Iframe load timed out for:', website.name);
         showIframeError(website);
+      };
+
+      iframe.onload = () => {
+        hasLoadStarted = true;
+        // Check if the iframe actually loaded content
+        try {
+          // Try to access iframe's content window - will throw if cross-origin blocked
+          const iframeDoc = iframe.contentDocument || iframe.contentWindow?.document;
+          if (!iframeDoc || iframeDoc.location.href === 'about:blank') {
+            console.log('⚠️ Clean-Browsing: Iframe loaded but empty for:', website.name);
+            showIframeError(website);
+            return;
+          }
+        } catch (e) {
+          // Cross-origin access denied is actually OK - means content loaded
+          console.log('✅ Clean-Browsing: Iframe loaded (cross-origin):', website.name);
+        }
+
+        console.log('✅ Clean-Browsing: Iframe loaded successfully:', website.name);
+        if (iframeLoadTimer) {
+          try {
+            clearTimeout(iframeLoadTimer);
+          } catch (_) {}
+          iframeLoadTimer = null;
+        }
+      };
+
+      // Enable temporary header bypass via background (Firefox/Chrome)
+      if (currentWebsiteUrl && currentWebsiteUrl !== website.url) {
+        try {
+          ExtensionAPI.runtime
+            .sendMessage({ action: 'disableFrameBypass', url: currentWebsiteUrl })
+            .catch(() => {});
+        } catch (_) {}
       }
-      iframeLoadTimer = null;
-    }, 5000); // Reduced from 12000ms to 5000ms for faster fallback
+      currentWebsiteUrl = website.url;
+      (async () => {
+        try {
+          const resp = await ExtensionAPI.runtime.sendMessage({
+            action: 'enableFrameBypass',
+            url: website.url,
+          });
+          if (!resp?.success) {
+            console.warn('Frame bypass not enabled:', resp?.error || 'unknown');
+          }
+        } catch (e) {
+          console.warn('Failed to request frame bypass:', e);
+        }
+        // Give the browser a brief moment to apply rules
+        await new Promise((r) => setTimeout(r, 200));
+        // Load the URL after rules are applied
+        try {
+          iframe.src = website.url;
+        } catch (_) {}
+      })();
+
+      // Set a shorter timeout for faster fallback
+      iframeLoadTimer = setTimeout(() => {
+        // If onload did not clear this timer, treat as blocked
+        if (!hasLoadStarted) {
+          console.log('⏰ Clean-Browsing: Iframe load timed out for:', website.name);
+          showIframeError(website);
+        }
+        iframeLoadTimer = null;
+      }, 5000); // Reduced from 12000ms to 5000ms for faster fallback
     } catch (error) {
       console.error('❌ Clean-Browsing: Error in openInIframe:', error);
       showIframeError(website);
     }
   }
-  
+
   function backToList() {
     const websiteList = querySelector('#website-list');
     const iframeContainer = querySelector('#iframe-container');
@@ -1753,7 +1813,10 @@
     iframeContainer.style.display = 'none';
     iframeContainer.classList.add('hidden');
     // Remove any error UI if present
-    const oldError = (iframeContainer && iframeContainer.querySelector) ? iframeContainer.querySelector('.iframe-error') : null;
+    const oldError =
+      iframeContainer && iframeContainer.querySelector
+        ? iframeContainer.querySelector('.iframe-error')
+        : null;
     if (oldError && oldError.remove) oldError.remove();
     // Restore list
     websiteList.style.display = 'flex';
@@ -1761,7 +1824,11 @@
 
     // Disable frame bypass rules for last URL
     if (currentWebsiteUrl) {
-      try { ExtensionAPI.runtime.sendMessage({ action: 'disableFrameBypass', url: currentWebsiteUrl }).catch(()=>{}); } catch (_) {}
+      try {
+        ExtensionAPI.runtime
+          .sendMessage({ action: 'disableFrameBypass', url: currentWebsiteUrl })
+          .catch(() => {});
+      } catch (_) {}
       currentWebsiteUrl = null;
     }
   }
@@ -1770,7 +1837,10 @@
     const iframe = querySelector('#website-iframe');
     if (!iframe || !iframe.contentWindow) return;
     try {
-      iframe.contentWindow.postMessage({ type: 'SIDEPANEL_NAVIGATE', command, requestId: Date.now() }, '*');
+      iframe.contentWindow.postMessage(
+        { type: 'SIDEPANEL_NAVIGATE', command, requestId: Date.now() },
+        '*'
+      );
     } catch (e) {
       console.warn('Navigation postMessage failed (likely cross-origin restrictions):', e);
       // Fallback: try limited direct actions when possible
@@ -1779,11 +1849,11 @@
       }
     }
   }
-  
+
   function showIframeError(website) {
     // Show a message that the site can't be embedded
     console.log('🚫 Clean-Browsing: Site cannot be embedded, opening in new tab:', website.name);
-    
+
     // Known sites that block iframe embedding
     const knownBlockedSites = [
       'google.com',
@@ -1795,22 +1865,22 @@
       'linkedin.com',
       'reddit.com',
       'amazon.com',
-      'netflix.com'
+      'netflix.com',
     ];
-    
-    const isKnownBlocked = knownBlockedSites.some(site => website.url.includes(site));
+
+    const isKnownBlocked = knownBlockedSites.some((site) => website.url.includes(site));
     if (isKnownBlocked) {
       console.log('ℹ️ Clean-Browsing: This is a known site that blocks iframe embedding');
     }
-    
+
     // Transparent fallback: open in a new tab via background (avoids popup blockers)
     (async () => {
       try {
         await ExtensionAPI.runtime.sendMessage({ action: 'openInNewTab', url: website.url });
         showMessage(`${website.name} opened in new tab (iframe blocked by site)`);
       } catch (_) {
-        try { 
-          window.open(website.url, '_blank'); 
+        try {
+          window.open(website.url, '_blank');
           showMessage(`${website.name} opened in new tab`);
         } catch (_) {
           showMessage(`Failed to open ${website.name}`);
@@ -1832,7 +1902,7 @@
       } catch (_) {}
     })();
   }
-  
+
   function showSettingsModal() {
     console.log('🔧 Clean-Browsing: Showing settings modal');
     const modal = querySelector('#settings-modal');
@@ -1855,7 +1925,7 @@
       console.error('❌ Clean-Browsing: Settings modal not found!');
     }
   }
-  
+
   function hideSettingsModal() {
     console.log('🔧 Clean-Browsing: Hiding settings modal');
     const modal = querySelector('#settings-modal');
@@ -1863,7 +1933,7 @@
       modal.classList.add('hidden');
     }
   }
-  
+
   function setupSettingsModalListeners() {
     const modal = querySelector('#settings-modal');
     if (!modal) return;
@@ -1874,18 +1944,25 @@
     if (closeBtn) {
       closeBtn.addEventListener('click', hideSettingsModal);
     }
-    
+
     // Tab switching
     const tabBtns = modal.querySelectorAll('.tab-btn');
-    tabBtns.forEach(btn => {
+    tabBtns.forEach((btn) => {
       btn.addEventListener('click', () => switchSettingsTab(btn.dataset.tab));
     });
-    
+
     // Add website functionality
     const addBtn = modal.querySelector('#add-website-btn');
-    if (addBtn) { addBtn.addEventListener('click', addWebsite); }
+    if (addBtn) {
+      addBtn.addEventListener('click', addWebsite);
+    }
     const saveBtn = modal.querySelector('#save-settings');
-    if (saveBtn) { saveBtn.addEventListener('click', async ()=>{ await ExtensionAPI.storage.set({ sidebarSettings }); hideSettingsModal(); }); }
+    if (saveBtn) {
+      saveBtn.addEventListener('click', async () => {
+        await ExtensionAPI.storage.set({ sidebarSettings });
+        hideSettingsModal();
+      });
+    }
 
     // Close on backdrop click
     modal.addEventListener('click', (e) => {
@@ -1897,9 +1974,11 @@
     // Icon type show/hide emoji input
     const iconTypeRadios = modal.querySelectorAll('input[name="icon-type"]');
     const emojiGroup = modal.querySelector('#emoji-input-group');
-    iconTypeRadios.forEach(r => r.addEventListener('change', (e) => {
-      if (emojiGroup) emojiGroup.style.display = (e.target.value === 'emoji') ? 'block' : 'none';
-    }));
+    iconTypeRadios.forEach((r) =>
+      r.addEventListener('change', (e) => {
+        if (emojiGroup) emojiGroup.style.display = e.target.value === 'emoji' ? 'block' : 'none';
+      })
+    );
 
     // Behavior checkbox listeners
     const autoClose = querySelector('#auto-close');
@@ -1913,7 +1992,9 @@
         sidebarSettings.sidebarBehavior.compactMode = !!compact?.checked;
         await ExtensionAPI.storage.set({ sidebarSettings });
         renderWebsiteList();
-      } catch (e) { console.error('Failed to save behavior settings', e); }
+      } catch (e) {
+        console.error('Failed to save behavior settings', e);
+      }
     };
     if (autoClose) autoClose.addEventListener('change', saveBehavior);
     if (showUrls) showUrls.addEventListener('change', saveBehavior);
@@ -1923,10 +2004,10 @@
     setupAppearanceListeners();
 
     // Preset gradients
-    modal.querySelectorAll('.preset-gradient').forEach(btn=>{
-      btn.addEventListener('click', ()=>{
-        const data = btn.getAttribute('data-gradient')||''; // e.g., "135,#667eea,#764ba2"
-        const [angle,c1,c2] = data.split(',');
+    modal.querySelectorAll('.preset-gradient').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const data = btn.getAttribute('data-gradient') || ''; // e.g., "135,#667eea,#764ba2"
+        const [angle, c1, c2] = data.split(',');
         const ga = modal.querySelector('#gradient-angle');
         const gav = modal.querySelector('#gradient-angle-value');
         const gc1 = modal.querySelector('#gradient-color1');
@@ -1934,34 +2015,37 @@
         const gc2 = modal.querySelector('#gradient-color2');
         const gc2t = modal.querySelector('#gradient-color2-text');
         if (ga) ga.value = angle || '135';
-        if (gav) gav.textContent = (angle||'135') + '°';
-        if (gc1) gc1.value = c1 || '#667eea'; if (gc1t) gc1t.value = c1 || '#667eea';
-        if (gc2) gc2.value = c2 || '#764ba2'; if (gc2t) gc2t.value = c2 || '#764ba2';
-        const radio = modal.querySelector('input[name="bg-type"][value="gradient"]'); if (radio) radio.checked = true;
+        if (gav) gav.textContent = (angle || '135') + '°';
+        if (gc1) gc1.value = c1 || '#667eea';
+        if (gc1t) gc1t.value = c1 || '#667eea';
+        if (gc2) gc2.value = c2 || '#764ba2';
+        if (gc2t) gc2t.value = c2 || '#764ba2';
+        const radio = modal.querySelector('input[name="bg-type"][value="gradient"]');
+        if (radio) radio.checked = true;
         saveAppearanceFromControls();
       });
     });
 
     modal.dataset.initialized = 'true';
   }
-  
+
   function switchSettingsTab(tabName) {
     const modal = querySelector('#settings-modal');
     if (!modal) return;
-    
+
     // Update tab buttons
     const tabBtns = modal.querySelectorAll('.tab-btn');
-    tabBtns.forEach(btn => {
+    tabBtns.forEach((btn) => {
       if (btn.dataset.tab === tabName) {
         btn.classList.add('active');
       } else {
         btn.classList.remove('active');
       }
     });
-    
+
     // Show/hide tab content
     const tabContents = modal.querySelectorAll('.tab-content');
-    tabContents.forEach(content => {
+    tabContents.forEach((content) => {
       if (content.id === `${tabName}-tab`) {
         content.classList.remove('hidden');
       } else {
@@ -1969,7 +2053,7 @@
       }
     });
   }
-  
+
   async function addWebsite() {
     const modal = querySelector('#settings-modal');
     const nameInput = modal?.querySelector('#website-name');
@@ -1996,25 +2080,24 @@
       iconType,
       favicon: iconType === 'favicon' ? getFaviconUrl(url) : null,
       openMode,
-      position: sidebarSettings.sidebarWebsites.length
+      position: sidebarSettings.sidebarWebsites.length,
     };
-    
+
     sidebarSettings.sidebarWebsites.push(newWebsite);
-    
+
     try {
       await ExtensionAPI.storage.set({ sidebarSettings });
       console.log('✅ Website added:', newWebsite);
-      
+
       // Clear form
       if (nameInput) nameInput.value = '';
       if (urlInput) urlInput.value = '';
       if (iconInput) iconInput.value = '';
-      
+
       // Refresh website list and manage list
       renderWebsiteList();
       renderManageWebsitesList();
       hideSettingsModal();
-      
     } catch (error) {
       console.error('❌ Failed to save website:', error);
       showMessage('Failed to save website');
@@ -2026,32 +2109,62 @@
     try {
       const u = new URL(websiteUrl);
       return `${u.protocol}//${u.hostname}/favicon.ico`;
-    } catch { return null; }
+    } catch {
+      return null;
+    }
   }
 
   function renderManageWebsitesList() {
     const list = querySelector('#manage-websites-list');
     if (!list) return;
     list.innerHTML = '';
-    const items = [...(sidebarSettings?.sidebarWebsites||[])].sort((a,b)=>a.position-b.position);
+    const items = [...(sidebarSettings?.sidebarWebsites || [])].sort(
+      (a, b) => a.position - b.position
+    );
     items.forEach((w, idx) => {
       const row = document.createElement('div');
-      row.style.cssText = 'display:flex; align-items:center; gap:8px; padding:8px; border:1px solid rgba(255,255,255,0.2); border-radius:6px; margin-bottom:6px;';
+      row.style.cssText =
+        'display:flex; align-items:center; gap:8px; padding:8px; border:1px solid rgba(255,255,255,0.2); border-radius:6px; margin-bottom:6px;';
       const name = document.createElement('div');
       name.textContent = w.name;
       name.style.cssText = 'flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;';
-      const up = document.createElement('button'); up.className='icon-btn'; up.textContent='↑'; up.title='Move up';
-      const down = document.createElement('button'); down.className='icon-btn'; down.textContent='↓'; down.title='Move down';
-      const edit = document.createElement('button'); edit.className='icon-btn'; edit.textContent='✎'; edit.title='Edit';
-      const del = document.createElement('button'); del.className='icon-btn'; del.textContent='🗑'; del.title='Delete';
-      row.appendChild(name); row.appendChild(up); row.appendChild(down); row.appendChild(edit); row.appendChild(del);
+      const up = document.createElement('button');
+      up.className = 'icon-btn';
+      up.textContent = '↑';
+      up.title = 'Move up';
+      const down = document.createElement('button');
+      down.className = 'icon-btn';
+      down.textContent = '↓';
+      down.title = 'Move down';
+      const edit = document.createElement('button');
+      edit.className = 'icon-btn';
+      edit.textContent = '✎';
+      edit.title = 'Edit';
+      const del = document.createElement('button');
+      del.className = 'icon-btn';
+      del.textContent = '🗑';
+      del.title = 'Delete';
+      row.appendChild(name);
+      row.appendChild(up);
+      row.appendChild(down);
+      row.appendChild(edit);
+      row.appendChild(del);
       list.appendChild(row);
 
-      up.disabled = idx===0; down.disabled = idx===items.length-1;
-      up.addEventListener('click', async ()=>{ reorderWebsite(w.id, -1); });
-      down.addEventListener('click', async ()=>{ reorderWebsite(w.id, +1); });
-      del.addEventListener('click', async ()=>{ await deleteWebsite(w.id); });
-      edit.addEventListener('click', ()=>{ openEditWebsiteModal(w); });
+      up.disabled = idx === 0;
+      down.disabled = idx === items.length - 1;
+      up.addEventListener('click', async () => {
+        reorderWebsite(w.id, -1);
+      });
+      down.addEventListener('click', async () => {
+        reorderWebsite(w.id, +1);
+      });
+      del.addEventListener('click', async () => {
+        await deleteWebsite(w.id);
+      });
+      edit.addEventListener('click', () => {
+        openEditWebsiteModal(w);
+      });
     });
   }
 
@@ -2062,52 +2175,68 @@
   }
 
   async function deleteWebsite(id) {
-    sidebarSettings.sidebarWebsites = sidebarSettings.sidebarWebsites.filter(w=>w.id!==id);
+    sidebarSettings.sidebarWebsites = sidebarSettings.sidebarWebsites.filter((w) => w.id !== id);
     // Reassign positions
-    sidebarSettings.sidebarWebsites.sort((a,b)=>a.position-b.position).forEach((w,i)=>w.position=i);
+    sidebarSettings.sidebarWebsites
+      .sort((a, b) => a.position - b.position)
+      .forEach((w, i) => (w.position = i));
     await saveSettingsAndRefresh();
   }
 
   async function reorderWebsite(id, delta) {
     const arr = sidebarSettings.sidebarWebsites;
-    const idx = arr.findIndex(w=>w.id===id);
-    if (idx<0) return;
-    const swapIdx = idx+delta;
-    if (swapIdx<0 || swapIdx>=arr.length) return;
+    const idx = arr.findIndex((w) => w.id === id);
+    if (idx < 0) return;
+    const swapIdx = idx + delta;
+    if (swapIdx < 0 || swapIdx >= arr.length) return;
     const tmpPos = arr[idx].position;
     arr[idx].position = arr[swapIdx].position;
     arr[swapIdx].position = tmpPos;
-    arr.sort((a,b)=>a.position-b.position);
+    arr.sort((a, b) => a.position - b.position);
     await saveSettingsAndRefresh();
   }
 
   function openEditWebsiteModal(website) {
-    const modal = querySelector('#edit-website-modal'); if (!modal) return;
+    const modal = querySelector('#edit-website-modal');
+    if (!modal) return;
     modal.classList.remove('hidden');
-    const name = modal.querySelector('#edit-website-name'); if (name) name.value = website.name||'';
-    const url = modal.querySelector('#edit-website-url'); if (url) url.value = website.url||'';
-    const mode = modal.querySelector('#edit-website-mode'); if (mode) mode.value = website.openMode||'iframe';
+    const name = modal.querySelector('#edit-website-name');
+    if (name) name.value = website.name || '';
+    const url = modal.querySelector('#edit-website-url');
+    if (url) url.value = website.url || '';
+    const mode = modal.querySelector('#edit-website-mode');
+    if (mode) mode.value = website.openMode || 'iframe';
     const iconTypeRadios = modal.querySelectorAll('input[name="edit-icon-type"]');
-    iconTypeRadios.forEach(r=>{ r.checked = (r.value === (website.iconType||'favicon')); });
+    iconTypeRadios.forEach((r) => {
+      r.checked = r.value === (website.iconType || 'favicon');
+    });
     const emojiGroup = modal.querySelector('#edit-emoji-input-group');
-    const emojiInput = modal.querySelector('#edit-website-icon'); if (emojiInput) emojiInput.value = website.icon||'';
-    if (emojiGroup) emojiGroup.style.display = (website.iconType==='emoji') ? 'block' : 'none';
+    const emojiInput = modal.querySelector('#edit-website-icon');
+    if (emojiInput) emojiInput.value = website.icon || '';
+    if (emojiGroup) emojiGroup.style.display = website.iconType === 'emoji' ? 'block' : 'none';
     // Listeners
-    iconTypeRadios.forEach(r=> r.addEventListener('change', (e)=>{
-      if (emojiGroup) emojiGroup.style.display = (e.target.value==='emoji') ? 'block' : 'none';
-    }));
-    const close = modal.querySelector('#close-edit'); if (close) close.onclick = ()=> modal.classList.add('hidden');
-    const save = modal.querySelector('#save-edit'); if (save) {save.onclick = async ()=>{
-      website.name = name?.value?.trim() || website.name;
-      website.url = url?.value?.trim() || website.url;
-      website.openMode = mode?.value || website.openMode || 'iframe';
-      const sel = modal.querySelector('input[name="edit-icon-type"]:checked');
-      website.iconType = sel?.value || website.iconType || 'favicon';
-      website.icon = (website.iconType==='emoji') ? (emojiInput?.value?.trim()||'🌐') : website.icon;
-      website.favicon = website.iconType==='favicon' ? getFaviconUrl(website.url) : null;
-      await saveSettingsAndRefresh();
-      modal.classList.add('hidden');
-    };}
+    iconTypeRadios.forEach((r) =>
+      r.addEventListener('change', (e) => {
+        if (emojiGroup) emojiGroup.style.display = e.target.value === 'emoji' ? 'block' : 'none';
+      })
+    );
+    const close = modal.querySelector('#close-edit');
+    if (close) close.onclick = () => modal.classList.add('hidden');
+    const save = modal.querySelector('#save-edit');
+    if (save) {
+      save.onclick = async () => {
+        website.name = name?.value?.trim() || website.name;
+        website.url = url?.value?.trim() || website.url;
+        website.openMode = mode?.value || website.openMode || 'iframe';
+        const sel = modal.querySelector('input[name="edit-icon-type"]:checked');
+        website.iconType = sel?.value || website.iconType || 'favicon';
+        website.icon =
+          website.iconType === 'emoji' ? emojiInput?.value?.trim() || '🌐' : website.icon;
+        website.favicon = website.iconType === 'favicon' ? getFaviconUrl(website.url) : null;
+        await saveSettingsAndRefresh();
+        modal.classList.add('hidden');
+      };
+    }
   }
 
   // Appearance handling
@@ -2118,15 +2247,19 @@
     const gradientOpt = modal.querySelector('#gradient-options');
     const solidOpt = modal.querySelector('#solid-options');
     const imageOpt = modal.querySelector('#image-options');
-    bgRadios.forEach(r=>r.addEventListener('change', ()=>{
-      const val = modal.querySelector('input[name="bg-type"]:checked')?.value||'gradient';
-      gradientOpt?.classList.add('hidden'); solidOpt?.classList.add('hidden'); imageOpt?.classList.add('hidden');
-      if (val==='gradient') gradientOpt?.classList.remove('hidden');
-      if (val==='solid') solidOpt?.classList.remove('hidden');
-      if (val==='image') imageOpt?.classList.remove('hidden');
-      // Save & apply immediately
-      saveAppearanceFromControls();
-    }));
+    bgRadios.forEach((r) =>
+      r.addEventListener('change', () => {
+        const val = modal.querySelector('input[name="bg-type"]:checked')?.value || 'gradient';
+        gradientOpt?.classList.add('hidden');
+        solidOpt?.classList.add('hidden');
+        imageOpt?.classList.add('hidden');
+        if (val === 'gradient') gradientOpt?.classList.remove('hidden');
+        if (val === 'solid') solidOpt?.classList.remove('hidden');
+        if (val === 'image') imageOpt?.classList.remove('hidden');
+        // Save & apply immediately
+        saveAppearanceFromControls();
+      })
+    );
 
     const gc1 = modal.querySelector('#gradient-color1');
     const gc1t = modal.querySelector('#gradient-color1-text');
@@ -2142,62 +2275,86 @@
     const imgOpacityVal = modal.querySelector('#bg-image-opacity-value');
 
     const sync = () => saveAppearanceFromControls();
-    [gc1,gc1t,gc2,gc2t,sc,sct].forEach(el=>{ if (el) el.addEventListener('input', sync); });
-    if (ga) ga.addEventListener('input', ()=>{ if (gav) gav.textContent = ga.value+'°'; sync(); });
+    [gc1, gc1t, gc2, gc2t, sc, sct].forEach((el) => {
+      if (el) el.addEventListener('input', sync);
+    });
+    if (ga)
+      ga.addEventListener('input', () => {
+        if (gav) gav.textContent = ga.value + '°';
+        sync();
+      });
     if (imgUpload) imgUpload.addEventListener('change', handleImageUpload);
     if (imgRemove) imgRemove.addEventListener('click', removeBackgroundImage);
-    if (imgOpacity) imgOpacity.addEventListener('input', ()=>{ if (imgOpacityVal) imgOpacityVal.textContent = imgOpacity.value+'%'; sync(); });
+    if (imgOpacity)
+      imgOpacity.addEventListener('input', () => {
+        if (imgOpacityVal) imgOpacityVal.textContent = imgOpacity.value + '%';
+        sync();
+      });
   }
 
   function saveAppearanceFromControls() {
-    const modal = querySelector('#settings-modal'); if (!modal) return;
-    sidebarSettings.appearance = sidebarSettings.appearance || { backgroundType:'gradient', backgroundSettings:{} };
+    const modal = querySelector('#settings-modal');
+    if (!modal) return;
+    sidebarSettings.appearance = sidebarSettings.appearance || {
+      backgroundType: 'gradient',
+      backgroundSettings: {},
+    };
     const type = modal.querySelector('input[name="bg-type"]:checked')?.value || 'gradient';
-    if (type==='gradient') {
-      const color1 = modal.querySelector('#gradient-color1')?.value||'#667eea';
-      const color2 = modal.querySelector('#gradient-color2')?.value||'#764ba2';
-      const angle = parseInt(modal.querySelector('#gradient-angle')?.value||'135',10);
+    if (type === 'gradient') {
+      const color1 = modal.querySelector('#gradient-color1')?.value || '#667eea';
+      const color2 = modal.querySelector('#gradient-color2')?.value || '#764ba2';
+      const angle = parseInt(modal.querySelector('#gradient-angle')?.value || '135', 10);
       sidebarSettings.appearance.backgroundType = 'gradient';
       sidebarSettings.appearance.backgroundSettings = { color1, color2, angle };
-    } else if (type==='solid') {
-      const color = modal.querySelector('#solid-color')?.value||'#667eea';
+    } else if (type === 'solid') {
+      const color = modal.querySelector('#solid-color')?.value || '#667eea';
       sidebarSettings.appearance.backgroundType = 'solid';
       sidebarSettings.appearance.backgroundSettings = { color };
-    } else if (type==='image') {
-      const opacity = (parseInt(modal.querySelector('#bg-image-opacity')?.value||'100',10))/100;
+    } else if (type === 'image') {
+      const opacity = parseInt(modal.querySelector('#bg-image-opacity')?.value || '100', 10) / 100;
       sidebarSettings.appearance.backgroundType = 'image';
-      sidebarSettings.appearance.backgroundSettings = { image: currentBackgroundImage||null, opacity };
+      sidebarSettings.appearance.backgroundSettings = {
+        image: currentBackgroundImage || null,
+        opacity,
+      };
     }
     applyAppearanceToPanel();
-    ExtensionAPI.storage.set({ sidebarSettings }).catch(()=>{});
+    ExtensionAPI.storage.set({ sidebarSettings }).catch(() => {});
   }
 
   function loadAppearanceSettings() {
     if (!sidebarSettings.appearance) {
-      sidebarSettings.appearance = { backgroundType:'gradient', backgroundSettings:{ color1:'#667eea', color2:'#764ba2', angle:135 } };
+      sidebarSettings.appearance = {
+        backgroundType: 'gradient',
+        backgroundSettings: { color1: '#667eea', color2: '#764ba2', angle: 135 },
+      };
     }
-    const modal = querySelector('#settings-modal'); if (!modal) return;
+    const modal = querySelector('#settings-modal');
+    if (!modal) return;
     const { backgroundType, backgroundSettings } = sidebarSettings.appearance;
     const sel = modal.querySelector(`input[name="bg-type"][value="${backgroundType}"]`);
     if (sel) sel.checked = true;
-    modal.querySelectorAll('.bg-options').forEach(el=>el.classList.add('hidden'));
-    const active = modal.querySelector(`#${backgroundType}-options`); if (active) active.classList.remove('hidden');
-    if (backgroundType==='gradient') {
-      modal.querySelector('#gradient-color1').value = backgroundSettings.color1||'#667eea';
-      modal.querySelector('#gradient-color1-text').value = backgroundSettings.color1||'#667eea';
-      modal.querySelector('#gradient-color2').value = backgroundSettings.color2||'#764ba2';
-      modal.querySelector('#gradient-color2-text').value = backgroundSettings.color2||'#764ba2';
-      modal.querySelector('#gradient-angle').value = backgroundSettings.angle||135;
-      modal.querySelector('#gradient-angle-value').textContent = ((backgroundSettings.angle||135)+'°');
-    } else if (backgroundType==='solid') {
-      modal.querySelector('#solid-color').value = backgroundSettings.color||'#667eea';
-      modal.querySelector('#solid-color-text').value = backgroundSettings.color||'#667eea';
-    } else if (backgroundType==='image') {
-      currentBackgroundImage = backgroundSettings.image||null;
-      const rm = modal.querySelector('#remove-bg-image'); if (rm) rm.style.display = currentBackgroundImage ? 'block' : 'none';
-      const op = Math.round((backgroundSettings.opacity??1)*100);
+    modal.querySelectorAll('.bg-options').forEach((el) => el.classList.add('hidden'));
+    const active = modal.querySelector(`#${backgroundType}-options`);
+    if (active) active.classList.remove('hidden');
+    if (backgroundType === 'gradient') {
+      modal.querySelector('#gradient-color1').value = backgroundSettings.color1 || '#667eea';
+      modal.querySelector('#gradient-color1-text').value = backgroundSettings.color1 || '#667eea';
+      modal.querySelector('#gradient-color2').value = backgroundSettings.color2 || '#764ba2';
+      modal.querySelector('#gradient-color2-text').value = backgroundSettings.color2 || '#764ba2';
+      modal.querySelector('#gradient-angle').value = backgroundSettings.angle || 135;
+      modal.querySelector('#gradient-angle-value').textContent =
+        (backgroundSettings.angle || 135) + '°';
+    } else if (backgroundType === 'solid') {
+      modal.querySelector('#solid-color').value = backgroundSettings.color || '#667eea';
+      modal.querySelector('#solid-color-text').value = backgroundSettings.color || '#667eea';
+    } else if (backgroundType === 'image') {
+      currentBackgroundImage = backgroundSettings.image || null;
+      const rm = modal.querySelector('#remove-bg-image');
+      if (rm) rm.style.display = currentBackgroundImage ? 'block' : 'none';
+      const op = Math.round((backgroundSettings.opacity ?? 1) * 100);
       modal.querySelector('#bg-image-opacity').value = op;
-      modal.querySelector('#bg-image-opacity-value').textContent = op+'%';
+      modal.querySelector('#bg-image-opacity-value').textContent = op + '%';
     }
     applyAppearanceToPanel();
   }
@@ -2207,16 +2364,16 @@
     const content = querySelector('.sidepanel-content');
     if (!content) return;
     const { backgroundType, backgroundSettings } = sidebarSettings.appearance || {};
-    if (backgroundType==='gradient') {
-      const { color1='#667eea', color2='#764ba2', angle=135 } = backgroundSettings||{};
+    if (backgroundType === 'gradient') {
+      const { color1 = '#667eea', color2 = '#764ba2', angle = 135 } = backgroundSettings || {};
       content.style.background = `linear-gradient(${angle}deg, ${color1} 0%, ${color2} 100%)`;
-    } else if (backgroundType==='solid') {
-      const { color='#667eea' } = backgroundSettings||{};
+    } else if (backgroundType === 'solid') {
+      const { color = '#667eea' } = backgroundSettings || {};
       content.style.background = color;
-    } else if (backgroundType==='image') {
-      const { image=null, opacity=1 } = backgroundSettings||{};
+    } else if (backgroundType === 'image') {
+      const { image = null, opacity = 1 } = backgroundSettings || {};
       if (image) {
-        content.style.background = `linear-gradient(rgba(0,0,0,${1-opacity}), rgba(0,0,0,${1-opacity})), url('${image}') center/cover`;
+        content.style.background = `linear-gradient(rgba(0,0,0,${1 - opacity}), rgba(0,0,0,${1 - opacity})), url('${image}') center/cover`;
       } else {
         content.style.background = '';
       }
@@ -2232,7 +2389,8 @@
     const reader = new FileReader();
     reader.onload = (ev) => {
       currentBackgroundImage = ev.target?.result;
-      const rm = querySelector('#remove-bg-image'); if (rm) rm.style.display = 'block';
+      const rm = querySelector('#remove-bg-image');
+      if (rm) rm.style.display = 'block';
       saveAppearanceFromControls();
     };
     reader.readAsDataURL(file);
@@ -2240,16 +2398,19 @@
 
   function removeBackgroundImage() {
     currentBackgroundImage = null;
-    const up = querySelector('#bg-image-upload'); if (up) up.value = '';
-    const rm = querySelector('#remove-bg-image'); if (rm) rm.style.display = 'none';
+    const up = querySelector('#bg-image-upload');
+    if (up) up.value = '';
+    const rm = querySelector('#remove-bg-image');
+    if (rm) rm.style.display = 'none';
     // Switch back to gradient for a pleasant default
-    const g = querySelector('input[name="bg-type"][value="gradient"]'); if (g) g.checked = true;
+    const g = querySelector('input[name="bg-type"][value="gradient"]');
+    if (g) g.checked = true;
     saveAppearanceFromControls();
   }
-  
+
   function showMessage(message) {
     console.log('💬 Clean-Browsing:', message);
-    
+
     // Simple toast message
     const toast = document.createElement('div');
     toast.style.cssText = `
@@ -2267,27 +2428,26 @@
       transition: opacity 0.3s ease !important;
     `;
     toast.textContent = message;
-    
+
     document.body.appendChild(toast);
-    
+
     // Fade in
-    setTimeout(() => toast.style.opacity = '1', 10);
-    
+    setTimeout(() => (toast.style.opacity = '1'), 10);
+
     // Remove after 3 seconds
     setTimeout(() => {
       toast.style.opacity = '0';
       setTimeout(() => document.body.removeChild(toast), 300);
     }, 3000);
   }
-  
+
   function showErrorMessage(message) {
     console.error('❌ Clean-Browsing:', message);
     showMessage('Error: ' + message);
   }
-  
+
   // Expose backToList for error handlers
   window.embeddedSidepanel = { backToList };
-  
+
   console.log('✅ Clean-Browsing: Sidepanel injector ready');
-  
 })();

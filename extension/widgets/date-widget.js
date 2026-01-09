@@ -1,12 +1,12 @@
 // Date Widget - Simplified Implementation
-(function() {
+(function () {
   'use strict';
 
   function renderDateWidget(widget, index) {
     const container = createWidgetContainer(widget, index, 'date-widget');
     const dateDisplay = document.createElement('span');
     container.appendChild(dateDisplay);
-    
+
     // Apply appearance styling
     applyWidgetAppearance(container, widget);
 
@@ -18,7 +18,7 @@
     // Simple update function - just format and display
     function updateDate() {
       const format = widget.settings?.format || 'YYYY-MM-DD';
-      
+
       // Simply format the current date with Day.js
       if (typeof dayjs !== 'undefined') {
         dateDisplay.textContent = dayjs().format(format);
@@ -29,7 +29,7 @@
 
     // Initial update
     updateDate();
-    
+
     // Update every minute
     const intervalId = setInterval(updateDate, 60000);
     activeIntervals.push(intervalId);
@@ -43,8 +43,8 @@
       w: 4,
       h: 2,
       settings: {
-        format: options.format || 'YYYY-MM-DD'
-      }
+        format: options.format || 'YYYY-MM-DD',
+      },
     };
     settings.widgets.push(widget);
     saveAndRender();
@@ -54,7 +54,7 @@
     const isEdit = !!existing;
     const targetContainer = isEdit ? document.getElementById('widget-settings-tab') : widgetList;
     const currentFormat = existing?.settings?.format || 'YYYY-MM-DD';
-    
+
     // Generate examples dynamically ONLY if Day.js is loaded
     let examplesHTML = '';
     if (typeof dayjs !== 'undefined') {
@@ -88,7 +88,7 @@
         </div>
       `;
     }
-    
+
     targetContainer.innerHTML = `
       <h3>${isEdit ? 'Edit Date Widget' : 'Date Widget'}</h3>
       
@@ -143,13 +143,13 @@
     function updatePreview() {
       const format = document.getElementById('date-format').value.trim();
       const previewDiv = document.getElementById('date-preview');
-      
+
       if (!format) {
         previewDiv.textContent = 'Enter a format above to see preview';
         previewDiv.style.color = '#666';
         return;
       }
-      
+
       // Simply format with Day.js and display
       if (typeof dayjs !== 'undefined') {
         try {
@@ -168,24 +168,24 @@
     // Set up event listener
     const formatInput = document.getElementById('date-format');
     formatInput.addEventListener('input', updatePreview);
-    
+
     // Focus on format input
     setTimeout(() => formatInput.focus(), 100);
-    
+
     // Initial preview
     updatePreview();
 
     // Save/cancel handlers
     setupWidgetConfigButtons(isEdit, 'date', index, addDateWidget, () => {
       const format = document.getElementById('date-format').value.trim();
-      
+
       if (!format) {
         alert('Please enter a format string');
         return null;
       }
-      
+
       return {
-        format: format
+        format: format,
       };
     });
   }
@@ -194,7 +194,6 @@
   registerWidget('date', {
     name: 'Date',
     render: renderDateWidget,
-    openConfig: openDateConfig
+    openConfig: openDateConfig,
   });
-
 })();
