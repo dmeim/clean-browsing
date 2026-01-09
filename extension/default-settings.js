@@ -4,7 +4,7 @@
  * Prevents duplication and ensures consistency
  */
 
-(function(global) {
+(function (global) {
   'use strict';
 
   // Default sidepanel settings with standardized URLs
@@ -19,7 +19,7 @@
         favicon: 'https://en.wikipedia.org/favicon.ico',
         iconType: 'favicon',
         openMode: 'iframe',
-        position: 0
+        position: 0,
       },
       {
         id: 'archive',
@@ -29,7 +29,7 @@
         favicon: 'https://archive.org/favicon.ico',
         iconType: 'favicon',
         openMode: 'iframe',
-        position: 1
+        position: 1,
       },
       {
         id: 'chatgpt',
@@ -39,7 +39,7 @@
         favicon: 'https://chatgpt.com/favicon.ico',
         iconType: 'favicon',
         openMode: 'iframe',
-        position: 2
+        position: 2,
       },
       {
         id: 'claude',
@@ -49,7 +49,7 @@
         favicon: 'https://claude.ai/favicon.ico',
         iconType: 'favicon',
         openMode: 'iframe',
-        position: 3
+        position: 3,
       },
       {
         id: 'github',
@@ -59,8 +59,8 @@
         favicon: 'https://github.com/favicon.ico',
         iconType: 'favicon',
         openMode: 'iframe',
-        position: 4
-      }
+        position: 4,
+      },
     ],
     sidebarBehavior: {
       autoClose: false,
@@ -68,8 +68,8 @@
       showIcons: true,
       compactMode: false,
       useFavicons: false,
-      showUrls: false
-    }
+      showUrls: false,
+    },
   });
 
   // Export to different module systems
@@ -78,10 +78,11 @@
     module.exports = { getDefaultSidebarSettings };
   } else if (typeof define === 'function' && define.amd) {
     // AMD
-    define(function() { return { getDefaultSidebarSettings }; });
+    define(function () {
+      return { getDefaultSidebarSettings };
+    });
   } else {
     // Browser global
     global.DefaultSettings = { getDefaultSidebarSettings };
   }
-
 })(this);

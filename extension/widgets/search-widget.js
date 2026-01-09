@@ -1,5 +1,5 @@
 // Search Widget Implementation
-(function() {
+(function () {
   'use strict';
 
   function renderSearchWidget(widget, index) {
@@ -13,63 +13,66 @@
     logo.className = 'search-logo';
     logo.src = getSearchEngineLogo(widget);
     logo.alt = widget.settings?.engine || 'Google';
-    
+
     // Combined input/button container
     const searchContainer = document.createElement('div');
     searchContainer.className = 'search-input-container';
-    
+
     // Search input
     const input = document.createElement('input');
     input.type = 'text';
     input.className = 'search-input';
     input.id = `search-input-${index}`; // Add unique ID for direct selection
-    
+
     // Capitalize search engine name for placeholder
     const getCapitalizedEngineName = (engine) => {
       const names = {
-        'google': 'Google',
-        'bing': 'Bing',
-        'duckduckgo': 'DuckDuckGo',
-        'yahoo': 'Yahoo',
-        'custom': 'Custom'
+        google: 'Google',
+        bing: 'Bing',
+        duckduckgo: 'DuckDuckGo',
+        yahoo: 'Yahoo',
+        custom: 'Custom',
       };
       return names[engine] || 'Google';
     };
-    
+
     input.placeholder = `Search ${getCapitalizedEngineName(widget.settings?.engine || 'google')}`;
-    
+
     // Search button
     const button = document.createElement('button');
     button.type = 'submit';
     button.className = 'search-button';
     button.innerHTML = '&#128269;'; // Magnifying glass
-    
+
     searchContainer.appendChild(input);
     searchContainer.appendChild(button);
-    
+
     container.appendChild(logo);
     container.appendChild(searchContainer);
-    
+
     // Focus the input when interacting with the search widget
     // Using pointerdown ensures the input is focused even on the first click
     // when the browser's address bar still has focus
     container.addEventListener('pointerdown', (e) => {
       // Don't interfere if interacting directly with the input or button
       if (e.target === input || e.target === button) return;
-      
+
       // Don't interfere with resize handles or widget action buttons
-      if (e.target.classList.contains('resize-handle') || 
-          e.target.classList.contains('widget-action')) return;
+      if (
+        e.target.classList.contains('resize-handle') ||
+        e.target.classList.contains('widget-action')
+      )
+        return;
 
       // Focus the input so typing can begin immediately
       input.focus();
       e.preventDefault();
       e.stopPropagation();
     });
-    
+
     // Apply appearance styling
     applyWidgetAppearance(container, widget);
-    
+
     // Handle search submission
     const handleSubmit = (e) => {
       e.preventDefault();
@@ -81,7 +84,7 @@
         }
       }
     };
-    
+
     // Add submit handler to button and enter key on input
     button.addEventListener('click', handleSubmit);
     input.addEventListener('keypress', (e) => {
@@ -89,7 +92,6 @@
         handleSubmit(e);
       }
     });
-    
 
     // Set up jiggle mode controls
     setupJiggleModeControls(container, widget, index);
@@ -105,14 +107,15 @@
     if (widget.settings?.customImageUrl) {
       return widget.settings.customImageUrl;
     }
-    
+
     const engine = widget.settings?.engine || 'google';
     const logos = {
-      'google': 'resources/google.png',
-      'bing': 'resources/bing.png',
-      'duckduckgo': 'resources/ddg.png',
-      'yahoo': 'resources/yahoo-search.png',
-      'custom': 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTEwIDJWMjJMNyAyMkw3IDJIMTBaTTE3IDJWMjJMMTQgMjJMMTQgMkgxN1oiIGZpbGw9IiM2NjY2NjYiLz4KPC9zdmc+Cg=='
+      google: 'resources/google.png',
+      bing: 'resources/bing.png',
+      duckduckgo: 'resources/ddg.png',
+      yahoo: 'resources/yahoo-search.png',
+      custom:
+        'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTEwIDJWMjJMNyAyMkw3IDJIMTBaTTE3IDJWMjJMMTQgMjJMMTQgMkgxN1oiIGZpbGw9IiM2NjY2NjYiLz4KPC9zdmc+Cg==',
     };
     return logos[engine] || logos['custom'];
   }
@@ -120,13 +123,13 @@
   function performSearch(query, settings) {
     // Always use the customUrl if available, otherwise fall back to Google
     let searchUrl = settings?.customUrl || 'https://www.google.com/search?q=%s';
-    
+
     // Replace %s or %q with the encoded query
     const encodedQuery = encodeURIComponent(query);
     searchUrl = searchUrl.replace(/%[sq]/g, encodedQuery);
-    
+
     const target = settings?.target || 'newTab';
-    
+
     switch (target) {
       case 'currentTab':
         window.location.href = searchUrl;
@@ -137,14 +140,16 @@
       case 'newWindow':
         // Use unified extension API to create a proper new window
         if (typeof ExtensionAPI !== 'undefined') {
-          ExtensionAPI.windows.create({
-            url: searchUrl,
-            width: 1024,
-            height: 768
-          }).catch(() => {
-            // Fallback if extension API fails
-            window.open(searchUrl, '_blank');
-          });
+          ExtensionAPI.windows
+            .create({
+              url: searchUrl,
+              width: 1024,
+              height: 768,
+            })
+            .catch(() => {
+              // Fallback if extension API fails
+              window.open(searchUrl, '_blank');
+            });
         } else {
           // Fallback for when ExtensionAPI is not available
           window.open(searchUrl, '_blank');
@@ -153,15 +158,17 @@
       case 'incognito':
         // Use unified extension API to create a new incognito window
         if (typeof ExtensionAPI !== 'undefined') {
-          ExtensionAPI.windows.create({
-            url: searchUrl,
-            incognito: true,
-            width: 1024,
-            height: 768
-          }).catch(() => {
-            // Fallback if extension API fails
-            window.open(searchUrl, '_blank');
-          });
+          ExtensionAPI.windows
+            .create({
+              url: searchUrl,
+              incognito: true,
+              width: 1024,
+              height: 768,
+            })
+            .catch(() => {
+              // Fallback if extension API fails
+              window.open(searchUrl, '_blank');
+            });
         } else {
           // Fallback for when ExtensionAPI is not available
           window.open(searchUrl, '_blank');
@@ -182,8 +189,8 @@
         customUrl: options.customUrl,
         customImageUrl: options.customImageUrl,
         target: options.target,
-        clearAfterSearch: options.clearAfterSearch
-      }
+        clearAfterSearch: options.clearAfterSearch,
+      },
     };
     settings.widgets.push(widget);
     saveAndRender();
@@ -192,21 +199,21 @@
   function openSearchConfig(existing, index) {
     const isEdit = !!existing;
     const targetContainer = isEdit ? document.getElementById('widget-settings-tab') : widgetList;
-    
+
     // Get the current URL based on engine or custom URL
     const getEngineUrl = (engine) => {
       const searchEngines = {
-        'google': 'https://www.google.com/search?q=%s',
-        'bing': 'https://www.bing.com/search?q=%s',
-        'duckduckgo': 'https://duckduckgo.com/?q=%s',
-        'yahoo': 'https://search.yahoo.com/search?p=%s'
+        google: 'https://www.google.com/search?q=%s',
+        bing: 'https://www.bing.com/search?q=%s',
+        duckduckgo: 'https://duckduckgo.com/?q=%s',
+        yahoo: 'https://search.yahoo.com/search?p=%s',
       };
       return searchEngines[engine] || '';
     };
-    
+
     const currentEngine = existing?.settings.engine || 'google';
     const currentUrl = existing?.settings.customUrl || getEngineUrl(currentEngine);
-    
+
     targetContainer.innerHTML = `
       <h3>${isEdit ? 'Edit Search Widget' : 'Search Widget'}</h3>
       <div class="input-group">
@@ -244,13 +251,13 @@
         <button id="search-cancel">${isEdit ? 'Exit' : 'Cancel'}</button>
       </div>
     `;
-    
+
     // Handle engine selection change
     document.getElementById('search-engine').addEventListener('change', (e) => {
       const urlInput = document.getElementById('search-custom-url');
       const imageUrlGroup = document.getElementById('image-url-group');
       const selectedEngine = e.target.value;
-      
+
       if (selectedEngine !== 'custom') {
         // Auto-populate with predefined engine URL
         urlInput.value = getEngineUrl(selectedEngine);
@@ -260,9 +267,9 @@
         // For custom, clear the field if it contains a predefined URL
         const predefinedUrls = [
           'https://www.google.com/search?q=%s',
-          'https://www.bing.com/search?q=%s', 
+          'https://www.bing.com/search?q=%s',
           'https://duckduckgo.com/?q=%s',
-          'https://search.yahoo.com/search?p=%s'
+          'https://search.yahoo.com/search?p=%s',
         ];
         if (predefinedUrls.includes(urlInput.value)) {
           urlInput.value = '';
@@ -272,7 +279,7 @@
         imageUrlGroup.style.display = 'block';
       }
     });
-    
+
     // Use helper function for save/cancel logic
     setupWidgetConfigButtons(isEdit, 'search', index, addSearchWidget, () => {
       const options = {
@@ -280,14 +287,14 @@
         customUrl: document.getElementById('search-custom-url').value.trim(),
         customImageUrl: document.getElementById('search-image-url').value.trim(),
         target: document.getElementById('search-target').value,
-        clearAfterSearch: document.getElementById('search-clear').checked
+        clearAfterSearch: document.getElementById('search-clear').checked,
       };
-      
+
       if (!options.customUrl) {
         alert('Please enter a search URL');
         return null; // Return null to prevent saving
       }
-      
+
       return options;
     });
   }
@@ -296,7 +303,6 @@
   registerWidget('search', {
     name: 'Search',
     render: renderSearchWidget,
-    openConfig: openSearchConfig
+    openConfig: openSearchConfig,
   });
-
 })();

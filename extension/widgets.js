@@ -30,16 +30,16 @@ function initWidgetsUI() {
   widgetList = document.getElementById('widget-list');
   editButton = document.getElementById('edit-button');
   widgetGrid = document.getElementById('widget-grid');
-  
+
   // Initialize widget panel tabs
   const widgetTabs = document.getElementById('widget-tabs');
   const widgetTabButtons = widgetTabs.querySelectorAll('button');
   const widgetTabContents = widgetsPanel.querySelectorAll('.tab-content');
-  
-  widgetTabButtons.forEach(btn => {
+
+  widgetTabButtons.forEach((btn) => {
     btn.addEventListener('click', () => {
-      widgetTabButtons.forEach(b => b.classList.remove('active'));
-      widgetTabContents.forEach(c => c.classList.add('hidden'));
+      widgetTabButtons.forEach((b) => b.classList.remove('active'));
+      widgetTabContents.forEach((c) => c.classList.add('hidden'));
       btn.classList.add('active');
       const targetTab = btn.dataset.tab;
       if (targetTab === 'widget-settings') {
@@ -94,12 +94,12 @@ function initializeWidgets() {
     console.error('Settings not available during widget initialization');
     return;
   }
-  
+
   if (!settings.widgets) settings.widgets = [];
-  
+
   widgetGrid.addEventListener('dragover', handleDragOver);
   widgetGrid.addEventListener('drop', handleGridDrop);
-  
+
   buildWidgetList();
   renderWidgets();
 }
@@ -113,7 +113,7 @@ function getWidgetAppearance(widget) {
   // Merge global appearance with widget-specific overrides
   const global = settings.globalWidgetAppearance || {};
   const individual = widget.appearance || {};
-  
+
   return {
     fontSize: individual.fontSize !== undefined ? individual.fontSize : global.fontSize,
     fontWeight: individual.fontWeight !== undefined ? individual.fontWeight : global.fontWeight,
@@ -121,14 +121,22 @@ function getWidgetAppearance(widget) {
     underline: individual.underline !== undefined ? individual.underline : global.underline,
     textColor: individual.textColor !== undefined ? individual.textColor : global.textColor,
     textOpacity: individual.textOpacity !== undefined ? individual.textOpacity : global.textOpacity,
-    backgroundColor: individual.backgroundColor !== undefined ? individual.backgroundColor : global.backgroundColor,
-    backgroundOpacity: individual.backgroundOpacity !== undefined ? individual.backgroundOpacity : global.backgroundOpacity,
+    backgroundColor:
+      individual.backgroundColor !== undefined
+        ? individual.backgroundColor
+        : global.backgroundColor,
+    backgroundOpacity:
+      individual.backgroundOpacity !== undefined
+        ? individual.backgroundOpacity
+        : global.backgroundOpacity,
     blur: individual.blur !== undefined ? individual.blur : global.blur,
-    borderRadius: individual.borderRadius !== undefined ? individual.borderRadius : global.borderRadius,
+    borderRadius:
+      individual.borderRadius !== undefined ? individual.borderRadius : global.borderRadius,
     opacity: individual.opacity !== undefined ? individual.opacity : global.opacity,
     textAlign: individual.textAlign !== undefined ? individual.textAlign : global.textAlign,
-    verticalAlign: individual.verticalAlign !== undefined ? individual.verticalAlign : global.verticalAlign,
-    padding: individual.padding !== undefined ? individual.padding : global.padding
+    verticalAlign:
+      individual.verticalAlign !== undefined ? individual.verticalAlign : global.verticalAlign,
+    padding: individual.padding !== undefined ? individual.padding : global.padding,
   };
 }
 
@@ -136,22 +144,22 @@ function calculateOptimalFontSize(textElement, container, appearance) {
   // Get container dimensions accounting for padding
   const containerRect = container.getBoundingClientRect();
   const padding = appearance.padding || 0;
-  const availableWidth = containerRect.width - (padding * 2);
-  const availableHeight = containerRect.height - (padding * 2);
-  
+  const availableWidth = containerRect.width - padding * 2;
+  const availableHeight = containerRect.height - padding * 2;
+
   // If container hasn't been laid out yet, return a default size
   if (availableWidth <= 0 || availableHeight <= 0) {
     return 16;
   }
-  
+
   // Simple, reliable formula: take a percentage of the smaller dimension
   // This ensures text always fits within bounds while scaling with container size
   const smallerDimension = Math.min(availableWidth, availableHeight);
   const largerDimension = Math.max(availableWidth, availableHeight);
-  
+
   // Base font size as percentage of smaller dimension
   let fontSize = smallerDimension * 0.35;
-  
+
   // For very wide containers, allow some additional scaling based on width
   const aspectRatio = availableWidth / availableHeight;
   if (aspectRatio > 2) {
@@ -159,13 +167,13 @@ function calculateOptimalFontSize(textElement, container, appearance) {
     const widthBonus = Math.min(availableWidth * 0.05, smallerDimension * 0.2);
     fontSize += widthBonus;
   }
-  
+
   // Apply user's font size preference
-  fontSize *= (appearance.fontSize / 100);
-  
+  fontSize *= appearance.fontSize / 100;
+
   // Clamp to reasonable bounds
   fontSize = Math.max(12, Math.min(fontSize, 150));
-  
+
   return fontSize;
 }
 
@@ -182,7 +190,7 @@ function setupDynamicTextSizing(textElement, container, widget) {
       applyOptimalFontSize(textElement, container, appearance);
     });
     resizeObserver.observe(container);
-    
+
     // Store observer reference to clean up later if needed
     container._resizeObserver = resizeObserver;
   }
@@ -190,7 +198,7 @@ function setupDynamicTextSizing(textElement, container, widget) {
 
 function applyWidgetAppearance(container, widget) {
   const appearance = getWidgetAppearance(widget);
-  
+
   // Convert hex color to rgba
   const hexToRgba = (hex, opacity) => {
     const r = parseInt(hex.slice(1, 3), 16);
@@ -198,7 +206,7 @@ function applyWidgetAppearance(container, widget) {
     const b = parseInt(hex.slice(5, 7), 16);
     return `rgba(${r}, ${g}, ${b}, ${opacity / 100})`;
   };
-  
+
   // Apply container styling first
   container.style.background = hexToRgba(appearance.backgroundColor, appearance.backgroundOpacity);
   container.style.backdropFilter = `blur(${appearance.blur}px)`;
@@ -208,7 +216,7 @@ function applyWidgetAppearance(container, widget) {
   container.style.display = 'flex';
   container.style.alignItems = appearance.verticalAlign;
   container.style.justifyContent = appearance.textAlign;
-  
+
   // Apply text styling
   const textElement = container.querySelector('span') || container.querySelector('.search-input');
   if (textElement) {
@@ -229,25 +237,24 @@ function applyWidgetAppearance(container, widget) {
     textElement.style.color = hexToRgba(appearance.textColor, appearance.textOpacity);
     textElement.style.textAlign = appearance.textAlign;
   }
-  
 }
 
 function renderWidgets() {
   // Clear existing intervals to prevent memory leaks
   activeIntervals.forEach(clearInterval);
   activeIntervals = [];
-  
+
   // Clean up existing ResizeObserver instances
   const existingWidgets = widgetGrid.querySelectorAll('.widget');
-  existingWidgets.forEach(widget => {
+  existingWidgets.forEach((widget) => {
     if (widget._resizeObserver) {
       widget._resizeObserver.disconnect();
       widget._resizeObserver = null;
     }
   });
-  
+
   widgetGrid.innerHTML = '';
-  
+
   (settings.widgets || []).forEach((widget, index) => {
     const widgetDef = getWidgetDefinition(widget.type);
     if (widgetDef && widgetDef.render) {
@@ -269,7 +276,7 @@ function createWidgetContainer(widget, index, className) {
 // Helper function to set up jiggle mode controls
 function setupJiggleModeControls(container, widget, index) {
   if (!jiggleMode) return;
-  
+
   // Remove button
   const removeBtn = document.createElement('button');
   removeBtn.className = 'widget-action widget-remove';
@@ -279,7 +286,7 @@ function setupJiggleModeControls(container, widget, index) {
     settings.widgets.splice(index, 1);
     saveAndRender();
   });
-  
+
   // Settings button
   const settingsBtn = document.createElement('button');
   settingsBtn.className = 'widget-action widget-settings';
@@ -288,10 +295,10 @@ function setupJiggleModeControls(container, widget, index) {
     e.stopPropagation();
     openWidgetSettings(widget, index);
   });
-  
+
   container.appendChild(removeBtn);
   container.appendChild(settingsBtn);
-  
+
   // Create resize handles
   const resizeHandleSE = document.createElement('div');
   resizeHandleSE.className = 'resize-handle resize-handle-se';
@@ -299,22 +306,22 @@ function setupJiggleModeControls(container, widget, index) {
   resizeHandleS.className = 'resize-handle resize-handle-s';
   const resizeHandleE = document.createElement('div');
   resizeHandleE.className = 'resize-handle resize-handle-e';
-  
+
   container.appendChild(resizeHandleSE);
   container.appendChild(resizeHandleS);
   container.appendChild(resizeHandleE);
-  
+
   // Set up drag and drop
   container.draggable = true;
   container.addEventListener('dragstart', handleDragStart);
   container.addEventListener('dragover', handleDragOver);
   container.addEventListener('drop', handleDrop);
-  
+
   // Add resize event listeners
   addResizeListeners(container, index, resizeHandleSE, resizeHandleS, resizeHandleE);
-  
+
   // Prevent dragging when interacting with resize handles
-  [resizeHandleSE, resizeHandleS, resizeHandleE].forEach(handle => {
+  [resizeHandleSE, resizeHandleS, resizeHandleE].forEach((handle) => {
     handle.addEventListener('mousedown', (e) => {
       e.stopPropagation();
       container.draggable = false;
@@ -326,12 +333,18 @@ function setupJiggleModeControls(container, widget, index) {
 }
 
 // Helper function for common widget config save/cancel logic
-function setupWidgetConfigButtons(isEdit, widgetType, index, addWidgetFunction, getOptionsFunction) {
+function setupWidgetConfigButtons(
+  isEdit,
+  widgetType,
+  index,
+  addWidgetFunction,
+  getOptionsFunction
+) {
   document.getElementById(`${widgetType}-save`).addEventListener('click', () => {
     const options = getOptionsFunction();
     // Allow validation functions to return null to prevent saving
     if (options === null) return;
-    
+
     if (isEdit) {
       settings.widgets[index].settings = options;
       saveAndRender();
@@ -342,7 +355,7 @@ function setupWidgetConfigButtons(isEdit, widgetType, index, addWidgetFunction, 
     }
     buildWidgetList();
   });
-  
+
   document.getElementById(`${widgetType}-cancel`).addEventListener('click', () => {
     widgetsPanel.classList.add('hidden');
     widgetsButton.classList.remove('hidden');
@@ -354,23 +367,23 @@ function handleDragStart(e) {
   dragIndex = +e.currentTarget.dataset.index;
   e.dataTransfer.effectAllowed = 'move';
   e.dataTransfer.setData('text/plain', '');
-  
+
   // Calculate the offset from the mouse to the widget's center
   const widgetRect = e.currentTarget.getBoundingClientRect();
   const gridRect = widgetGrid.getBoundingClientRect();
-  
+
   // Calculate widget center relative to grid
   const widgetCenterX = widgetRect.left + widgetRect.width / 2 - gridRect.left;
   const widgetCenterY = widgetRect.top + widgetRect.height / 2 - gridRect.top;
-  
+
   // Calculate mouse position relative to grid
   const mouseX = e.clientX - gridRect.left;
   const mouseY = e.clientY - gridRect.top;
-  
+
   // Store offset from mouse to widget center
   dragOffset.x = widgetCenterX - mouseX;
   dragOffset.y = widgetCenterY - mouseY;
-  
+
   // Add dragend listener to clean up if drag is cancelled
   const draggedElement = e.currentTarget;
   const cleanup = () => {
@@ -389,26 +402,26 @@ function handleDragStart(e) {
 
 function handleDragOver(e) {
   e.preventDefault();
-  
+
   // Provide visual feedback during drag
   if (dragIndex !== null && e.currentTarget === widgetGrid) {
     const rect = widgetGrid.getBoundingClientRect();
     const colSize = rect.width / 40;
     const rowSize = rect.height / 24;
     const widget = settings.widgets[dragIndex];
-    
+
     // Calculate where widget center would be (mouse + offset)
     const relativeX = e.clientX - rect.left + dragOffset.x;
     const relativeY = e.clientY - rect.top + dragOffset.y;
-    
+
     // Convert to grid coordinates - center the widget on the calculated position
     let col = Math.round(relativeX / colSize - (widget.w || 4) / 2);
     let row = Math.round(relativeY / rowSize - (widget.h || 3) / 2);
-    
+
     // Ensure within bounds
     col = Math.max(0, Math.min(40 - (widget.w || 4), col));
     row = Math.max(0, Math.min(24 - (widget.h || 3), row));
-    
+
     // Create or update preview indicator
     let previewElement = document.getElementById('drag-preview-indicator');
     if (!previewElement) {
@@ -417,7 +430,7 @@ function handleDragOver(e) {
       previewElement.className = 'drag-preview-indicator';
       widgetGrid.appendChild(previewElement);
     }
-    
+
     // Position the preview element
     previewElement.style.gridColumn = `${col + 1} / span ${widget.w || 4}`;
     previewElement.style.gridRow = `${row + 1} / span ${widget.h || 3}`;
@@ -427,13 +440,13 @@ function handleDragOver(e) {
 function handleDrop(e) {
   e.preventDefault();
   e.stopPropagation();
-  
+
   // Clean up drag preview
   const previewElement = document.getElementById('drag-preview-indicator');
   if (previewElement) {
     previewElement.remove();
   }
-  
+
   const targetIndex = +e.currentTarget.dataset.index;
   if (dragIndex === null || dragIndex === targetIndex) {
     dragIndex = null;
@@ -453,38 +466,38 @@ function handleDrop(e) {
 
 function handleGridDrop(e) {
   e.preventDefault();
-  
+
   // Clean up drag preview
   const previewElement = document.getElementById('drag-preview-indicator');
   if (previewElement) {
     previewElement.remove();
   }
-  
+
   if (dragIndex === null) return;
   const rect = widgetGrid.getBoundingClientRect();
   const colSize = rect.width / 40; // Fixed 40 columns
   const rowSize = rect.height / 24; // Fixed 24 rows
   const widget = settings.widgets[dragIndex];
-  
+
   // Calculate where widget center would be (mouse + offset)
   const relativeX = e.clientX - rect.left + dragOffset.x;
   const relativeY = e.clientY - rect.top + dragOffset.y;
-  
+
   // Convert to grid coordinates - center the widget on the calculated position
   let col = Math.round(relativeX / colSize - (widget.w || 4) / 2);
   let row = Math.round(relativeY / rowSize - (widget.h || 3) / 2);
-  
+
   // Ensure widget stays within grid bounds
   col = Math.max(0, Math.min(40 - (widget.w || 4), col));
   row = Math.max(0, Math.min(24 - (widget.h || 3), row));
-  
+
   // Only update position if it actually changed
   if (widget.x !== col || widget.y !== row) {
     widget.x = col;
     widget.y = row;
     saveAndRender();
   }
-  
+
   dragIndex = null;
   dragOffset = { x: 0, y: 0 };
 }
@@ -493,100 +506,100 @@ function addResizeListeners(container, index, resizeHandleSE, resizeHandleS, res
   let isResizing = false;
   let resizeType = '';
   let startX, startY, startWidth, startHeight, startGridX, startGridY;
-  
+
   function startResize(e, type) {
     isResizing = true;
     resizeType = type;
-    
+
     e.preventDefault();
     e.stopPropagation();
-    
+
     startX = e.clientX;
     startY = e.clientY;
     startWidth = container.offsetWidth;
     startHeight = container.offsetHeight;
-    
+
     const widget = settings.widgets[index];
     startGridX = widget.x;
     startGridY = widget.y;
-    
+
     document.addEventListener('mousemove', doResize);
     document.addEventListener('mouseup', stopResize);
     document.addEventListener('dragstart', preventDrag);
-    
+
     container.classList.add('resizing');
     container.draggable = false;
   }
-  
+
   function preventDrag(e) {
     e.preventDefault();
     return false;
   }
-  
+
   function doResize(e) {
     if (!isResizing) return;
-    
+
     const deltaX = e.clientX - startX;
     const deltaY = e.clientY - startY;
-    
+
     const gridRect = widgetGrid.getBoundingClientRect();
     const colSize = gridRect.width / 40; // Fixed 40 columns
     const rowSize = gridRect.height / 24; // Fixed 24 rows
-    
+
     let newWidth = startWidth;
     let newHeight = startHeight;
-    
+
     if (resizeType.includes('e')) {
       newWidth = Math.max(colSize, startWidth + deltaX);
     }
     if (resizeType.includes('s')) {
       newHeight = Math.max(rowSize, startHeight + deltaY);
     }
-    
+
     // Calculate new grid dimensions
     const newGridW = Math.max(1, Math.round(newWidth / colSize));
     const newGridH = Math.max(1, Math.round(newHeight / rowSize));
-    
+
     // Ensure widget doesn't exceed grid bounds
     const maxW = 40 - startGridX; // Fixed 40 columns
     const maxH = 24 - startGridY; // Fixed 24 rows
     const clampedW = Math.min(newGridW, maxW);
     const clampedH = Math.min(newGridH, maxH);
-    
+
     // Update grid positioning to anchor from top-left (only expand right/down)
     container.style.gridColumn = `${startGridX + 1} / span ${clampedW}`;
     container.style.gridRow = `${startGridY + 1} / span ${clampedH}`;
   }
-  
+
   function stopResize() {
     if (!isResizing) return;
-    
+
     isResizing = false;
     document.removeEventListener('mousemove', doResize);
     document.removeEventListener('mouseup', stopResize);
     document.removeEventListener('dragstart', preventDrag);
-    
+
     // Get the final grid dimensions from the current grid positioning
     const gridColumnStyle = container.style.gridColumn;
     const gridRowStyle = container.style.gridRow;
-    
+
     // Parse "X / span Y" format to extract span value
     const colSpanMatch = gridColumnStyle.match(/span (\d+)/);
     const rowSpanMatch = gridRowStyle.match(/span (\d+)/);
-    
+
     const finalW = colSpanMatch ? parseInt(colSpanMatch[1]) : settings.widgets[index].w;
     const finalH = rowSpanMatch ? parseInt(rowSpanMatch[1]) : settings.widgets[index].h;
-    
+
     settings.widgets[index].w = finalW;
     settings.widgets[index].h = finalH;
-    
+
     container.classList.remove('resizing');
     container.draggable = true;
-    
+
     saveSettings(settings);
     renderWidgets();
   }
-  
+
   resizeHandleSE.addEventListener('mousedown', (e) => startResize(e, 'se'));
   resizeHandleS.addEventListener('mousedown', (e) => startResize(e, 's'));
   resizeHandleE.addEventListener('mousedown', (e) => startResize(e, 'e'));
@@ -594,9 +607,9 @@ function addResizeListeners(container, index, resizeHandleSE, resizeHandleS, res
 
 function buildWidgetList() {
   widgetList.innerHTML = '';
-  
+
   // Build widget list from registered widget types
-  Object.keys(widgetRegistry).forEach(type => {
+  Object.keys(widgetRegistry).forEach((type) => {
     const widgetDef = widgetRegistry[type];
     if (widgetDef.name && widgetDef.openConfig) {
       const btn = document.createElement('button');
@@ -610,27 +623,27 @@ function buildWidgetList() {
 function openWidgetSettings(widget, index) {
   widgetsPanel.classList.remove('hidden');
   widgetsButton.classList.add('hidden');
-  
+
   // Show tabs and set to settings tab by default
   document.getElementById('widget-tabs').classList.remove('hidden');
   document.getElementById('widget-list').classList.add('hidden');
-  
+
   // Reset tab state
   const tabButtons = document.querySelectorAll('#widget-tabs button');
   const tabContents = document.querySelectorAll('#widgets-panel .tab-content');
-  tabButtons.forEach(b => b.classList.remove('active'));
-  tabContents.forEach(c => c.classList.add('hidden'));
-  
+  tabButtons.forEach((b) => b.classList.remove('active'));
+  tabContents.forEach((c) => c.classList.add('hidden'));
+
   // Activate settings tab
   document.querySelector('#widget-tabs button[data-tab="widget-settings"]').classList.add('active');
   document.getElementById('widget-settings-tab').classList.remove('hidden');
-  
+
   // Load the appropriate widget settings
   const widgetDef = getWidgetDefinition(widget.type);
   if (widgetDef && widgetDef.openConfig) {
     widgetDef.openConfig(widget, index);
   }
-  
+
   // Set up appearance tab
   setupWidgetAppearanceTab(widget, index);
 }
@@ -639,7 +652,7 @@ function setupWidgetAppearanceTab(widget, index) {
   const appearanceTab = document.getElementById('widget-appearance-tab-content');
   const appearance = widget.appearance || {};
   const global = settings.globalWidgetAppearance || {};
-  
+
   appearanceTab.innerHTML = `
     <div class="settings-section">
       <h3 class="section-title">Widget Text Styling</h3>
@@ -753,14 +766,14 @@ function setupWidgetAppearanceTab(widget, index) {
       </div>
     </div>
   `;
-  
+
   // Set up event listeners for appearance controls
   setupWidgetAppearanceControls(widget, index);
 }
 
 function setupWidgetAppearanceControls(widget, index) {
   if (!widget.appearance) widget.appearance = {};
-  
+
   // Helper function to update appearance property
   const updateAppearance = (property, value) => {
     widget.appearance[property] = value;
@@ -768,7 +781,7 @@ function setupWidgetAppearanceControls(widget, index) {
     saveAndRender();
     setupWidgetAppearanceTab(widget, index); // Refresh the tab to update indicators
   };
-  
+
   // Helper function to remove appearance property (use global)
   const useGlobal = (property) => {
     delete widget.appearance[property];
@@ -776,7 +789,7 @@ function setupWidgetAppearanceControls(widget, index) {
     saveAndRender();
     setupWidgetAppearanceTab(widget, index); // Refresh the tab to update indicators
   };
-  
+
   // Font size
   const fontSizeSlider = document.getElementById('widget-font-size');
   const fontSizeValue = document.getElementById('widget-font-size-value');
@@ -785,27 +798,27 @@ function setupWidgetAppearanceControls(widget, index) {
     fontSizeValue.textContent = value + '%';
     updateAppearance('fontSize', value);
   });
-  
+
   // Font weight
   document.getElementById('widget-font-weight').addEventListener('change', (e) => {
     updateAppearance('fontWeight', parseInt(e.target.value));
   });
-  
+
   // Italic
   document.getElementById('widget-italic').addEventListener('change', (e) => {
     updateAppearance('italic', e.target.checked);
   });
-  
+
   // Underline
   document.getElementById('widget-underline').addEventListener('change', (e) => {
     updateAppearance('underline', e.target.checked);
   });
-  
+
   // Text color
   document.getElementById('widget-text-color').addEventListener('input', (e) => {
     updateAppearance('textColor', e.target.value);
   });
-  
+
   // Text opacity
   const textOpacitySlider = document.getElementById('widget-text-opacity');
   const textOpacityValue = document.getElementById('widget-text-opacity-value');
@@ -814,12 +827,12 @@ function setupWidgetAppearanceControls(widget, index) {
     textOpacityValue.textContent = value + '%';
     updateAppearance('textOpacity', value);
   });
-  
+
   // Background color
   document.getElementById('widget-bg-color').addEventListener('input', (e) => {
     updateAppearance('backgroundColor', e.target.value);
   });
-  
+
   // Background opacity
   const bgOpacitySlider = document.getElementById('widget-bg-opacity');
   const bgOpacityValue = document.getElementById('widget-bg-opacity-value');
@@ -828,7 +841,7 @@ function setupWidgetAppearanceControls(widget, index) {
     bgOpacityValue.textContent = value + '%';
     updateAppearance('backgroundOpacity', value);
   });
-  
+
   // Blur
   const blurSlider = document.getElementById('widget-blur');
   const blurValue = document.getElementById('widget-blur-value');
@@ -837,7 +850,7 @@ function setupWidgetAppearanceControls(widget, index) {
     blurValue.textContent = value + 'px';
     updateAppearance('blur', value);
   });
-  
+
   // Border radius
   const borderRadiusSlider = document.getElementById('widget-border-radius');
   const borderRadiusValue = document.getElementById('widget-border-radius-value');
@@ -846,7 +859,7 @@ function setupWidgetAppearanceControls(widget, index) {
     borderRadiusValue.textContent = value + 'px';
     updateAppearance('borderRadius', value);
   });
-  
+
   // Widget opacity
   const opacitySlider = document.getElementById('widget-opacity');
   const opacityValue = document.getElementById('widget-opacity-value');
@@ -855,17 +868,17 @@ function setupWidgetAppearanceControls(widget, index) {
     opacityValue.textContent = value + '%';
     updateAppearance('opacity', value);
   });
-  
+
   // Text alignment
   document.getElementById('widget-text-align').addEventListener('change', (e) => {
     updateAppearance('textAlign', e.target.value);
   });
-  
+
   // Vertical alignment
   document.getElementById('widget-vertical-align').addEventListener('change', (e) => {
     updateAppearance('verticalAlign', e.target.value);
   });
-  
+
   // Padding
   const paddingSlider = document.getElementById('widget-padding');
   const paddingValue = document.getElementById('widget-padding-value');
@@ -874,15 +887,15 @@ function setupWidgetAppearanceControls(widget, index) {
     paddingValue.textContent = value + 'px';
     updateAppearance('padding', value);
   });
-  
+
   // Reset to global buttons
-  document.querySelectorAll('.reset-to-global').forEach(btn => {
+  document.querySelectorAll('.reset-to-global').forEach((btn) => {
     btn.addEventListener('click', (e) => {
       const property = e.target.dataset.property;
       useGlobal(property);
     });
   });
-  
+
   // Reset all to global button
   document.getElementById('reset-widget-appearance').addEventListener('click', () => {
     widget.appearance = {};
@@ -891,5 +904,3 @@ function setupWidgetAppearanceControls(widget, index) {
     setupWidgetAppearanceTab(widget, index);
   });
 }
-
-

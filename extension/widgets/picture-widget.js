@@ -1,28 +1,28 @@
 // Picture Widget Implementation
-(function() {
+(function () {
   'use strict';
 
   async function renderPictureWidget(widget, index) {
     const container = createWidgetContainer(widget, index, 'picture-widget');
-    
+
     // Apply appearance styling
     applyWidgetAppearance(container, widget);
-    
+
     // Override container padding for picture widgets to have complete control
     container.style.padding = '0';
-    
+
     // Set up jiggle mode controls
     setupJiggleModeControls(container, widget, index);
-    
+
     // Backward compatibility: convert borderRadius to padding
     if (widget.settings?.borderRadius !== undefined && widget.settings?.padding === undefined) {
       widget.settings.padding = widget.settings.borderRadius;
       delete widget.settings.borderRadius;
     }
-    
+
     // Get user-defined padding (default to 0)
     const userPadding = widget.settings?.padding || 0;
-    
+
     // Create image container with consistent absolute positioning
     const imageContainer = document.createElement('div');
     imageContainer.className = 'picture-widget-container';
@@ -35,7 +35,7 @@
       overflow: hidden;
       border-radius: inherit;
     `;
-    
+
     // Create image element
     const img = document.createElement('img');
     img.className = 'picture-widget-image';
@@ -47,7 +47,7 @@
       opacity: ${(widget.settings?.opacity || 100) / 100};
       transition: opacity 0.3s ease;
     `;
-    
+
     // Create placeholder for when no image is set
     const placeholder = document.createElement('div');
     placeholder.className = 'picture-widget-placeholder';
@@ -71,7 +71,7 @@
         <div>Click to add image</div>
       </div>
     `;
-    
+
     // Load and display image
     async function loadImage() {
       const imageRef = widget.settings?.imageRef;
@@ -80,7 +80,7 @@
         placeholder.style.display = 'flex';
         return;
       }
-      
+
       try {
         let imageData;
         if (typeof imageRef === 'string' && imageRef.startsWith('data:')) {
@@ -90,12 +90,12 @@
           // Load from storage manager
           imageData = await window.storageManager.getImage(imageRef);
         }
-        
+
         if (imageData) {
           img.src = imageData;
           img.style.display = 'block';
           placeholder.style.display = 'none';
-          
+
           // Add error handling
           img.onerror = () => {
             console.error('Failed to load image for picture widget');
@@ -118,21 +118,21 @@
         placeholder.style.display = 'flex';
       }
     }
-    
+
     // Add click handler for placeholder
     placeholder.addEventListener('click', (e) => {
       e.stopPropagation();
       openPictureConfig(widget, index);
     });
-    
+
     imageContainer.appendChild(img);
     imageContainer.appendChild(placeholder);
     container.appendChild(imageContainer);
     widgetGrid.appendChild(container);
-    
+
     // Load the image
     await loadImage();
-    
+
     // Store reference for potential updates
     container.pictureWidgetUpdate = loadImage;
   }
@@ -150,8 +150,8 @@
         opacity: options.opacity || 100,
         padding: options.padding || 0,
         positionX: options.positionX || 50,
-        positionY: options.positionY || 50
-      }
+        positionY: options.positionY || 50,
+      },
     };
     settings.widgets.push(widget);
     saveAndRender();
@@ -160,13 +160,17 @@
   function openPictureConfig(existing, index) {
     const isEdit = !!existing;
     const targetContainer = isEdit ? document.getElementById('widget-settings-tab') : widgetList;
-    
+
     // Backward compatibility: handle existing borderRadius property
-    if (existing && existing.settings?.borderRadius !== undefined && existing.settings?.padding === undefined) {
+    if (
+      existing &&
+      existing.settings?.borderRadius !== undefined &&
+      existing.settings?.padding === undefined
+    ) {
       existing.settings.padding = existing.settings.borderRadius;
       delete existing.settings.borderRadius;
     }
-    
+
     targetContainer.innerHTML = `
       <h3>${isEdit ? 'Edit Picture Widget' : 'Picture Widget'}</h3>
       
@@ -245,10 +249,10 @@
 
     // Set up event handlers
     setupPictureEventHandlers(existing, index, isEdit);
-    
+
     // Load storage info
     updateStorageInfo();
-    
+
     // Load existing image preview if editing
     if (existing && existing.settings.imageRef) {
       loadImagePreview(existing.settings.imageRef);
@@ -269,12 +273,12 @@
     const positionYValue = document.getElementById('picture-position-y-value');
     const saveButton = document.getElementById('picture-save');
     const deleteButton = document.getElementById('picture-delete');
-    
+
     let currentImageRef = existing?.settings?.imageRef || null;
-    
+
     // File upload handling
     uploadInput.addEventListener('change', handleImageUpload);
-    
+
     // Drag and drop
     preview.addEventListener('click', () => uploadInput.click());
     preview.addEventListener('dragover', (e) => {
@@ -295,39 +299,39 @@
         handleImageFile(files[0]);
       }
     });
-    
+
     // Range inputs
     opacityRange.addEventListener('input', () => {
       opacityValue.textContent = opacityRange.value + '%';
     });
-    
+
     paddingRange.addEventListener('input', () => {
       paddingValue.textContent = paddingRange.value + 'px';
     });
-    
+
     positionXRange.addEventListener('input', () => {
       positionXValue.textContent = positionXRange.value + '%';
     });
-    
+
     positionYRange.addEventListener('input', () => {
       positionYValue.textContent = positionYRange.value + '%';
     });
-    
+
     // Save button
     saveButton.addEventListener('click', async () => {
       try {
         saveButton.disabled = true;
         saveButton.textContent = 'Saving...';
-        
+
         const widgetData = {
           imageRef: currentImageRef,
           fit: fitSelect.value,
           opacity: parseInt(opacityRange.value),
           padding: parseInt(paddingRange.value),
           positionX: parseInt(positionXRange.value),
-          positionY: parseInt(positionYRange.value)
+          positionY: parseInt(positionYRange.value),
         };
-        
+
         if (isEdit) {
           // Update existing widget
           settings.widgets[index].settings = { ...settings.widgets[index].settings, ...widgetData };
@@ -335,17 +339,16 @@
           // Add new widget
           addPictureWidget(widgetData);
         }
-        
+
         // Trigger re-render if editing
         if (isEdit) {
           saveAndRender();
         }
-        
+
         // Close config if not editing (adding new widget)
         if (!isEdit) {
           widgetList.innerHTML = '';
         }
-        
       } catch (error) {
         console.error('Error saving picture widget:', error);
         alert('Failed to save picture widget: ' + error.message);
@@ -354,7 +357,7 @@
         saveButton.textContent = isEdit ? 'Update Picture Widget' : 'Add Picture Widget';
       }
     });
-    
+
     // Delete button
     if (deleteButton) {
       deleteButton.addEventListener('click', async () => {
@@ -367,48 +370,47 @@
               console.warn('Failed to delete image from storage:', error);
             }
           }
-          
+
           // Remove widget
           settings.widgets.splice(index, 1);
           saveAndRender();
         }
       });
     }
-    
+
     async function handleImageUpload(e) {
       const file = e.target.files[0];
       if (file) {
         await handleImageFile(file);
       }
     }
-    
+
     async function handleImageFile(file) {
       if (!file.type.startsWith('image/')) {
         alert('Please select an image file.');
         return;
       }
-      
+
       // Check file size (reasonable limit)
       const maxSize = 5 * 1024 * 1024; // 5MB
       if (file.size > maxSize) {
         alert('Image file is too large. Please select an image smaller than 5MB.');
         return;
       }
-      
+
       try {
         // Convert to data URL
         const dataUrl = await fileToDataUrl(file);
-        
+
         // Store the image
         const imageRef = await window.storageManager.storeImage(dataUrl);
         currentImageRef = imageRef;
-        
+
         // Update preview
         displayImagePreview(dataUrl);
-        
+
         // Update storage info
         updateStorageInfo();
-        
       } catch (error) {
         console.error('Error handling image:', error);
         alert('Failed to process image: ' + error.message);
@@ -458,7 +460,7 @@
           <strong>Storage Usage:</strong> ${info.totalSizeMB}MB / ${info.maxSizeMB}MB (${info.percentageUsed}%)<br>
           <strong>Images stored:</strong> ${info.imageCount}
         `;
-        
+
         // Color code based on usage
         if (info.percentageUsed > 80) {
           infoElement.style.background = '#ffebee';
@@ -479,9 +481,8 @@
     add: addPictureWidget,
     openConfig: openPictureConfig,
     name: 'Picture',
-    defaultSize: { w: 4, h: 4 }
+    defaultSize: { w: 4, h: 4 },
   });
 
   console.log('Picture widget registered successfully');
-
 })();

@@ -2,13 +2,16 @@
   'use strict';
 
   // Normalise the extension API – the polyfill ensures `browser` exists.
-  const _api = (typeof browser !== 'undefined') ? browser : undefined;
+  const _api = typeof browser !== 'undefined' ? browser : undefined;
 
   if (!_api) {
     throw new Error('Clean-Browsing: browser API unavailable');
   }
 
-  const ua = (typeof navigator !== 'undefined' && navigator.userAgent) ? navigator.userAgent.toLowerCase() : '';
+  const ua =
+    typeof navigator !== 'undefined' && navigator.userAgent
+      ? navigator.userAgent.toLowerCase()
+      : '';
   const isFirefox = /(firefox|waterfox|iceweasel|seamonkey|zen|librewolf)/i.test(ua);
   const browserName = isFirefox ? 'Firefox-family' : 'Unknown';
 
@@ -16,7 +19,7 @@
     // Browser detection
     browser: {
       isFirefox,
-      name: browserName
+      name: browserName,
     },
 
     // Storage API
@@ -47,7 +50,7 @@
           return;
         }
         return await _api.storage.local.clear();
-      }
+      },
     },
 
     // Runtime API
@@ -64,12 +67,12 @@
           if (_api?.runtime?.onMessage?.addListener) {
             _api.runtime.onMessage.addListener(handler);
           }
-        }
+        },
       },
 
       getURL(path) {
         return _api?.runtime?.getURL ? _api.runtime.getURL(path) : path;
-      }
+      },
     },
 
     // Tabs API
@@ -93,7 +96,7 @@
           if (_api?.tabs?.onRemoved?.addListener) {
             _api.tabs.onRemoved.addListener(handler);
           }
-        }
+        },
       },
 
       async executeScript(tabId, details) {
@@ -101,7 +104,7 @@
           throw new Error('Script execution not available');
         }
         return await _api.tabs.executeScript(tabId, details);
-      }
+      },
     },
 
     // Script execution helper for inline functions
@@ -121,7 +124,7 @@
           return;
         }
         return await _api.windows.create(createData);
-      }
+      },
     },
 
     // BrowserAction API
@@ -131,8 +134,8 @@
           if (_api?.browserAction?.onClicked?.addListener) {
             _api.browserAction.onClicked.addListener(handler);
           }
-        }
-      }
+        },
+      },
     },
 
     sidebarAction: {
@@ -183,7 +186,7 @@
         }
         await this.open(windowId);
         return true;
-      }
+      },
     },
 
     // WebRequest API
@@ -193,7 +196,7 @@
           if (_api?.webRequest?.onHeadersReceived?.addListener) {
             _api.webRequest.onHeadersReceived.addListener(listener, filter, extraInfoSpec);
           }
-        }
+        },
       },
 
       onBeforeRedirect: {
@@ -201,9 +204,9 @@
           if (_api?.webRequest?.onBeforeRedirect?.addListener) {
             _api.webRequest.onBeforeRedirect.addListener(listener, filter);
           }
-        }
-      }
-    }
+        },
+      },
+    },
   };
 
   // Export API
@@ -212,10 +215,11 @@
     module.exports = ExtensionAPI;
   } else if (typeof define === 'function' && define.amd) {
     // AMD
-    define(function() { return ExtensionAPI; });
+    define(function () {
+      return ExtensionAPI;
+    });
   } else {
     // Browser global
     global.ExtensionAPI = ExtensionAPI;
   }
-
 })(this);

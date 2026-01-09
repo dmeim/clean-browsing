@@ -2,23 +2,22 @@
 registerWidget('calculator', {
   name: 'Calculator',
   render: renderCalculatorWidget,
-  openConfig: openCalculatorConfig
+  openConfig: openCalculatorConfig,
 });
 
 function renderCalculatorWidget(widget, index) {
   const container = createWidgetContainer(widget, index, 'calculator-widget');
-  
+
   // Color classes based on settings
   const operatorColor = widget.settings.colorOperators !== false ? ' colored' : '';
   const equalsColor = widget.settings.colorEquals !== false ? ' colored' : '';
   const clearColor = widget.settings.colorClear !== false ? ' colored' : '';
-  
-  // Button style class
-  const buttonStyle = widget.settings.roundButtons !== false ? ' round-buttons' : ' rounded-buttons';
-  container.classList.add(buttonStyle.trim());
-  
 
-  
+  // Button style class
+  const buttonStyle =
+    widget.settings.roundButtons !== false ? ' round-buttons' : ' rounded-buttons';
+  container.classList.add(buttonStyle.trim());
+
   container.innerHTML = `
     <div class="calc-display">
       <div class="calc-text">${widget.settings.display || '0'}</div>
@@ -48,47 +47,52 @@ function renderCalculatorWidget(widget, index) {
       <button class="calc-btn calc-number" data-key=".">.</button>
     </div>
   `;
-  
+
   setupCalculatorLogic(container, widget, index);
   setupJiggleModeControls(container, widget, index);
   applyWidgetAppearance(container, widget);
-  
+
   widgetGrid.appendChild(container);
 }
 
 function setupCalculatorLogic(container, widget, index) {
   const display = container.querySelector('.calc-text');
   const buttons = container.querySelectorAll('.calc-btn');
-  
+
   let currentInput = widget.settings.display || '0';
   let operator = null;
   let previousValue = null;
   let waitingForInput = false;
-  
+
   const updateDisplay = (value) => {
     currentInput = String(value);
     display.textContent = currentInput;
     widget.settings.display = currentInput;
     saveSettings(settings);
   };
-  
+
   const calculate = (prev, current, op) => {
     const prevNum = parseFloat(prev);
     const currentNum = parseFloat(current);
-    
-    switch(op) {
-      case '+': return prevNum + currentNum;
-      case '-': return prevNum - currentNum;
-      case '*': return prevNum * currentNum;
-      case '/': return currentNum !== 0 ? prevNum / currentNum : 0;
-      default: return currentNum;
+
+    switch (op) {
+      case '+':
+        return prevNum + currentNum;
+      case '-':
+        return prevNum - currentNum;
+      case '*':
+        return prevNum * currentNum;
+      case '/':
+        return currentNum !== 0 ? prevNum / currentNum : 0;
+      default:
+        return currentNum;
     }
   };
-  
-  buttons.forEach(button => {
+
+  buttons.forEach((button) => {
     button.addEventListener('click', () => {
       const key = button.dataset.key;
-      
+
       if (button.classList.contains('calc-number')) {
         if (waitingForInput || currentInput === '0') {
           if (key === '.' && currentInput === '0') {
@@ -104,18 +108,16 @@ function setupCalculatorLogic(container, widget, index) {
           currentInput += key;
         }
         updateDisplay(currentInput);
-        
       } else if (button.classList.contains('calc-operator')) {
         if (previousValue !== null && !waitingForInput) {
           const result = calculate(previousValue, currentInput, operator);
           updateDisplay(result);
           currentInput = String(result);
         }
-        
+
         previousValue = currentInput;
         operator = key;
         waitingForInput = true;
-        
       } else if (button.classList.contains('calc-equals')) {
         if (previousValue !== null && operator !== null) {
           const result = calculate(previousValue, currentInput, operator);
@@ -124,14 +126,12 @@ function setupCalculatorLogic(container, widget, index) {
           operator = null;
           waitingForInput = true;
         }
-        
       } else if (button.classList.contains('calc-clear')) {
         currentInput = '0';
         previousValue = null;
         operator = null;
         waitingForInput = false;
         updateDisplay(currentInput);
-        
       } else if (button.classList.contains('calc-backspace')) {
         if (currentInput.length > 1) {
           currentInput = currentInput.slice(0, -1);
@@ -142,13 +142,13 @@ function setupCalculatorLogic(container, widget, index) {
       }
     });
   });
-  
+
   // Keyboard support
   if (widget.settings.keyboardSupport !== false) {
     container.addEventListener('keydown', (e) => {
       const key = e.key;
       let targetButton = null;
-      
+
       if ('0123456789.'.includes(key)) {
         targetButton = container.querySelector(`[data-key="${key}"]`);
       } else if ('+-*/'.includes(key)) {
@@ -160,13 +160,13 @@ function setupCalculatorLogic(container, widget, index) {
       } else if (key === 'Backspace') {
         targetButton = container.querySelector('[data-key="backspace"]');
       }
-      
+
       if (targetButton) {
         e.preventDefault();
         targetButton.click();
       }
     });
-    
+
     container.setAttribute('tabindex', '0');
   }
 }
@@ -174,15 +174,17 @@ function setupCalculatorLogic(container, widget, index) {
 function openCalculatorConfig(widget = null, index = null) {
   const isEdit = widget !== null;
   const targetContainer = isEdit ? document.getElementById('widget-settings-tab') : widgetList;
-  const settings = widget ? widget.settings : {
-    keyboardSupport: true,
-    colorOperators: true,
-    colorEquals: true,
-    colorClear: true,
-    roundButtons: true,
-    display: '0'
-  };
-  
+  const settings = widget
+    ? widget.settings
+    : {
+        keyboardSupport: true,
+        colorOperators: true,
+        colorEquals: true,
+        colorClear: true,
+        roundButtons: true,
+        display: '0',
+      };
+
   const configHtml = `
     <h3>${isEdit ? 'Edit Calculator Widget' : 'Calculator Widget'}</h3>
     <div class="input-group checkbox-group">
@@ -206,9 +208,9 @@ function openCalculatorConfig(widget = null, index = null) {
       <button id="calculator-cancel">${isEdit ? 'Exit' : 'Cancel'}</button>
     </div>
   `;
-  
+
   targetContainer.innerHTML = configHtml;
-  
+
   setupWidgetConfigButtons(isEdit, 'calculator', index, addCalculatorWidget, () => {
     return {
       keyboardSupport: document.getElementById('calc-keyboard').checked,
@@ -217,7 +219,7 @@ function openCalculatorConfig(widget = null, index = null) {
       colorOperators: document.getElementById('calc-color-operators').checked,
       colorEquals: document.getElementById('calc-color-equals').checked,
       colorClear: document.getElementById('calc-color-clear').checked,
-      display: '0'
+      display: '0',
     };
   });
 }
@@ -229,9 +231,9 @@ function addCalculatorWidget(options) {
     y: 0,
     w: 4,
     h: 6,
-    settings: options
+    settings: options,
   };
-  
+
   settings.widgets.push(newWidget);
   saveAndRender();
 }

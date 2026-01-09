@@ -1,589 +1,798 @@
 <!doctype html>
 <html lang="en">
-<head>
-  <meta charset="utf-8">
-  <title>Clean-Browsing</title>
-  <link rel="stylesheet" href="styles.css">
-  <link rel="stylesheet" href="sidepanel-embedded.css">
-</head>
-<body>
-  <!-- Split-view container for main content and embedded sidepanel -->
-  <div id="app-container" class="app-container">
-    <!-- Main content area -->
-    <div id="main-content" class="main-content">
-      <div id="widget-grid" class="widget-grid"></div>
-      <div id="action-buttons" role="toolbar" aria-label="Dashboard controls">
-        <button id="settings-button" class="action-button" aria-label="Open settings" title="Settings">&#9881;</button>
-        <button id="widgets-button" class="action-button" aria-label="Manage widgets" title="Widgets">&#9638;</button>
-        <button id="edit-button" class="action-button" aria-label="Edit layout" title="Edit layout">&#9998;</button>
+  <head>
+    <meta charset="utf-8" />
+    <title>Clean-Browsing</title>
+    <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="sidepanel-embedded.css" />
+  </head>
+  <body>
+    <!-- Split-view container for main content and embedded sidepanel -->
+    <div id="app-container" class="app-container">
+      <!-- Main content area -->
+      <div id="main-content" class="main-content">
+        <div id="widget-grid" class="widget-grid"></div>
+        <div id="action-buttons" role="toolbar" aria-label="Dashboard controls">
+          <button
+            id="settings-button"
+            class="action-button"
+            aria-label="Open settings"
+            title="Settings"
+          >
+            &#9881;
+          </button>
+          <button
+            id="widgets-button"
+            class="action-button"
+            aria-label="Manage widgets"
+            title="Widgets"
+          >
+            &#9638;
+          </button>
+          <button
+            id="edit-button"
+            class="action-button"
+            aria-label="Edit layout"
+            title="Edit layout"
+          >
+            &#9998;
+          </button>
+        </div>
       </div>
-    </div>
-    
-    <!-- Embedded sidepanel container -->
-    <div id="sidepanel-container" class="sidepanel-container sidepanel-closed">
-      <div class="sidepanel-resize-handle" title="Drag to resize"></div>
-      <div class="sidepanel-content">
-        <!-- Header -->
-        <div class="sidepanel-header">
-          <div class="header-title">
-            <img src="resources/logo.png" alt="Logo" class="sidepanel-logo">
-            <span>Quick Access</span>
+
+      <!-- Embedded sidepanel container -->
+      <div id="sidepanel-container" class="sidepanel-container sidepanel-closed">
+        <div class="sidepanel-resize-handle" title="Drag to resize"></div>
+        <div class="sidepanel-content">
+          <!-- Header -->
+          <div class="sidepanel-header">
+            <div class="header-title">
+              <img src="resources/logo.png" alt="Logo" class="sidepanel-logo" />
+              <span>Quick Access</span>
+            </div>
+            <button
+              id="sidepanel-settings-btn"
+              class="icon-btn"
+              title="Settings"
+              aria-label="Open sidepanel settings"
+            >
+              ⚙️
+            </button>
+            <button
+              id="sidepanel-close-btn"
+              class="icon-btn"
+              title="Close (Alt+S)"
+              aria-label="Close sidepanel"
+            >
+              ✕
+            </button>
           </div>
-          <button id="sidepanel-settings-btn" class="icon-btn" title="Settings" aria-label="Open sidepanel settings">⚙️</button>
-          <button id="sidepanel-close-btn" class="icon-btn" title="Close (Alt+S)" aria-label="Close sidepanel">✕</button>
-        </div>
 
-        <!-- Website List -->
-        <div id="website-list" class="website-list">
-          <!-- Websites will be dynamically added here -->
-        </div>
-
-        <!-- Iframe Container -->
-        <div id="iframe-container" class="iframe-container hidden">
-          <div class="iframe-header">
-            <button id="back-to-list" class="icon-btn" title="Back to list" aria-label="Back to website list">←</button>
-            <div class="iframe-info">
-              <span id="iframe-title" class="iframe-name"></span>
-              <span id="iframe-current-url" class="iframe-current-url">Loading...</span>
-            </div>
-            <div class="iframe-navigation" role="navigation" aria-label="Page navigation">
-              <button id="nav-back" class="nav-btn" title="Back" aria-label="Go back">⬅</button>
-              <button id="nav-refresh" class="nav-btn" title="Refresh" aria-label="Refresh page">↻</button>
-            </div>
-            <button id="open-in-tab" class="icon-btn" title="Open in new tab" aria-label="Open in new tab">↗</button>
+          <!-- Website List -->
+          <div id="website-list" class="website-list">
+            <!-- Websites will be dynamically added here -->
           </div>
-          <iframe id="website-iframe" class="website-iframe"></iframe>
-        </div>
 
-        <!-- Sidepanel Settings Modal -->
-        <div id="sidepanel-settings-modal" class="sidepanel-settings-modal hidden" role="dialog" aria-modal="true" aria-labelledby="sidepanel-settings-title">
-          <div class="modal-content">
-            <div class="modal-header">
-              <h2 id="sidepanel-settings-title">Sidepanel Settings</h2>
-              <button id="close-sidepanel-settings" class="icon-btn" aria-label="Close settings">✕</button>
+          <!-- Iframe Container -->
+          <div id="iframe-container" class="iframe-container hidden">
+            <div class="iframe-header">
+              <button
+                id="back-to-list"
+                class="icon-btn"
+                title="Back to list"
+                aria-label="Back to website list"
+              >
+                ←
+              </button>
+              <div class="iframe-info">
+                <span id="iframe-title" class="iframe-name"></span>
+                <span id="iframe-current-url" class="iframe-current-url">Loading...</span>
+              </div>
+              <div class="iframe-navigation" role="navigation" aria-label="Page navigation">
+                <button id="nav-back" class="nav-btn" title="Back" aria-label="Go back">⬅</button>
+                <button id="nav-refresh" class="nav-btn" title="Refresh" aria-label="Refresh page">
+                  ↻
+                </button>
+              </div>
+              <button
+                id="open-in-tab"
+                class="icon-btn"
+                title="Open in new tab"
+                aria-label="Open in new tab"
+              >
+                ↗
+              </button>
             </div>
-            
-            <!-- Tab Navigation -->
-            <div class="settings-tabs">
-              <button data-tab="add-website" class="tab-btn active">Add Website</button>
-              <button data-tab="manage-websites" class="tab-btn">Manage</button>
-              <button data-tab="behavior" class="tab-btn">Behavior</button>
-              <button data-tab="appearance" class="tab-btn">Appearance</button>
+            <iframe id="website-iframe" class="website-iframe"></iframe>
+          </div>
+
+          <!-- Sidepanel Settings Modal -->
+          <div
+            id="sidepanel-settings-modal"
+            class="sidepanel-settings-modal hidden"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="sidepanel-settings-title"
+          >
+            <div class="modal-content">
+              <div class="modal-header">
+                <h2 id="sidepanel-settings-title">Sidepanel Settings</h2>
+                <button id="close-sidepanel-settings" class="icon-btn" aria-label="Close settings">
+                  ✕
+                </button>
+              </div>
+
+              <!-- Tab Navigation -->
+              <div class="settings-tabs">
+                <button data-tab="add-website" class="tab-btn active">Add Website</button>
+                <button data-tab="manage-websites" class="tab-btn">Manage</button>
+                <button data-tab="behavior" class="tab-btn">Behavior</button>
+                <button data-tab="appearance" class="tab-btn">Appearance</button>
+              </div>
+
+              <div class="modal-body">
+                <!-- Add Website Tab -->
+                <div id="add-website-tab" class="tab-content">
+                  <div class="settings-section">
+                    <div class="form-group">
+                      <label for="website-name">Name:</label>
+                      <input type="text" id="website-name" placeholder="e.g., ChatGPT" />
+                    </div>
+                    <div class="form-group">
+                      <label for="website-url">URL:</label>
+                      <input type="url" id="website-url" placeholder="https://example.com" />
+                    </div>
+                    <div class="form-group">
+                      <label>Icon Type:</label>
+                      <div class="icon-type-selector">
+                        <label class="icon-type-option">
+                          <input type="radio" name="icon-type" value="favicon" checked />
+                          <span>Favicon</span>
+                        </label>
+                        <label class="icon-type-option">
+                          <input type="radio" name="icon-type" value="emoji" />
+                          <span>Emoji</span>
+                        </label>
+                        <label class="icon-type-option">
+                          <input type="radio" name="icon-type" value="none" />
+                          <span>No Icon</span>
+                        </label>
+                      </div>
+                    </div>
+                    <div class="form-group" id="emoji-input-group" style="display: none">
+                      <label for="website-icon">Icon (emoji):</label>
+                      <input type="text" id="website-icon" placeholder="🌐" maxlength="2" />
+                    </div>
+                    <div class="form-group">
+                      <label for="website-mode">Open Mode:</label>
+                      <select id="website-mode">
+                        <option value="iframe" selected>Embedded (iframe)</option>
+                        <option value="newtab">New Tab</option>
+                        <option value="newwindow">New Window</option>
+                        <option value="privatetab">New Private Tab</option>
+                        <option value="privatewindow">New Private Window</option>
+                      </select>
+                      <small
+                        style="color: rgba(255, 255, 255, 0.6); display: block; margin-top: 4px"
+                      >
+                        Tip: Use "Embedded" for most sites - it will auto-detect and fallback if
+                        needed.
+                      </small>
+                    </div>
+                    <button id="add-website-btn" class="primary-btn">Add Website</button>
+                  </div>
+                </div>
+
+                <!-- Manage Websites Tab -->
+                <div id="manage-websites-tab" class="tab-content hidden">
+                  <div class="settings-section">
+                    <div id="manage-websites-list" class="manage-list">
+                      <!-- Website items for management will be added here -->
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Behavior Tab -->
+                <div id="behavior-tab" class="tab-content hidden">
+                  <div class="settings-section">
+                    <div class="form-group checkbox-group">
+                      <input type="checkbox" id="auto-close" />
+                      <label for="auto-close">Auto-close sidepanel after opening link</label>
+                    </div>
+                    <div class="form-group checkbox-group">
+                      <input type="checkbox" id="show-urls" />
+                      <label for="show-urls">Show URLs in website list</label>
+                    </div>
+                    <div class="form-group checkbox-group">
+                      <input type="checkbox" id="compact-mode" />
+                      <label for="compact-mode">Compact mode</label>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Appearance Tab -->
+                <div id="appearance-tab" class="tab-content hidden">
+                  <div class="settings-section">
+                    <h3>Background</h3>
+                    <div class="form-group">
+                      <label>Background Type:</label>
+                      <div class="icon-type-selector">
+                        <label class="icon-type-option">
+                          <input type="radio" name="bg-type" value="gradient" checked />
+                          <span>Gradient</span>
+                        </label>
+                        <label class="icon-type-option">
+                          <input type="radio" name="bg-type" value="solid" />
+                          <span>Solid Color</span>
+                        </label>
+                        <label class="icon-type-option">
+                          <input type="radio" name="bg-type" value="image" />
+                          <span>Image</span>
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="modal-footer">
+                <button id="save-sidepanel-settings" class="primary-btn">Save Settings</button>
+              </div>
             </div>
-            
-            <div class="modal-body">
-              <!-- Add Website Tab -->
-              <div id="add-website-tab" class="tab-content">
+          </div>
+
+          <!-- Edit Website Modal -->
+          <div
+            id="edit-website-modal"
+            class="sidepanel-settings-modal hidden"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="edit-website-title"
+          >
+            <div class="modal-content edit-modal">
+              <div class="modal-header">
+                <h2 id="edit-website-title">Edit Website</h2>
+                <button id="close-edit" class="icon-btn" aria-label="Close edit dialog">✕</button>
+              </div>
+
+              <div class="modal-body">
                 <div class="settings-section">
                   <div class="form-group">
-                    <label for="website-name">Name:</label>
-                    <input type="text" id="website-name" placeholder="e.g., ChatGPT">
+                    <label for="edit-website-name">Name:</label>
+                    <input type="text" id="edit-website-name" placeholder="e.g., ChatGPT" />
                   </div>
                   <div class="form-group">
-                    <label for="website-url">URL:</label>
-                    <input type="url" id="website-url" placeholder="https://example.com">
+                    <label for="edit-website-url">URL:</label>
+                    <input type="url" id="edit-website-url" placeholder="https://example.com" />
                   </div>
                   <div class="form-group">
                     <label>Icon Type:</label>
                     <div class="icon-type-selector">
                       <label class="icon-type-option">
-                        <input type="radio" name="icon-type" value="favicon" checked>
+                        <input type="radio" name="edit-icon-type" value="favicon" />
                         <span>Favicon</span>
                       </label>
                       <label class="icon-type-option">
-                        <input type="radio" name="icon-type" value="emoji">
+                        <input type="radio" name="edit-icon-type" value="emoji" />
                         <span>Emoji</span>
                       </label>
                       <label class="icon-type-option">
-                        <input type="radio" name="icon-type" value="none">
+                        <input type="radio" name="edit-icon-type" value="none" />
                         <span>No Icon</span>
                       </label>
                     </div>
                   </div>
-                  <div class="form-group" id="emoji-input-group" style="display: none;">
-                    <label for="website-icon">Icon (emoji):</label>
-                    <input type="text" id="website-icon" placeholder="🌐" maxlength="2">
+                  <div class="form-group" id="edit-emoji-input-group" style="display: none">
+                    <label for="edit-website-icon">Icon (emoji):</label>
+                    <input type="text" id="edit-website-icon" placeholder="🌐" maxlength="2" />
                   </div>
                   <div class="form-group">
-                    <label for="website-mode">Open Mode:</label>
-                    <select id="website-mode">
-                      <option value="iframe" selected>Embedded (iframe)</option>
+                    <label for="edit-website-mode">Open Mode:</label>
+                    <select id="edit-website-mode">
+                      <option value="iframe">Embedded (iframe)</option>
                       <option value="newtab">New Tab</option>
                       <option value="newwindow">New Window</option>
                       <option value="privatetab">New Private Tab</option>
                       <option value="privatewindow">New Private Window</option>
                     </select>
-                    <small style="color: rgba(255,255,255,0.6); display: block; margin-top: 4px;">
-                      Tip: Use "Embedded" for most sites - it will auto-detect and fallback if needed.
-                    </small>
-                  </div>
-                  <button id="add-website-btn" class="primary-btn">Add Website</button>
-                </div>
-              </div>
-
-              <!-- Manage Websites Tab -->
-              <div id="manage-websites-tab" class="tab-content hidden">
-                <div class="settings-section">
-                  <div id="manage-websites-list" class="manage-list">
-                    <!-- Website items for management will be added here -->
                   </div>
                 </div>
               </div>
 
-              <!-- Behavior Tab -->
-              <div id="behavior-tab" class="tab-content hidden">
-                <div class="settings-section">
-                  <div class="form-group checkbox-group">
-                    <input type="checkbox" id="auto-close">
-                    <label for="auto-close">Auto-close sidepanel after opening link</label>
-                  </div>
-                  <div class="form-group checkbox-group">
-                    <input type="checkbox" id="show-urls">
-                    <label for="show-urls">Show URLs in website list</label>
-                  </div>
-                  <div class="form-group checkbox-group">
-                    <input type="checkbox" id="compact-mode">
-                    <label for="compact-mode">Compact mode</label>
-                  </div>
+              <div class="modal-footer">
+                <button id="save-edit" class="primary-btn">Save Changes</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div
+      id="settings-modal"
+      class="hidden"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="settings-modal-title"
+    >
+      <div class="modal-header">
+        <div class="modal-title-with-logo">
+          <img src="resources/logo.svg" alt="" class="modal-logo" aria-hidden="true" />
+          <h2 id="settings-modal-title" class="modal-title">Settings</h2>
+        </div>
+        <button id="close-settings" class="close-button" aria-label="Close settings">
+          &times;
+        </button>
+      </div>
+      <div class="settings-tabs">
+        <button data-tab="config" class="active">Configuration</button>
+        <button data-tab="page-appearance">Page Appearance</button>
+        <button data-tab="widget-appearance">Widget Appearance</button>
+        <button data-tab="storage">Storage</button>
+      </div>
+      <div class="modal-content">
+        <div id="config-tab" class="tab-content">
+          <div class="settings-section">
+            <h3 class="section-title">Configuration Management</h3>
+
+            <!-- Quick Actions - Always Available -->
+            <div class="settings-group">
+              <h4 class="subsection-title">Quick Actions</h4>
+              <div class="config-quick-actions">
+                <button id="config-quick-export-all" class="primary-button">
+                  Quick Export All
+                </button>
+                <button id="config-quick-import-all" class="primary-button">
+                  Quick Import All
+                </button>
+                <input
+                  type="file"
+                  id="config-quick-import-file"
+                  accept="application/json"
+                  style="display: none"
+                />
+              </div>
+            </div>
+
+            <!-- Advanced Options -->
+            <div class="settings-group">
+              <h4 class="subsection-title">Advanced Import/Export</h4>
+
+              <!-- Mode Selection -->
+              <div class="input-group">
+                <label for="config-mode">Action</label>
+                <select id="config-mode">
+                  <option value="export">Export Settings</option>
+                  <option value="import">Import Settings</option>
+                </select>
+              </div>
+
+              <!-- Settings Categories -->
+              <div class="config-categories">
+                <div class="input-group checkbox-group">
+                  <label>
+                    <input type="checkbox" id="config-all" class="config-category-all" />
+                    <strong>All Settings</strong>
+                    <span class="checkbox-description">Select/deselect all categories</span>
+                  </label>
+                </div>
+                <div class="input-group checkbox-group">
+                  <label>
+                    <input type="checkbox" id="config-background" class="config-category" />
+                    Background & Theme
+                    <span class="checkbox-description"
+                      >Background colors, gradients, and images</span
+                    >
+                  </label>
+                </div>
+                <div class="input-group checkbox-group">
+                  <label>
+                    <input type="checkbox" id="config-appearance" class="config-category" />
+                    Global Widget Styles
+                    <span class="checkbox-description"
+                      >Default appearance settings for all widgets</span
+                    >
+                  </label>
+                </div>
+                <div class="input-group checkbox-group">
+                  <label>
+                    <input type="checkbox" id="config-widgets" class="config-category" />
+                    Widgets & Layout
+                    <span class="checkbox-description"
+                      >Widget positions, sizes, and individual settings</span
+                    >
+                  </label>
+                </div>
+                <div class="input-group checkbox-group">
+                  <label>
+                    <input type="checkbox" id="config-sidepanel" class="config-category" />
+                    Sidepanel Websites
+                    <span class="checkbox-description">Saved websites and sidepanel behavior</span>
+                  </label>
+                </div>
+                <div class="input-group checkbox-group">
+                  <label>
+                    <input type="checkbox" id="config-preferences" class="config-category" />
+                    Application Preferences
+                    <span class="checkbox-description">Modal behavior and other preferences</span>
+                  </label>
                 </div>
               </div>
-              
-              <!-- Appearance Tab -->
-              <div id="appearance-tab" class="tab-content hidden">
-                <div class="settings-section">
-                  <h3>Background</h3>
-                  <div class="form-group">
-                    <label>Background Type:</label>
-                    <div class="icon-type-selector">
-                      <label class="icon-type-option">
-                        <input type="radio" name="bg-type" value="gradient" checked>
-                        <span>Gradient</span>
-                      </label>
-                      <label class="icon-type-option">
-                        <input type="radio" name="bg-type" value="solid">
-                        <span>Solid Color</span>
-                      </label>
-                      <label class="icon-type-option">
-                        <input type="radio" name="bg-type" value="image">
-                        <span>Image</span>
-                      </label>
+
+              <!-- Action Buttons -->
+              <div class="config-actions">
+                <button id="config-action-btn" class="primary-button">Export Selected</button>
+                <input
+                  type="file"
+                  id="config-import-file"
+                  accept="application/json"
+                  style="display: none"
+                />
+              </div>
+            </div>
+
+            <!-- Status/Feedback -->
+            <div class="settings-group">
+              <div id="config-status" class="config-status"></div>
+            </div>
+          </div>
+        </div>
+        <div id="page-appearance-tab" class="tab-content hidden">
+          <div class="settings-section">
+            <h3 class="section-title">Background</h3>
+            <div class="settings-group">
+              <div class="input-group">
+                <label>Background Type</label>
+                <div class="bg-type-selector">
+                  <label class="bg-type-option">
+                    <input type="radio" name="main-bg-type" value="gradient" checked />
+                    <span>Gradient</span>
+                  </label>
+                  <label class="bg-type-option">
+                    <input type="radio" name="main-bg-type" value="solid" />
+                    <span>Solid Color</span>
+                  </label>
+                  <label class="bg-type-option">
+                    <input type="radio" name="main-bg-type" value="image" />
+                    <span>Image</span>
+                  </label>
+                </div>
+              </div>
+
+              <!-- Gradient Options -->
+              <div id="main-gradient-options" class="bg-options-group">
+                <div class="input-row">
+                  <div class="input-group">
+                    <label for="main-gradient-color1">Start Color</label>
+                    <div class="color-input-group">
+                      <input type="color" id="main-gradient-color1" value="#667eea" />
+                      <input
+                        type="text"
+                        id="main-gradient-color1-text"
+                        value="#667eea"
+                        placeholder="#667eea"
+                        class="color-text-input"
+                      />
+                    </div>
+                  </div>
+                  <div class="input-group">
+                    <label for="main-gradient-color2">End Color</label>
+                    <div class="color-input-group">
+                      <input type="color" id="main-gradient-color2" value="#764ba2" />
+                      <input
+                        type="text"
+                        id="main-gradient-color2-text"
+                        value="#764ba2"
+                        placeholder="#764ba2"
+                        class="color-text-input"
+                      />
                     </div>
                   </div>
                 </div>
-              </div>
-            </div>
-
-            <div class="modal-footer">
-              <button id="save-sidepanel-settings" class="primary-btn">Save Settings</button>
-            </div>
-          </div>
-        </div>
-        
-        <!-- Edit Website Modal -->
-        <div id="edit-website-modal" class="sidepanel-settings-modal hidden" role="dialog" aria-modal="true" aria-labelledby="edit-website-title">
-          <div class="modal-content edit-modal">
-            <div class="modal-header">
-              <h2 id="edit-website-title">Edit Website</h2>
-              <button id="close-edit" class="icon-btn" aria-label="Close edit dialog">✕</button>
-            </div>
-            
-            <div class="modal-body">
-              <div class="settings-section">
-                <div class="form-group">
-                  <label for="edit-website-name">Name:</label>
-                  <input type="text" id="edit-website-name" placeholder="e.g., ChatGPT">
-                </div>
-                <div class="form-group">
-                  <label for="edit-website-url">URL:</label>
-                  <input type="url" id="edit-website-url" placeholder="https://example.com">
-                </div>
-                <div class="form-group">
-                  <label>Icon Type:</label>
-                  <div class="icon-type-selector">
-                    <label class="icon-type-option">
-                      <input type="radio" name="edit-icon-type" value="favicon">
-                      <span>Favicon</span>
-                    </label>
-                    <label class="icon-type-option">
-                      <input type="radio" name="edit-icon-type" value="emoji">
-                      <span>Emoji</span>
-                    </label>
-                    <label class="icon-type-option">
-                      <input type="radio" name="edit-icon-type" value="none">
-                      <span>No Icon</span>
-                    </label>
+                <div class="input-group">
+                  <label for="main-gradient-angle">Gradient Angle</label>
+                  <div class="slider-input-group">
+                    <input
+                      type="range"
+                      id="main-gradient-angle"
+                      min="0"
+                      max="360"
+                      value="135"
+                      class="slider-input"
+                    />
+                    <span id="main-gradient-angle-value" class="slider-value">135°</span>
                   </div>
                 </div>
-                <div class="form-group" id="edit-emoji-input-group" style="display: none;">
-                  <label for="edit-website-icon">Icon (emoji):</label>
-                  <input type="text" id="edit-website-icon" placeholder="🌐" maxlength="2">
-                </div>
-                <div class="form-group">
-                  <label for="edit-website-mode">Open Mode:</label>
-                  <select id="edit-website-mode">
-                    <option value="iframe">Embedded (iframe)</option>
-                    <option value="newtab">New Tab</option>
-                    <option value="newwindow">New Window</option>
-                    <option value="privatetab">New Private Tab</option>
-                    <option value="privatewindow">New Private Window</option>
-                  </select>
-                </div>
               </div>
-            </div>
-            
-            <div class="modal-footer">
-              <button id="save-edit" class="primary-btn">Save Changes</button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-  <div id="settings-modal" class="hidden" role="dialog" aria-modal="true" aria-labelledby="settings-modal-title">
-    <div class="modal-header">
-      <div class="modal-title-with-logo">
-        <img src="resources/logo.svg" alt="" class="modal-logo" aria-hidden="true">
-        <h2 id="settings-modal-title" class="modal-title">Settings</h2>
-      </div>
-      <button id="close-settings" class="close-button" aria-label="Close settings">&times;</button>
-    </div>
-    <div class="settings-tabs">
-      <button data-tab="config" class="active">Configuration</button>
-      <button data-tab="page-appearance">Page Appearance</button>
-      <button data-tab="widget-appearance">Widget Appearance</button>
-      <button data-tab="storage">Storage</button>
-    </div>
-    <div class="modal-content">
-      <div id="config-tab" class="tab-content">
-        <div class="settings-section">
-          <h3 class="section-title">Configuration Management</h3>
-          
-          <!-- Quick Actions - Always Available -->
-          <div class="settings-group">
-            <h4 class="subsection-title">Quick Actions</h4>
-            <div class="config-quick-actions">
-              <button id="config-quick-export-all" class="primary-button">Quick Export All</button>
-              <button id="config-quick-import-all" class="primary-button">Quick Import All</button>
-              <input type="file" id="config-quick-import-file" accept="application/json" style="display:none">
-            </div>
-          </div>
 
-          <!-- Advanced Options -->
-          <div class="settings-group">
-            <h4 class="subsection-title">Advanced Import/Export</h4>
-            
-            <!-- Mode Selection -->
-            <div class="input-group">
-              <label for="config-mode">Action</label>
-              <select id="config-mode">
-                <option value="export">Export Settings</option>
-                <option value="import">Import Settings</option>
-              </select>
-            </div>
-
-            <!-- Settings Categories -->
-            <div class="config-categories">
-              <div class="input-group checkbox-group">
-                <label>
-                  <input type="checkbox" id="config-all" class="config-category-all">
-                  <strong>All Settings</strong>
-                  <span class="checkbox-description">Select/deselect all categories</span>
-                </label>
-              </div>
-              <div class="input-group checkbox-group">
-                <label>
-                  <input type="checkbox" id="config-background" class="config-category">
-                  Background & Theme
-                  <span class="checkbox-description">Background colors, gradients, and images</span>
-                </label>
-              </div>
-              <div class="input-group checkbox-group">
-                <label>
-                  <input type="checkbox" id="config-appearance" class="config-category">
-                  Global Widget Styles
-                  <span class="checkbox-description">Default appearance settings for all widgets</span>
-                </label>
-              </div>
-              <div class="input-group checkbox-group">
-                <label>
-                  <input type="checkbox" id="config-widgets" class="config-category">
-                  Widgets & Layout
-                  <span class="checkbox-description">Widget positions, sizes, and individual settings</span>
-                </label>
-              </div>
-              <div class="input-group checkbox-group">
-                <label>
-                  <input type="checkbox" id="config-sidepanel" class="config-category">
-                  Sidepanel Websites
-                  <span class="checkbox-description">Saved websites and sidepanel behavior</span>
-                </label>
-              </div>
-              <div class="input-group checkbox-group">
-                <label>
-                  <input type="checkbox" id="config-preferences" class="config-category">
-                  Application Preferences
-                  <span class="checkbox-description">Modal behavior and other preferences</span>
-                </label>
-              </div>
-            </div>
-
-            <!-- Action Buttons -->
-            <div class="config-actions">
-              <button id="config-action-btn" class="primary-button">Export Selected</button>
-              <input type="file" id="config-import-file" accept="application/json" style="display:none">
-            </div>
-          </div>
-
-          <!-- Status/Feedback -->
-          <div class="settings-group">
-            <div id="config-status" class="config-status"></div>
-          </div>
-        </div>
-
-      </div>
-      <div id="page-appearance-tab" class="tab-content hidden">
-        <div class="settings-section">
-          <h3 class="section-title">Background</h3>
-          <div class="settings-group">
-            <div class="input-group">
-              <label>Background Type</label>
-              <div class="bg-type-selector">
-                <label class="bg-type-option">
-                  <input type="radio" name="main-bg-type" value="gradient" checked>
-                  <span>Gradient</span>
-                </label>
-                <label class="bg-type-option">
-                  <input type="radio" name="main-bg-type" value="solid">
-                  <span>Solid Color</span>
-                </label>
-                <label class="bg-type-option">
-                  <input type="radio" name="main-bg-type" value="image">
-                  <span>Image</span>
-                </label>
-              </div>
-            </div>
-            
-            <!-- Gradient Options -->
-            <div id="main-gradient-options" class="bg-options-group">
-              <div class="input-row">
+              <!-- Solid Color Options -->
+              <div id="main-solid-options" class="bg-options-group hidden">
                 <div class="input-group">
-                  <label for="main-gradient-color1">Start Color</label>
+                  <label for="main-solid-color">Background Color</label>
                   <div class="color-input-group">
-                    <input type="color" id="main-gradient-color1" value="#667eea">
-                    <input type="text" id="main-gradient-color1-text" value="#667eea" placeholder="#667eea" class="color-text-input">
+                    <input type="color" id="main-solid-color" value="#667eea" />
+                    <input
+                      type="text"
+                      id="main-solid-color-text"
+                      value="#667eea"
+                      placeholder="#667eea"
+                      class="color-text-input"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <!-- Image Options -->
+              <div id="main-image-options" class="bg-options-group hidden">
+                <div class="input-group">
+                  <label for="main-bg-image-upload">Background Image</label>
+                  <div class="image-wrapper">
+                    <input type="file" id="main-bg-image-upload" accept="image/*" />
+                    <button id="main-remove-bg-image" class="remove-image hidden">&times;</button>
                   </div>
                 </div>
                 <div class="input-group">
-                  <label for="main-gradient-color2">End Color</label>
-                  <div class="color-input-group">
-                    <input type="color" id="main-gradient-color2" value="#764ba2">
-                    <input type="text" id="main-gradient-color2-text" value="#764ba2" placeholder="#764ba2" class="color-text-input">
+                  <label for="main-bg-image-opacity">Image Opacity</label>
+                  <div class="slider-input-group">
+                    <input
+                      type="range"
+                      id="main-bg-image-opacity"
+                      min="0"
+                      max="100"
+                      value="100"
+                      class="slider-input"
+                    />
+                    <span id="main-bg-image-opacity-value" class="slider-value">100%</span>
                   </div>
                 </div>
               </div>
-              <div class="input-group">
-                <label for="main-gradient-angle">Gradient Angle</label>
-                <div class="slider-input-group">
-                  <input type="range" id="main-gradient-angle" min="0" max="360" value="135" class="slider-input">
-                  <span id="main-gradient-angle-value" class="slider-value">135°</span>
-                </div>
-              </div>
-            </div>
-            
-            <!-- Solid Color Options -->
-            <div id="main-solid-options" class="bg-options-group hidden">
-              <div class="input-group">
-                <label for="main-solid-color">Background Color</label>
-                <div class="color-input-group">
-                  <input type="color" id="main-solid-color" value="#667eea">
-                  <input type="text" id="main-solid-color-text" value="#667eea" placeholder="#667eea" class="color-text-input">
-                </div>
-              </div>
-            </div>
-            
-            <!-- Image Options -->
-            <div id="main-image-options" class="bg-options-group hidden">
-              <div class="input-group">
-                <label for="main-bg-image-upload">Background Image</label>
-                <div class="image-wrapper">
-                  <input type="file" id="main-bg-image-upload" accept="image/*">
-                  <button id="main-remove-bg-image" class="remove-image hidden">&times;</button>
-                </div>
-              </div>
-              <div class="input-group">
-                <label for="main-bg-image-opacity">Image Opacity</label>
-                <div class="slider-input-group">
-                  <input type="range" id="main-bg-image-opacity" min="0" max="100" value="100" class="slider-input">
-                  <span id="main-bg-image-opacity-value" class="slider-value">100%</span>
-                </div>
-              </div>
-            </div>
-            
-            <!-- Preset Gradients -->
-            <div class="input-group">
-              <label>Preset Gradients</label>
-              <div class="preset-gradients-grid">
-                <button class="preset-gradient-btn" data-gradient="135,#667eea,#764ba2" title="Purple Dream"></button>
-                <button class="preset-gradient-btn" data-gradient="135,#f093fb,#f5576c" title="Pink Sunset"></button>
-                <button class="preset-gradient-btn" data-gradient="135,#4facfe,#00f2fe" title="Ocean Blue"></button>
-                <button class="preset-gradient-btn" data-gradient="135,#43e97b,#38f9d7" title="Mint Fresh"></button>
-                <button class="preset-gradient-btn" data-gradient="135,#fa709a,#fee140" title="Warm Sunrise"></button>
-                <button class="preset-gradient-btn" data-gradient="135,#30cfd0,#330867" title="Deep Space"></button>
-                <button class="preset-gradient-btn" data-gradient="135,#a8edea,#fed6e3" title="Soft Pastel"></button>
-                <button class="preset-gradient-btn" data-gradient="135,#ff9a9e,#fecfef" title="Cotton Candy"></button>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="settings-section">
-          <h3 class="section-title">Modal Behavior</h3>
-          <div class="settings-group">
-            <div class="input-group checkbox-group">
-              <label><input type="checkbox" id="reset-modal-position" checked> Reset modal position when reopened</label>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div id="widget-appearance-tab" class="tab-content hidden">
-        <div class="settings-section">
-          <h3 class="section-title">Global Widget Text Styling</h3>
-          <div class="settings-group">
-            <div class="input-group">
-              <label for="global-widget-font-size">Font Size (%)</label>
-              <input type="range" id="global-widget-font-size" min="50" max="200" step="10" value="100">
-              <span id="global-widget-font-size-value">100%</span>
-            </div>
-            <div class="input-group">
-              <label for="global-widget-font-weight">Font Weight</label>
-              <select id="global-widget-font-weight">
-                <option value="300">Light</option>
-                <option value="400" selected>Normal</option>
-                <option value="500">Medium</option>
-                <option value="700">Bold</option>
-                <option value="900">Extra Bold</option>
-              </select>
-            </div>
-            <div class="input-group checkbox-group">
-              <label><input type="checkbox" id="global-widget-italic"> Italic</label>
-              <label><input type="checkbox" id="global-widget-underline"> Underline</label>
-            </div>
-            <div class="input-group">
-              <label for="global-widget-text-color">Text Color</label>
-              <input type="color" id="global-widget-text-color" value="#ffffff">
-            </div>
-            <div class="input-group">
-              <label for="global-widget-text-opacity">Text Opacity (%)</label>
-              <input type="range" id="global-widget-text-opacity" min="10" max="100" step="5" value="100">
-              <span id="global-widget-text-opacity-value">100%</span>
-            </div>
-          </div>
-        </div>
-        <div class="settings-section">
-          <h3 class="section-title">Global Widget Background & Effects</h3>
-          <div class="settings-group">
-            <div class="input-group">
-              <label for="global-widget-bg-color">Background Color</label>
-              <input type="color" id="global-widget-bg-color" value="#000000">
-            </div>
-            <div class="input-group">
-              <label for="global-widget-bg-opacity">Background Opacity (%)</label>
-              <input type="range" id="global-widget-bg-opacity" min="0" max="100" step="5" value="20">
-              <span id="global-widget-bg-opacity-value">20%</span>
-            </div>
-            <div class="input-group">
-              <label for="global-widget-blur">Background Blur (px)</label>
-              <input type="range" id="global-widget-blur" min="0" max="20" step="1" value="10">
-              <span id="global-widget-blur-value">10px</span>
-            </div>
-            <div class="input-group">
-              <label for="global-widget-border-radius">Border Radius (px)</label>
-              <input type="range" id="global-widget-border-radius" min="0" max="30" step="1" value="12">
-              <span id="global-widget-border-radius-value">12px</span>
-            </div>
-            <div class="input-group">
-              <label for="global-widget-opacity">Widget Opacity (%)</label>
-              <input type="range" id="global-widget-opacity" min="10" max="100" step="5" value="100">
-              <span id="global-widget-opacity-value">100%</span>
-            </div>
-          </div>
-        </div>
-        <div class="settings-section">
-          <h3 class="section-title">Global Widget Layout</h3>
-          <div class="settings-group">
-            <div class="input-group">
-              <label for="global-widget-text-align">Text Alignment</label>
-              <select id="global-widget-text-align">
-                <option value="left">Left</option>
-                <option value="center" selected>Center</option>
-                <option value="right">Right</option>
-                <option value="justify">Justify</option>
-              </select>
-            </div>
-            <div class="input-group">
-              <label for="global-widget-vertical-align">Vertical Alignment</label>
-              <select id="global-widget-vertical-align">
-                <option value="flex-start">Top</option>
-                <option value="center" selected>Center</option>
-                <option value="flex-end">Bottom</option>
-              </select>
-            </div>
-            <div class="input-group">
-              <label for="global-widget-padding">Padding (px)</label>
-              <input type="range" id="global-widget-padding" min="0" max="40" step="2" value="16">
-              <span id="global-widget-padding-value">16px</span>
-            </div>
-          </div>
-        </div>
-        <div class="settings-section">
-          <h3 class="section-title">Actions</h3>
-          <div class="settings-group">
-            <button id="reset-global-widget-appearance" class="secondary-button">Reset to Defaults</button>
-          </div>
-        </div>
-      </div>
-      <div id="storage-tab" class="tab-content hidden">
-        <div class="settings-section">
-          <h3 class="section-title">Picture Storage</h3>
-          
-          <div class="settings-group">
-            <h4 class="subsection-title">Storage Overview</h4>
-            <div id="storage-overview" class="storage-overview">
-              <div class="storage-stats">
-                <div id="storage-text" class="storage-text">Loading...</div>
-                <div id="storage-details" class="storage-details"></div>
-              </div>
-            </div>
-          </div>
 
-          <div class="settings-group">
-            <h4 class="subsection-title">Cleanup Tools</h4>
-            <div class="storage-actions">
-              <button id="storage-optimize" class="secondary-button">Optimize Storage</button>
-              <button id="storage-clear-orphaned" class="secondary-button">Clean Orphaned Images</button>
-              <button id="storage-clear-all" class="danger-button">Clear All Images</button>
+              <!-- Preset Gradients -->
+              <div class="input-group">
+                <label>Preset Gradients</label>
+                <div class="preset-gradients-grid">
+                  <button
+                    class="preset-gradient-btn"
+                    data-gradient="135,#667eea,#764ba2"
+                    title="Purple Dream"
+                  ></button>
+                  <button
+                    class="preset-gradient-btn"
+                    data-gradient="135,#f093fb,#f5576c"
+                    title="Pink Sunset"
+                  ></button>
+                  <button
+                    class="preset-gradient-btn"
+                    data-gradient="135,#4facfe,#00f2fe"
+                    title="Ocean Blue"
+                  ></button>
+                  <button
+                    class="preset-gradient-btn"
+                    data-gradient="135,#43e97b,#38f9d7"
+                    title="Mint Fresh"
+                  ></button>
+                  <button
+                    class="preset-gradient-btn"
+                    data-gradient="135,#fa709a,#fee140"
+                    title="Warm Sunrise"
+                  ></button>
+                  <button
+                    class="preset-gradient-btn"
+                    data-gradient="135,#30cfd0,#330867"
+                    title="Deep Space"
+                  ></button>
+                  <button
+                    class="preset-gradient-btn"
+                    data-gradient="135,#a8edea,#fed6e3"
+                    title="Soft Pastel"
+                  ></button>
+                  <button
+                    class="preset-gradient-btn"
+                    data-gradient="135,#ff9a9e,#fecfef"
+                    title="Cotton Candy"
+                  ></button>
+                </div>
+              </div>
             </div>
-            <div id="storage-cleanup-status" class="storage-status"></div>
           </div>
+          <div class="settings-section">
+            <h3 class="section-title">Modal Behavior</h3>
+            <div class="settings-group">
+              <div class="input-group checkbox-group">
+                <label
+                  ><input type="checkbox" id="reset-modal-position" checked /> Reset modal position
+                  when reopened</label
+                >
+              </div>
+            </div>
+          </div>
+        </div>
+        <div id="widget-appearance-tab" class="tab-content hidden">
+          <div class="settings-section">
+            <h3 class="section-title">Global Widget Text Styling</h3>
+            <div class="settings-group">
+              <div class="input-group">
+                <label for="global-widget-font-size">Font Size (%)</label>
+                <input
+                  type="range"
+                  id="global-widget-font-size"
+                  min="50"
+                  max="200"
+                  step="10"
+                  value="100"
+                />
+                <span id="global-widget-font-size-value">100%</span>
+              </div>
+              <div class="input-group">
+                <label for="global-widget-font-weight">Font Weight</label>
+                <select id="global-widget-font-weight">
+                  <option value="300">Light</option>
+                  <option value="400" selected>Normal</option>
+                  <option value="500">Medium</option>
+                  <option value="700">Bold</option>
+                  <option value="900">Extra Bold</option>
+                </select>
+              </div>
+              <div class="input-group checkbox-group">
+                <label><input type="checkbox" id="global-widget-italic" /> Italic</label>
+                <label><input type="checkbox" id="global-widget-underline" /> Underline</label>
+              </div>
+              <div class="input-group">
+                <label for="global-widget-text-color">Text Color</label>
+                <input type="color" id="global-widget-text-color" value="#ffffff" />
+              </div>
+              <div class="input-group">
+                <label for="global-widget-text-opacity">Text Opacity (%)</label>
+                <input
+                  type="range"
+                  id="global-widget-text-opacity"
+                  min="10"
+                  max="100"
+                  step="5"
+                  value="100"
+                />
+                <span id="global-widget-text-opacity-value">100%</span>
+              </div>
+            </div>
+          </div>
+          <div class="settings-section">
+            <h3 class="section-title">Global Widget Background & Effects</h3>
+            <div class="settings-group">
+              <div class="input-group">
+                <label for="global-widget-bg-color">Background Color</label>
+                <input type="color" id="global-widget-bg-color" value="#000000" />
+              </div>
+              <div class="input-group">
+                <label for="global-widget-bg-opacity">Background Opacity (%)</label>
+                <input
+                  type="range"
+                  id="global-widget-bg-opacity"
+                  min="0"
+                  max="100"
+                  step="5"
+                  value="20"
+                />
+                <span id="global-widget-bg-opacity-value">20%</span>
+              </div>
+              <div class="input-group">
+                <label for="global-widget-blur">Background Blur (px)</label>
+                <input type="range" id="global-widget-blur" min="0" max="20" step="1" value="10" />
+                <span id="global-widget-blur-value">10px</span>
+              </div>
+              <div class="input-group">
+                <label for="global-widget-border-radius">Border Radius (px)</label>
+                <input
+                  type="range"
+                  id="global-widget-border-radius"
+                  min="0"
+                  max="30"
+                  step="1"
+                  value="12"
+                />
+                <span id="global-widget-border-radius-value">12px</span>
+              </div>
+              <div class="input-group">
+                <label for="global-widget-opacity">Widget Opacity (%)</label>
+                <input
+                  type="range"
+                  id="global-widget-opacity"
+                  min="10"
+                  max="100"
+                  step="5"
+                  value="100"
+                />
+                <span id="global-widget-opacity-value">100%</span>
+              </div>
+            </div>
+          </div>
+          <div class="settings-section">
+            <h3 class="section-title">Global Widget Layout</h3>
+            <div class="settings-group">
+              <div class="input-group">
+                <label for="global-widget-text-align">Text Alignment</label>
+                <select id="global-widget-text-align">
+                  <option value="left">Left</option>
+                  <option value="center" selected>Center</option>
+                  <option value="right">Right</option>
+                  <option value="justify">Justify</option>
+                </select>
+              </div>
+              <div class="input-group">
+                <label for="global-widget-vertical-align">Vertical Alignment</label>
+                <select id="global-widget-vertical-align">
+                  <option value="flex-start">Top</option>
+                  <option value="center" selected>Center</option>
+                  <option value="flex-end">Bottom</option>
+                </select>
+              </div>
+              <div class="input-group">
+                <label for="global-widget-padding">Padding (px)</label>
+                <input
+                  type="range"
+                  id="global-widget-padding"
+                  min="0"
+                  max="40"
+                  step="2"
+                  value="16"
+                />
+                <span id="global-widget-padding-value">16px</span>
+              </div>
+            </div>
+          </div>
+          <div class="settings-section">
+            <h3 class="section-title">Actions</h3>
+            <div class="settings-group">
+              <button id="reset-global-widget-appearance" class="secondary-button">
+                Reset to Defaults
+              </button>
+            </div>
+          </div>
+        </div>
+        <div id="storage-tab" class="tab-content hidden">
+          <div class="settings-section">
+            <h3 class="section-title">Picture Storage</h3>
 
-          <div class="settings-group">
-            <h4 class="subsection-title">Storage Statistics</h4>
-            <div id="storage-stats-details" class="storage-stats-details">
-              <div class="stats-grid">
-                <div class="stat-item">
-                  <span class="stat-label">Total Images:</span>
-                  <span id="stat-image-count" class="stat-value">-</span>
+            <div class="settings-group">
+              <h4 class="subsection-title">Storage Overview</h4>
+              <div id="storage-overview" class="storage-overview">
+                <div class="storage-stats">
+                  <div id="storage-text" class="storage-text">Loading...</div>
+                  <div id="storage-details" class="storage-details"></div>
                 </div>
-                <div class="stat-item">
-                  <span class="stat-label">Average Size:</span>
-                  <span id="stat-avg-size" class="stat-value">-</span>
-                </div>
-                <div class="stat-item">
-                  <span class="stat-label">Largest Image:</span>
-                  <span id="stat-largest" class="stat-value">-</span>
-                </div>
-                <div class="stat-item">
-                  <span class="stat-label">Oldest Image:</span>
-                  <span id="stat-oldest" class="stat-value">-</span>
+              </div>
+            </div>
+
+            <div class="settings-group">
+              <h4 class="subsection-title">Cleanup Tools</h4>
+              <div class="storage-actions">
+                <button id="storage-optimize" class="secondary-button">Optimize Storage</button>
+                <button id="storage-clear-orphaned" class="secondary-button">
+                  Clean Orphaned Images
+                </button>
+                <button id="storage-clear-all" class="danger-button">Clear All Images</button>
+              </div>
+              <div id="storage-cleanup-status" class="storage-status"></div>
+            </div>
+
+            <div class="settings-group">
+              <h4 class="subsection-title">Storage Statistics</h4>
+              <div id="storage-stats-details" class="storage-stats-details">
+                <div class="stats-grid">
+                  <div class="stat-item">
+                    <span class="stat-label">Total Images:</span>
+                    <span id="stat-image-count" class="stat-value">-</span>
+                  </div>
+                  <div class="stat-item">
+                    <span class="stat-label">Average Size:</span>
+                    <span id="stat-avg-size" class="stat-value">-</span>
+                  </div>
+                  <div class="stat-item">
+                    <span class="stat-label">Largest Image:</span>
+                    <span id="stat-largest" class="stat-value">-</span>
+                  </div>
+                  <div class="stat-item">
+                    <span class="stat-label">Oldest Image:</span>
+                    <span id="stat-oldest" class="stat-value">-</span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -591,48 +800,55 @@
         </div>
       </div>
     </div>
-  </div>
-  <div id="widgets-panel" class="hidden" role="dialog" aria-modal="true" aria-labelledby="widgets-panel-title">
-    <div class="modal-header">
-      <div class="modal-title-with-logo">
-        <img src="resources/logo.svg" alt="" class="modal-logo" aria-hidden="true">
-        <h2 id="widgets-panel-title" class="modal-title">Widgets</h2>
+    <div
+      id="widgets-panel"
+      class="hidden"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="widgets-panel-title"
+    >
+      <div class="modal-header">
+        <div class="modal-title-with-logo">
+          <img src="resources/logo.svg" alt="" class="modal-logo" aria-hidden="true" />
+          <h2 id="widgets-panel-title" class="modal-title">Widgets</h2>
+        </div>
+        <button id="close-widgets" class="close-button" aria-label="Close widgets panel">
+          &times;
+        </button>
       </div>
-      <button id="close-widgets" class="close-button" aria-label="Close widgets panel">&times;</button>
+      <div id="widget-tabs" class="settings-tabs hidden">
+        <button data-tab="widget-settings" class="active">Settings</button>
+        <button data-tab="widget-appearance">Appearance</button>
+      </div>
+      <div class="modal-content">
+        <div id="widget-list"></div>
+        <div id="widget-settings-tab" class="tab-content"></div>
+        <div id="widget-appearance-tab-content" class="tab-content hidden"></div>
+      </div>
     </div>
-    <div id="widget-tabs" class="settings-tabs hidden">
-      <button data-tab="widget-settings" class="active">Settings</button>
-      <button data-tab="widget-appearance">Appearance</button>
-    </div>
-    <div class="modal-content">
-      <div id="widget-list"></div>
-      <div id="widget-settings-tab" class="tab-content"></div>
-      <div id="widget-appearance-tab-content" class="tab-content hidden"></div>
-    </div>
-  </div>
-  
-  <!-- Core extension scripts - MUST load first -->
-  <script src="libs/browser-polyfill.js"></script>
-  <script src="browser-api.js"></script>
-  <script src="settings.js"></script>
-  <script src="widgets.js"></script>
-  <script src="storage-manager.js"></script>
-  
-  <!-- Day.js library for date widget - loaded locally to avoid CSP issues -->
-  <script src="libs/dayjs/dayjs.min.js"></script>
-  <script src="libs/dayjs/plugin/advancedFormat.js"></script>
-  <script src="libs/dayjs/plugin/localizedFormat.js"></script>
-  <script src="libs/dayjs-init.js"></script>
-  
-  <!-- Widget implementations - load AFTER Day.js is ready -->
-  <script src="widgets/clock-widget.js"></script>
-  <script src="widgets/date-widget.js"></script>
-  <script src="widgets/search-widget.js"></script>
-  <script src="widgets/calculator-widget.js"></script>
-  <script src="widgets/picture-widget.js"></script>
-  
-  <!-- Embedded sidepanel functionality -->
-  <script src="split-view.js"></script>
-  <script src="sidepanel-embedded.js"></script>
-</body>
+
+    <!-- Core extension scripts - MUST load first -->
+    <script src="libs/browser-polyfill.js"></script>
+    <script src="browser-api.js"></script>
+    <script src="settings.js"></script>
+    <script src="widgets.js"></script>
+    <script src="storage-manager.js"></script>
+
+    <!-- Day.js library for date widget - loaded locally to avoid CSP issues -->
+    <script src="libs/dayjs/dayjs.min.js"></script>
+    <script src="libs/dayjs/plugin/advancedFormat.js"></script>
+    <script src="libs/dayjs/plugin/localizedFormat.js"></script>
+    <script src="libs/dayjs-init.js"></script>
+
+    <!-- Widget implementations - load AFTER Day.js is ready -->
+    <script src="widgets/clock-widget.js"></script>
+    <script src="widgets/date-widget.js"></script>
+    <script src="widgets/search-widget.js"></script>
+    <script src="widgets/calculator-widget.js"></script>
+    <script src="widgets/picture-widget.js"></script>
+
+    <!-- Embedded sidepanel functionality -->
+    <script src="split-view.js"></script>
+    <script src="sidepanel-embedded.js"></script>
+  </body>
 </html>
