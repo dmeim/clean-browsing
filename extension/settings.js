@@ -253,11 +253,11 @@ applyBackground(settings);
 // Grid is now fixed and responsive - no user configuration needed
 
 // Legacy function kept for compatibility but no longer used
-function updateBackgroundControls() {
+function _updateBackgroundControls() {
   // This function is no longer needed with the new background system
 }
 
-function updateImagePickerDisplay() {
+function _updateImagePickerDisplay() {
   // This function is no longer needed with the new background system
 }
 
@@ -1293,7 +1293,7 @@ class ModalDragResize {
     if (!content) return;
 
     const modalRect = this.modal.getBoundingClientRect();
-    const aspectRatio = modalRect.width / modalRect.height;
+    const _aspectRatio = modalRect.width / modalRect.height;
 
     // Remove existing layout classes
     content.classList.remove('layout-wide', 'layout-narrow');
@@ -1382,7 +1382,7 @@ async function initStorageManagement() {
   const storageOptimizeBtn = document.getElementById('storage-optimize');
   const storageClearOrphanedBtn = document.getElementById('storage-clear-orphaned');
   const storageClearAllBtn = document.getElementById('storage-clear-all');
-  const storageCleanupStatus = document.getElementById('storage-cleanup-status');
+  const _storageCleanupStatus = document.getElementById('storage-cleanup-status');
 
   // Update storage information
   await updateStorageDisplay();
@@ -1554,9 +1554,9 @@ if (document.readyState === 'loading') {
 
 function initModalDragResize() {
   try {
-    const settingsModalDragResize = new ModalDragResize(settingsModal);
+    const _settingsModalDragResize = new ModalDragResize(settingsModal);
     const widgetsModal = document.getElementById('widgets-panel');
-    const widgetsModalDragResize = new ModalDragResize(widgetsModal);
+    const _widgetsModalDragResize = new ModalDragResize(widgetsModal);
   } catch (error) {
     console.error('Error initializing modal drag/resize:', error);
   }

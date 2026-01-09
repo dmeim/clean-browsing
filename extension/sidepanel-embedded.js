@@ -308,8 +308,6 @@ class EmbeddedSidepanel {
     iframe.onerror = null;
     iframe.onload = null;
 
-    let loadTimeout;
-
     // Handle network errors
     iframe.onerror = () => {
       clearTimeout(loadTimeout);
@@ -350,7 +348,7 @@ class EmbeddedSidepanel {
     };
 
     // Set a reasonable timeout for slow-loading sites
-    loadTimeout = setTimeout(() => {
+    const loadTimeout = setTimeout(() => {
       console.log(`Timeout loading ${website.name}`);
       this.handleIframeError(website, 'timeout');
     }, 10000);

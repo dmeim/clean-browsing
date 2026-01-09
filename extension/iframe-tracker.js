@@ -86,7 +86,7 @@
   // Listen for messages from parent to enable/disable tracking and handle navigation
   window.addEventListener('message', (event) => {
     if (event.data && event.data.type === 'SIDEPANEL_ENABLE_TRACKING') {
-      const wasEnabled = isTrackingEnabled;
+      const _wasEnabled = isTrackingEnabled;
       isTrackingEnabled = event.data.enabled || false;
 
       if (isTrackingEnabled) {
