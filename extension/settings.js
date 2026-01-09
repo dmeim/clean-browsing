@@ -595,7 +595,7 @@ async function exportWidgetsWithImages(widgets) {
 
 // Helper function to apply imported settings
 async function applyImportedSettings(importData, selectedCategories) {
-  let appliedCategories = [];
+  const appliedCategories = [];
 
   for (const category of selectedCategories) {
     if (!importData.categories) {
@@ -698,7 +698,6 @@ async function importWidgetsWithImages(widgets, imageDatabase) {
 configMode.addEventListener('change', () => {
   const isExport = configMode.value === 'export';
   configActionBtn.textContent = isExport ? 'Export Selected' : 'Import Selected';
-  configQuickAll.textContent = isExport ? 'Quick Export All' : 'Quick Import All';
 });
 
 // All settings checkbox handler
