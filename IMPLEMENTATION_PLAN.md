@@ -3,6 +3,8 @@
 ## Overview
 This plan merges existing TODOs with critical bugs discovered through comprehensive UI/UX analysis, bug hunting, and architecture review. Items are organized by priority and implementation phases based on detailed code analysis.
 
+> **Firefox Update (v0.5.0):** Clean-Browsing now targets Firefox-first browsers. Chrome-specific sections below are retained for historical context and should only be revisited if Chromium support returns.
+
 ---
 
 ## 🚨 PHASE 1: CRITICAL FIXES (Do First)
@@ -136,7 +138,7 @@ This plan merges existing TODOs with critical bugs discovered through comprehens
   - [ ] **Align version numbers** across files (currently 0.4.9 in main manifest):
     - README badge: `README.md:3`
     - Package files: `package.json:3`, `package-lock.json`
-    - Manifests: `extension/manifest.json`, `extension/manifest.chrome.json`, `extension/manifest.firefox.json`
+    - Manifest: `extension/manifest.json`
   - [ ] **Update alt text/branding** in UI: `extension/newtab.html:245`, `extension/newtab.html:598`
   - [ ] **Update `LICENSE`** copyright line to match chosen brand
 - **Priority**: 🟡 MEDIUM
@@ -177,37 +179,31 @@ This plan merges existing TODOs with critical bugs discovered through comprehens
 ## 🛡️ PHASE 3: SECURITY & COMPLIANCE  
 *Critical for store approval and user trust*
 
-### 3.1 Header-Bypass Rules Compliance (CRITICAL FOR STORE APPROVAL)
-- **Issue**: Current implementation may violate Chrome Web Store policies
-- **Current State**: `extension/frame-rules.json` provides static, global sub_frame header removal
-- **Policy Risk**: Broad header modification without user consent/awareness
+### 3.1 Header-Bypass Controls (FIREFOX COMPLIANCE)
+- **Issue**: Header removal must remain scoped to user-initiated origins
+- **Current State**: `background.js` manages per-tab origin grants via `browser.webRequest`
+- **Risk**: Broad header modification without clear user feedback
 - **Action Items**:
-  - [ ] **Audit `frame-rules.json`** - review all current rules for policy compliance
-  - [ ] **Implement user-initiated bypass only** - rules should only activate on explicit user action
-  - [ ] **Add dynamic, per-origin rules** - replace static global rules
-  - [ ] **Add clear user disclosure** - inform users about header modifications and risks
-  - [ ] **Implement toggle control** - allow users to disable frame bypass entirely
-  - [ ] **Add permission rationale** - explain why header modification is needed
-- **Store Risk**: 🔴 HIGH - could cause store rejection
-- **Priority**: 🔴 CRITICAL
-
-### 3.2 Cross-Browser Compatibility & Manifest Management
-- **Issue**: Complex manifest switching system with potential sync issues
-- **Current Files**:
-  - `extension/manifest.json` - main manifest (Chrome MV3)
-  - `extension/manifest.chrome.json` - Chrome-specific 
-  - `extension/manifest.firefox.json` - Firefox-specific (MV2)
-  - `switch-manifest.sh` - switching script
-- **Specific Issues Found**:
-  - `browser_specific_settings` appears in main manifest (should be Firefox-only)
-  - Version numbers may drift between manifests
-  - Firefox MV2 webRequest path needs validation
-- **Action Items**:
-  - [ ] **Ensure Firefox MV2 path** remains functional via `webRequest`
-  - [ ] **Clean up browser-specific settings** - move Firefox settings to Firefox manifest only
-  - [ ] **Create manifest validation** - script to check consistency
-  - [ ] **Centralize version management** - single source of truth or automated sync
+  - [ ] **Confirm consent flow** for enabling frame bypass from the sidepanel UI
+  - [ ] **Maintain per-tab origin tracking** and cleanup on tab close
+  - [ ] **Document header adjustments** so users understand the behaviour
+  - [ ] **Provide disable option** for users who prefer no header stripping
+  - [ ] **Review Firefox add-on policies** to ensure compliance
 - **Priority**: 🟠 HIGH
+
+### 3.2 Firefox Manifest Management
+- **Issue**: Previous Chromium/Firebase manifest split caused drift
+- **Current Files**:
+  - `extension/manifest.json` - unified Firefox manifest (MV2)
+  - `switch-manifest.sh` - legacy helper script (cleanup only)
+- **Specific Notes**:
+  - Chrome-specific manifests and DNR rules have been removed
+  - Version management now depends on `extension/manifest.json`
+- **Action Items**:
+  - [ ] **Automate manifest validation** to ensure required Firefox permissions remain present
+  - [ ] **Keep script tooling in sync** with Firefox-only workflow
+  - [ ] **Monitor browser-specific settings** for Firefox forks as needed
+- **Priority**: 🟡 MEDIUM
 
 ### 3.3 Security Documentation & Transparency
 - **Issue**: Missing security documentation could raise red flags during review
@@ -336,26 +332,21 @@ This plan merges existing TODOs with critical bugs discovered through comprehens
     - Automatically exclude `.DS_Store` and junk files
     - Ensure consistent naming with chosen brand
     - Add validation of package contents
-  - [ ] **Enhance manifest switching** - improve `switch-manifest.sh`:
-    - Add validation to ensure target manifest exists
-    - Add backup/restore functionality
-    - Better error handling and user feedback
-  - [ ] **Add automated packaging** for both browsers:
-    - `npm run build:chrome` - packages for Chrome Web Store
-    - `npm run build:firefox` - packages for Firefox Add-ons
-    - `npm run build:all` - packages for all browsers
+  - [ ] **Retire manifest switching** - update or remove `switch-manifest.sh`
+  - [ ] **Add automated packaging** for Firefox distribution:
+    - `npm run package` - packages for Firefox Add-ons
   - [ ] **Add package validation** - verify all required files included
 - **Priority**: 🟡 MEDIUM
 
 ### 5.3 CI/CD Pipeline Enhancements
 - **Current State**: Basic CI in `.github/workflows/test.yml` with potential issues
 - **Issues Found**:
-  - CI may fail due to manifest switching complexity
-  - No validation of both Chrome and Firefox builds
+  - CI previously depended on manifest switching
+  - No validation of Firefox package output
   - No automated testing of extension loading
 - **Action Items**:
-  - [ ] **Update CI to handle manifest switching**:
-    - Test both Chrome and Firefox builds
+  - [ ] **Update CI to reflect Firefox-only workflow**
+  - [ ] **Add package validation** for `npm run package`
     - Validate manifest consistency
     - Ensure builds succeed for both browsers
   - [ ] **Add extension validation**:

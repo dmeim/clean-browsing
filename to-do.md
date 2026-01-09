@@ -6,18 +6,18 @@ Branding & Versioning
 - [ ] Align version numbers across files (badge, package, manifests):
   - README badge: `README.md:3`
   - Package: `package.json:3`, `package-lock.json`
-  - Manifests: `extension/manifest.json`, `extension/manifest.chrome.json`, `extension/manifest.firefox.json`
+  - Manifest: `extension/manifest.json`
 - [ ] Update alt text/branding in UI where applicable: `extension/newtab.html:245`, `extension/newtab.html:598`.
 - [ ] Update `LICENSE` copyright line to match the chosen brand.
 
-Manifest & Background (MV3/MV2)
-- [ ] MV3 service worker: replace `window.updateChromeRules` with `globalThis.updateChromeRules` and reference via `globalThis` (no `window` in MV3 service workers): `extension/background.js:232`, `:271`, `:318`.
-- [ ] Ensure Firefox MV2 path remains functional via `webRequest`.
+Manifest & Background (Firefox)
+- [ ] Keep `extension/manifest.json` in sync with package version and permissions.
+- [ ] Validate `browser.webRequest` logic after each major refactor.
 - [ ] Consider centralizing manifest versioning (single source of truth) or document the sync process.
 
-Header-Bypass Rules (DNR/webRequest)
-- [ ] Revisit `extension/frame-rules.json` (static, global sub_frame header removal). Either remove/disable or scope to user-initiated, explicit domains only to comply with store policy.
-- [ ] Prefer dynamic, per-origin rules originating from user action. Add user-facing setting and clear disclosure about limitations and risks.
+Header-Bypass Rules (webRequest)
+- [ ] Ensure per-tab origin tracking remains user-initiated and is cleaned up on tab close.
+- [ ] Keep user-facing messaging clear about iframe limitations and header adjustments.
 
 Defaults & Duplication
 - [ ] Unify sidepanel default sites (use either `chat.openai.com` or `chatgpt.com` consistently):
@@ -43,7 +43,7 @@ Documentation & README
 Packaging & CI
 - [ ] Remove/rename legacy dist archives (`dist/NewTab-PlusProMaxUltra-*.zip`); regenerate with new naming.
 - [ ] Update packaging scripts to exclude `.DS_Store` and other junk files; ensure consistent naming: `package.json` scripts.
-- [ ] Add scripts to call `switch-manifest.sh chrome|firefox` before packaging/validation.
+- [ ] Decide whether `switch-manifest.sh` should be retired or updated for Firefox-only tooling.
 - [ ] Update CI to validate both manifests or switch to a known target before reading `extension/manifest.json`:
   - `.github/workflows/test.yml`
 - [ ] Optionally add ESLint/Prettier (dev-only) and run in CI for basic hygiene.
@@ -72,4 +72,3 @@ Housekeeping
 - [ ] Clarify chosen brand in release notes and keep future notes consistent (`release-notes/`).
 - [ ] Ensure `browser_specific_settings` only appears in Firefox manifest.
 - [ ] Add CODEOWNERS if desired and update repository links in docs to match repo name.
-

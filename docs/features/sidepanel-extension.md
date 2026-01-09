@@ -8,7 +8,7 @@
 
 ## Overview
 
-A browser sidepanel that provides quick access to user-configured websites through the Chrome extension icon. Users can toggle the sidepanel open/closed by clicking the extension icon, providing instant access to frequently used sites like AI chat platforms, social media, productivity tools, or any custom websites without leaving their current tab.
+A browser sidepanel that provides quick access to user-configured websites through the Firefox extension icon. Users can toggle the sidepanel open/closed by clicking the extension icon, providing instant access to frequently used sites like AI chat platforms, social media, productivity tools, or any custom websites without leaving their current tab.
 
 ## Core Features
 
@@ -39,30 +39,31 @@ A browser sidepanel that provides quick access to user-configured websites throu
 ## Technical Specifications
 
 ### Dependencies
-- **Chrome sidePanel API**: Requires Chrome 114+ for sidepanel functionality
-- **Extension Permissions**: sidePanel permission, optional host permissions for iframe embedding
-- **Settings Integration**: Uses existing settings.js storage and persistence system
-- **Background Script**: Service worker to handle extension icon clicks and panel behavior
+- **Firefox WebExtension APIs**: `browserAction`, `tabs`, `webRequest`, `webRequestBlocking`, `storage`
+- **Extension Permissions**: `<all_urls>` host access for iframe embedding
+- **Settings Integration**: Uses existing `settings.js` storage and persistence system
+- **Background Script**: Persistent background logic handles toolbar clicks and messaging
 
 ### Implementation Details
-- **sidePanel API Integration**: Configure panel opening on extension icon click
-- **Message Passing**: Communication between sidepanel, background script, and main extension
-- **iframe Security**: Content Security Policy considerations for embedded websites
-- **Host Permissions**: Dynamic permission requests for iframe-embedded sites
+- **Toolbar Integration**: `browser.browserAction` toggles the injected sidepanel
+- **Message Passing**: Background ↔ content script communication via `browser.runtime`
+- **Header Adjustments**: `browser.webRequest` removes frame-blocking headers per tab
+- **Content Injection**: `sidepanel-injector.js` builds the UI directly in the active page
 - **Favicon Handling**: Fetch and display website favicons or custom icons
 - **Error Handling**: Graceful fallbacks for sites that can't be embedded
 - **URL Tracking**: Real-time navigation tracking within embedded iframes
 
 ### File Structure
 ```
-extension/sidepanel.html              (sidebar panel HTML)
-extension/sidepanel.js               (sidebar panel logic)
-extension/sidepanel.css              (sidebar-specific styles)
-extension/background.js              (service worker for panel management)
-extension/manifest.json              (updated with sidePanel permissions)
-extension/settings.js                (extended with sidebar settings)
-extension/newtab.html                (updated with sidebar settings UI)
-docs/features/sidebar-extension.md   (this file)
+extension/sidepanel.js              # Sidepanel logic for the new tab experience
+extension/sidepanel.css             # Embedded sidepanel styling
+extension/sidepanel-injector.js     # Content-script injector for active pages
+extension/sidepanel-ui.js           # Shared UI markup helpers
+extension/sidepanel-embedded.js     # New tab sidepanel integration
+extension/background.js             # Background logic & webRequest handling
+extension/manifest.json             # Firefox-targeted manifest configuration
+extension/settings.js               # Shared settings & persistence layer
+docs/features/sidepanel-extension.md # This document
 ```
 
 ## Development Workflow
@@ -114,7 +115,7 @@ docs/features/sidebar-extension.md   (this file)
 - **Recent Activity**: Show recently accessed websites at top
 - **Context Integration**: Show relevant websites based on current tab content
 - **Multiple Profiles**: Different sidebar configurations for work/personal use
-- **Sync Integration**: Chrome sync support for cross-device configuration
+- **Sync Integration**: Firefox Sync support for cross-device configuration (future)
 
 ## Testing Checklist
 
@@ -124,7 +125,7 @@ docs/features/sidebar-extension.md   (this file)
 - [ ] Website links open in correct mode (iframe/tab)
 - [ ] Add/edit/remove website functionality works
 - [ ] Settings persist across browser sessions
-- [ ] Sidebar respects Chrome's sidePanel constraints
+- [ ] Sidebar integrates cleanly with Firefox toolbar behaviour
 
 ### Integration Testing
 - [ ] Sidebar settings integrate with main extension settings
@@ -134,14 +135,14 @@ docs/features/sidebar-extension.md   (this file)
 - [ ] Performance acceptable with many configured websites
 
 ### Cross-browser Testing
-- [ ] Chrome 114+ (primary target with sidePanel API)
-- [ ] Edge (Chromium-based, sidePanel support)
-- [ ] Other Chromium browsers with sidePanel support
+- [ ] Firefox 78+
+- [ ] Zen Browser
+- [ ] LibreWolf / Waterfox
 
 ## Development Notes
 
 ### Implementation Challenges
-- **Chrome sidePanel API**: Relatively new API, requires Chrome 114+
+- **Firefox Toolbar Integration**: Ensuring consistent behaviour across Firefox variants
 - **iframe Security**: Many sites block iframe embedding with X-Frame-Options
 - **Permission Management**: Dynamic host permissions for iframe embedding
 - **Content Security Policy**: Restrictions on embedded content and scripts
@@ -181,7 +182,7 @@ docs/features/sidebar-extension.md   (this file)
 
 ### Common Issues and Solutions
 - **Website won't load in iframe**: Site blocks embedding - change to "new tab" mode
-- **Sidebar not opening**: Check Chrome version (requires 114+) and extension permissions
+- **Sidebar not opening**: Ensure required permissions are granted and the page is not a protected Firefox scheme (about:/moz-extension)
 - **Icons not displaying**: Verify icon URLs are accessible and point to valid images
 - **Extension icon not clickable**: Ensure sidePanel permission is granted in manifest
 - **Settings not saving**: Check browser storage permissions and settings integration
@@ -205,30 +206,67 @@ Require "new tab" mode:
 
 ## Technical Implementation Notes
 
-### Chrome sidePanel API Usage
+### Browser Action Integration
 ```javascript
 // manifest.json
 {
-  "permissions": ["sidePanel", "storage"],
-  "side_panel": {
-    "default_path": "sidepanel.html"
+  "permissions": [
+    "storage",
+    "tabs",
+    "activeTab",
+    "webRequest",
+    "webRequestBlocking",
+    "<all_urls>"
+  ],
+  "browser_action": {
+    "default_title": "Toggle Sidebar",
+    "default_icon": {
+      "16": "resources/logo.png",
+      "48": "resources/logo.png",
+      "128": "resources/logo.png"
+    }
+  },
+  "sidebar_action": {
+    "default_title": "Clean-Browsing Sidebar",
+    "default_panel": "sidepanel.html",
+    "default_icon": {
+      "16": "resources/logo.png",
+      "32": "resources/logo.png"
+    }
   },
   "background": {
-    "service_worker": "background.js"
-  },
-  "action": {
-    "default_title": "Toggle Sidebar"
+    "scripts": [
+      "libs/browser-polyfill.js",
+      "background.js"
+    ],
+    "persistent": true
   }
 }
 
 // background.js
-chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: true });
+browser.browserAction.onClicked.addListener(async (tab) => {
+const windowId = tab?.windowId;
+const query = typeof windowId === 'number' ? { windowId } : {};
+const isOpen = await browser.sidebarAction.isOpen(query);
+
+if (typeof windowId === 'number') {
+  if (isOpen) {
+    await browser.sidebarAction.close({ windowId });
+  } else {
+    await browser.sidebarAction.open({ windowId });
+  }
+} else if (isOpen) {
+  await browser.sidebarAction.close();
+} else {
+  await browser.sidebarAction.open();
+}
+});
 ```
 
 ### Message Passing Pattern
 ```javascript
 // Communication between main extension and sidebar
-chrome.runtime.sendMessage({
+browser.runtime.sendMessage({
   action: 'updateSidebarSettings',
   settings: newSidebarSettings
 });
@@ -237,7 +275,7 @@ chrome.runtime.sendMessage({
 ## 🔧 Universal Iframe Implementation - Complete Technical Documentation
 
 ### Overview
-The sidepanel implements a **universal iframe embedding system** that can load **ANY website** without restrictions. Using Chrome's declarativeNetRequest API, we bypass traditional iframe blocking mechanisms (X-Frame-Options, Content-Security-Policy) to provide seamless website embedding. This creates a truly universal experience where every website works in iframe mode.
+The sidepanel implements a **universal iframe embedding system** that can load **ANY website** without restrictions. Using Firefox's `webRequest` API, we adjust response headers (X-Frame-Options, Content-Security-Policy, Permissions-Policy, etc.) to provide seamless website embedding. This creates a truly universal experience where every website works in iframe mode across Firefox-based browsers.
 
 ### Core Concepts
 
@@ -249,61 +287,68 @@ Websites traditionally block iframe embedding through:
 - **JavaScript Frame Busting**: Still possible but rare
 
 #### 2. **The Universal Solution: Header Stripping**
-Our implementation uses Chrome's `declarativeNetRequest` API to:
-1. **Intercept all HTTP responses** before they reach the browser
-2. **Remove blocking headers** (X-Frame-Options, CSP frame-ancestors)
-3. **Allow universal iframe embedding** for any website
+Our implementation uses the `browser.webRequest` APIs to:
+1. **Intercept HTTP responses** before they reach the page
+2. **Remove blocking headers** (X-Frame-Options, CSP frame-ancestors, COOP/COEP, etc.)
+3. **Allow universal iframe embedding** for any website when explicitly enabled
 4. **Maintain security** through sandboxing and same-origin policy
 
 ### Implementation Details
 
 #### 3. **The Universal Iframe Loading System**
 
-##### **Declarative Net Request Rules (frame-rules.json)**
-```json
-[
-  {
-    "id": 1,
-    "priority": 1,
-    "action": {
-      "type": "modifyHeaders",
-      "responseHeaders": [
-        {
-          "header": "X-Frame-Options",
-          "operation": "remove"
-        },
-        {
-          "header": "Content-Security-Policy", 
-          "operation": "remove"
-        },
-        {
-          "header": "X-Content-Security-Policy",
-          "operation": "remove"
-        }
-      ]
-    },
-    "condition": {
-      "urlFilter": "*",
-      "resourceTypes": ["sub_frame", "main_frame"]
+##### **webRequest Header Adjustment (background.js)**
+```javascript
+const sessionsByTab = new Map();
+
+browser.webRequest.onHeadersReceived.addListener(
+  (details) => {
+    if (details.type !== 'sub_frame') {
+      return {};
     }
-  }
-]
+
+    const allowedOrigins = sessionsByTab.get(details.tabId);
+    const origin = new URL(details.url).origin;
+    if (!allowedOrigins || !allowedOrigins.has(origin)) {
+      return {};
+    }
+
+    const blockedHeaders = new Set([
+      'x-frame-options',
+      'content-security-policy',
+      'permissions-policy',
+      'cross-origin-opener-policy',
+      'cross-origin-embedder-policy'
+    ]);
+
+    const responseHeaders = (details.responseHeaders || []).filter(
+      (header) => !blockedHeaders.has(header.name.toLowerCase())
+    );
+
+    return { responseHeaders };
+  },
+  { urls: ['<all_urls>'] },
+  ['blocking', 'responseHeaders']
+);
 ```
 
 ##### **Manifest Configuration**
 ```json
 {
   "permissions": [
-    "declarativeNetRequest",
-    "declarativeNetRequestWithHostAccess"
+    "storage",
+    "tabs",
+    "activeTab",
+    "webRequest",
+    "webRequestBlocking",
+    "<all_urls>"
   ],
-  "host_permissions": ["<all_urls>"],
-  "declarative_net_request": {
-    "rule_resources": [{
-      "id": "frame_rules",
-      "enabled": true,
-      "path": "frame-rules.json"
-    }]
+  "background": {
+    "scripts": [
+      "libs/browser-polyfill.js",
+      "background.js"
+    ],
+    "persistent": true
   }
 }
 ```
@@ -325,7 +370,7 @@ async function openInIframe(website) {
   currentWebsiteUrl = website.url;
   
   // Enable frame bypass for this URL
-  await chrome.runtime.sendMessage({ 
+  await browser.runtime.sendMessage({ 
     action: 'enableFrameBypass', 
     url: website.url 
   });
@@ -360,7 +405,7 @@ async function openInIframe(website) {
 #### 4. **Key Technical Insights**
 
 ##### **How Header Stripping Works**
-The `declarativeNetRequest` API intercepts HTTP responses at the network layer:
+The `webRequest` API intercepts HTTP responses at the network layer:
 1. **Browser makes request** to website for iframe content
 2. **Server responds** with headers (including X-Frame-Options, CSP)
 3. **Our extension intercepts** response before browser processes it
@@ -379,7 +424,7 @@ The `declarativeNetRequest` API intercepts HTTP responses at the network layer:
 ```
 User clicks website → Enable header stripping → Load in iframe → Success!
                                     ↓
-                        declarativeNetRequest removes:
+                        webRequest handler removes:
                         • X-Frame-Options: DENY
                         • X-Frame-Options: SAMEORIGIN  
                         • Content-Security-Policy: frame-ancestors
@@ -394,7 +439,7 @@ function handleIframeError(website) {
   console.log(`${website.name} cannot be embedded, opening in new tab`);
   
   // Open in new tab
-  chrome.runtime.sendMessage({ 
+  browser.runtime.sendMessage({ 
     action: 'openInNewTab', 
     url: website.url 
   });
@@ -487,7 +532,7 @@ With the universal implementation, you'll only see success messages:
 3. **Smart Timeout**: 10 seconds for slow sites (no detection needed)
 4. **Memory Management**: Clears iframe src when returning to list
 5. **Selective Rules**: Header stripping only active during iframe loads
-6. **Minimal Overhead**: DeclarativeNetRequest is highly optimized
+6. **Minimal Overhead**: The `webRequest` handler is scoped to active sessions
 
 ### Future Enhancements
 
@@ -503,12 +548,12 @@ Since all websites now work, future improvements focus on user experience:
 
 For implementing the universal iframe system:
 
-- [ ] Add declarativeNetRequest permissions to manifest.json
-- [ ] Add host_permissions for <all_urls>
-- [ ] Create frame-rules.json with header removal rules
-- [ ] Reference rules in manifest's declarative_net_request
-- [ ] Set up basic iframe element in HTML
-- [ ] Implement iframe loading with header bypass
+- [ ] Ensure `webRequest` and `webRequestBlocking` permissions in `manifest.json`
+- [ ] Include `<all_urls>` in host permissions
+- [ ] Track per-tab origin sessions for allowed iframe hosts
+- [ ] Register `browser.webRequest.onHeadersReceived` handler for header removal
+- [ ] Register `browser.webRequest.onBeforeRedirect` to keep origin lists fresh
+- [ ] Set up iframe loading logic with explicit bypass enablement
 - [ ] Add network error handling (only error type needed)
 - [ ] Add timeout for slow sites (10 seconds recommended)
 - [ ] Test with previously blocked sites (GitHub, ChatGPT, etc.)
@@ -760,7 +805,7 @@ function getCurrentUrl() {
 document.getElementById('open-in-tab').addEventListener('click', () => {
   const urlToOpen = currentWebsiteUrl || lastKnownUrl || iframe.src;
   if (urlToOpen && urlToOpen !== 'about:blank') {
-    chrome.runtime.sendMessage({ 
+    browser.runtime.sendMessage({ 
       action: 'openInNewTab', 
       url: urlToOpen  // Opens current page, not initial site
     });
@@ -907,7 +952,7 @@ function stopUrlTracking() {
 
 ## Summary: The Universal Sidepanel
 
-Our sidepanel implementation achieves what was previously thought impossible: **100% website compatibility** in iframe mode. By leveraging Chrome's declarativeNetRequest API to remove frame-blocking headers at the network layer, we've created a sidepanel that can embed literally any website without restrictions, fallbacks, or configuration.
+Our sidepanel implementation achieves what was previously thought impossible: **near-universal website compatibility** in iframe mode. By leveraging Firefox's `webRequest` API to remove frame-blocking headers at the network layer, we've created a sidepanel that can embed virtually any website without manual configuration.
 
 ### Key Achievements
 - ✅ **Universal Compatibility**: Every website works - no exceptions

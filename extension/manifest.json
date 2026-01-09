@@ -1,14 +1,9 @@
 {
-  "manifest_version": 3,
+  "manifest_version": 2,
   "name": "Clean-Browsing",
-  "version": "0.4.9",
-  "description": "Enhanced browsing with customizable dashboard, sidepanel, and productivity tools - Cross-browser compatible",
-  
-  "chrome_url_overrides": {
-    "newtab": "newtab.html"
-  },
-  
-  "action": {
+  "version": "0.5.0",
+  "description": "Enhanced browsing with customizable dashboard, sidepanel, and productivity tools for Firefox-based browsers.",
+  "browser_action": {
     "default_title": "Toggle Sidepanel",
     "default_icon": {
       "16": "resources/logo.png",
@@ -16,55 +11,68 @@
       "128": "resources/logo.png"
     }
   },
-  
+  "sidebar_action": {
+    "default_title": "Clean-Browsing Sidebar",
+    "default_panel": "sidepanel.html",
+    "default_icon": {
+      "16": "resources/logo.png",
+      "32": "resources/logo.png"
+    }
+  },
+  "chrome_url_overrides": {
+    "newtab": "newtab.html"
+  },
   "icons": {
     "16": "resources/logo.png",
     "48": "resources/logo.png",
     "128": "resources/logo.png"
   },
-  
   "permissions": [
     "storage",
     "tabs",
     "activeTab",
-    "declarativeNetRequest",
-    "scripting"
-  ],
-  "host_permissions": [
+    "webRequest",
+    "webRequestBlocking",
     "<all_urls>"
   ],
-  
   "background": {
-    "service_worker": "background.js"
+    "scripts": [
+      "libs/browser-polyfill.js",
+      "background.js"
+    ],
+    "persistent": true
   },
-  
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
-      "js": ["iframe-tracker.js"],
+      "js": [
+        "libs/browser-polyfill.js",
+        "iframe-tracker.js"
+      ],
       "run_at": "document_start",
       "all_frames": true
     },
     {
       "matches": ["<all_urls>"],
-      "js": ["sidepanel-injector.js"],
+      "js": [
+        "libs/browser-polyfill.js",
+        "sidepanel-injector.js"
+      ],
       "css": ["sidepanel-injected.css"],
       "run_at": "document_idle",
       "all_frames": false
     }
   ],
-  
   "web_accessible_resources": [
+    "browser-api.js",
     "default-settings.js",
     "sidepanel-ui.js",
-    "browser-api.js",
     "sidepanel-embedded.js",
     "sidepanel-embedded.css",
     "sidepanel.css",
     "split-view.js",
     "resources/logo.png"
   ],
-  
   "browser_specific_settings": {
     "gecko": {
       "id": "clean-browsing@example.com",

@@ -5,7 +5,7 @@ Thank you for your interest in contributing to Clean Browsing! This document pro
 ## 🚀 Getting Started
 
 ### Prerequisites
-- Chrome or Chromium-based browser
+- Firefox or Firefox-based browser (Zen, LibreWolf, Waterfox, etc.)
 - Basic knowledge of HTML, CSS, and JavaScript
 - Git for version control
 
@@ -16,10 +16,10 @@ Thank you for your interest in contributing to Clean Browsing! This document pro
    git clone https://github.com/yourusername/clean-browsing.git
    cd clean-browsing
    ```
-3. Load the extension in Chrome:
-   - Open `chrome://extensions`
-   - Enable Developer mode
-   - Click "Load unpacked" and select the `extension/` folder
+3. Load the extension in Firefox:
+   - Open `about:debugging#/runtime/this-firefox`
+   - Click **Load Temporary Add-on…**
+   - Choose any file inside the `extension/` folder (for example `manifest.json`)
 4. Make your changes and test the extension features
 
 ## 🛠️ Development Guidelines
@@ -136,7 +136,7 @@ What should have happened
 What actually happened
 
 **Environment**
-- Browser: Chrome/Edge/etc
+- Browser: Firefox/Zen/etc
 - Version: Extension version number
 - OS: Windows/Mac/Linux
 
@@ -190,12 +190,12 @@ Any alternative solutions you've thought of
 ## 📚 Resources
 
 ### Documentation
-- [Chrome Extension Documentation](https://developer.chrome.com/docs/extensions/)
+- [Firefox Extension Workshop](https://extensionworkshop.com/)
 - [CSS Container Queries](https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_Container_Queries)
 - [Web Components Best Practices](https://developers.google.com/web/fundamentals/web-components)
 
 ### Tools
-- Chrome DevTools for debugging
+- Firefox Developer Tools for debugging
 - Extension Reloader for faster development
 - Git hooks for code quality checks
 
@@ -211,8 +211,8 @@ Contributors will be acknowledged in release notes and project documentation.
 
 ## 📄 License
 
-By contributing to NewTab PlusProMaxUltra, you agree that your contributions will be licensed under the MIT License.
+By contributing to Clean-Browsing, you agree that your contributions will be licensed under the MIT License.
 
 ---
 
-Thank you for helping make NewTab PlusProMaxUltra better for everyone! 🚀
+Thank you for helping make Clean-Browsing better for everyone! 🚀

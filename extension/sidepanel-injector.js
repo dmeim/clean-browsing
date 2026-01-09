@@ -7,40 +7,42 @@
   
   console.log('🚀 Clean-Browsing: Advanced sidepanel injector loading...');
   
+  const runtime = (typeof browser !== 'undefined' && browser.runtime) ? browser.runtime : null;
+
   // Load shared modules
   const defaultSettingsScript = document.createElement('script');
-  defaultSettingsScript.src = chrome?.runtime?.getURL('default-settings.js') || browser?.runtime?.getURL('default-settings.js');
+  defaultSettingsScript.src = runtime?.getURL ? runtime.getURL('default-settings.js') : 'default-settings.js';
   document.head.appendChild(defaultSettingsScript);
   
   const uiModuleScript = document.createElement('script');
-  uiModuleScript.src = chrome?.runtime?.getURL('sidepanel-ui.js') || browser?.runtime?.getURL('sidepanel-ui.js');
+  uiModuleScript.src = runtime?.getURL ? runtime.getURL('sidepanel-ui.js') : 'sidepanel-ui.js';
   document.head.appendChild(uiModuleScript);
   
   // Create minimal cross-browser wrapper for content script
-  const _api = (typeof browser !== 'undefined') ? browser : (typeof chrome !== 'undefined' ? chrome : undefined);
-  const _isPromise = (v) => v && typeof v.then === 'function';
+  const _api = (typeof browser !== 'undefined') ? browser : undefined;
   
   // Minimal ExtensionAPI for content script use
   const ExtensionAPI = {
     storage: {
       async get(keys) {
-        if (!_api?.storage?.local?.get) return {};
-        const result = _api.storage.local.get(keys);
-        return _isPromise(result) ? await result : await new Promise(resolve => _api.storage.local.get(keys, resolve));
+        if (!_api?.storage?.local?.get) {
+          return {};
+        }
+        return await _api.storage.local.get(keys);
       },
       async set(obj) {
-        if (!_api?.storage?.local?.set) return;
-        const result = _api.storage.local.set(obj);
-        return _isPromise(result) ? await result : await new Promise(resolve => _api.storage.local.set(obj, resolve));
+        if (!_api?.storage?.local?.set) {
+          return;
+        }
+        return await _api.storage.local.set(obj);
       }
     },
     runtime: {
       async sendMessage(message) {
-        if (!_api?.runtime?.sendMessage) return {};
-        const result = _api.runtime.sendMessage(message);
-        return _isPromise(result) ? await result : await new Promise((resolve, reject) => {
-          try { _api.runtime.sendMessage(message, resolve); } catch (e) { reject(e); }
-        });
+        if (!_api?.runtime?.sendMessage) {
+          return {};
+        }
+        return await _api.runtime.sendMessage(message);
       },
       getURL(path) {
         return _api?.runtime?.getURL ? _api.runtime.getURL(path) : path;
@@ -62,7 +64,8 @@
   }
   
   // Don't inject on the new tab page (already has embedded sidepanel)
-  if (window.location.href.includes('chrome-extension://') && window.location.href.includes('newtab.html')) {
+  const newTabUrl = runtime?.getURL ? runtime.getURL('newtab.html') : null;
+  if (newTabUrl && window.location.href.startsWith(newTabUrl)) {
     console.log('🔄 Clean-Browsing: Skipping new tab page');
     return;
   }
