@@ -2302,3 +2302,102 @@ select option {
     grid-template-columns: 1fr;
   }
 }
+
+/* ============================================
+   ACCESSIBILITY: Reduced Motion Support
+   ============================================ */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  
+  /* Disable jiggle mode animation */
+  #widget-grid.jiggle-mode {
+    animation: none;
+  }
+  
+  .widget.jiggle {
+    animation: none;
+  }
+  
+  /* Disable modal transitions */
+  #settings-modal,
+  #widgets-panel,
+  .sidepanel-settings-modal {
+    transition: none;
+  }
+  
+  /* Disable backdrop filter animations */
+  .widget,
+  #settings-modal,
+  #widgets-panel {
+    backdrop-filter: blur(10px);
+    transition: none;
+  }
+}
+
+/* ============================================
+   ACCESSIBILITY: Focus Styles
+   ============================================ */
+
+/* Enhanced focus indicators for keyboard navigation */
+:focus-visible {
+  outline: 2px solid rgba(100, 150, 255, 0.8);
+  outline-offset: 2px;
+}
+
+/* Skip link for keyboard users (hidden until focused) */
+.skip-link {
+  position: absolute;
+  top: -100%;
+  left: 0;
+  padding: 8px 16px;
+  background: rgba(0, 0, 0, 0.9);
+  color: #fff;
+  text-decoration: none;
+  z-index: 10000;
+  border-radius: 0 0 8px 0;
+}
+
+.skip-link:focus {
+  top: 0;
+}
+
+/* Button focus states */
+.action-button:focus-visible,
+.icon-btn:focus-visible,
+.nav-btn:focus-visible,
+.primary-btn:focus-visible,
+.primary-button:focus-visible,
+.secondary-button:focus-visible {
+  outline: 2px solid rgba(100, 150, 255, 0.8);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px rgba(100, 150, 255, 0.3);
+}
+
+/* Tab button focus */
+.settings-tabs button:focus-visible,
+.tab-btn:focus-visible {
+  outline: 2px solid rgba(100, 150, 255, 0.8);
+  outline-offset: -2px;
+}
+
+/* Form input focus */
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid rgba(100, 150, 255, 0.8);
+  outline-offset: 0;
+  border-color: rgba(100, 150, 255, 0.6);
+}
+
+/* Close button focus */
+.close-button:focus-visible {
+  outline: 2px solid rgba(255, 100, 100, 0.8);
+  outline-offset: 2px;
+}

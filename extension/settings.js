@@ -1513,3 +1513,220 @@ function initModalDragResize() {
   }
 }
 
+// ============================================
+// ACCESSIBILITY: Keyboard Navigation & Focus Management
+// ============================================
+
+class ModalAccessibility {
+  constructor(modal, closeButtonSelector) {
+    this.modal = modal;
+    this.closeButton = modal.querySelector(closeButtonSelector);
+    this.previouslyFocusedElement = null;
+    this.focusableElements = [];
+    
+    this.init();
+  }
+  
+  init() {
+    // Listen for modal visibility changes
+    this.observer = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        if (mutation.attributeName === 'class') {
+          const isVisible = !this.modal.classList.contains('hidden');
+          if (isVisible) {
+            this.onOpen();
+          } else {
+            this.onClose();
+          }
+        }
+      });
+    });
+    
+    this.observer.observe(this.modal, { attributes: true, attributeFilter: ['class'] });
+    
+    // Keyboard event listener
+    this.modal.addEventListener('keydown', this.handleKeydown.bind(this));
+  }
+  
+  onOpen() {
+    // Store the previously focused element
+    this.previouslyFocusedElement = document.activeElement;
+    
+    // Get all focusable elements within the modal
+    this.updateFocusableElements();
+    
+    // Focus the first focusable element (or close button)
+    requestAnimationFrame(() => {
+      if (this.closeButton) {
+        this.closeButton.focus();
+      } else if (this.focusableElements.length > 0) {
+        this.focusableElements[0].focus();
+      }
+    });
+  }
+  
+  onClose() {
+    // Restore focus to the previously focused element
+    if (this.previouslyFocusedElement && typeof this.previouslyFocusedElement.focus === 'function') {
+      this.previouslyFocusedElement.focus();
+    }
+  }
+  
+  updateFocusableElements() {
+    const focusableSelectors = [
+      'button:not([disabled])',
+      'input:not([disabled])',
+      'select:not([disabled])',
+      'textarea:not([disabled])',
+      'a[href]',
+      '[tabindex]:not([tabindex="-1"])'
+    ].join(', ');
+    
+    this.focusableElements = Array.from(
+      this.modal.querySelectorAll(focusableSelectors)
+    ).filter(el => {
+      // Filter out hidden elements
+      const style = window.getComputedStyle(el);
+      return style.display !== 'none' && style.visibility !== 'hidden';
+    });
+  }
+  
+  handleKeydown(e) {
+    // Only handle keys when modal is visible
+    if (this.modal.classList.contains('hidden')) return;
+    
+    switch (e.key) {
+      case 'Escape':
+        e.preventDefault();
+        e.stopPropagation();
+        if (this.closeButton) {
+          this.closeButton.click();
+        }
+        break;
+        
+      case 'Tab':
+        this.handleTabKey(e);
+        break;
+    }
+  }
+  
+  handleTabKey(e) {
+    this.updateFocusableElements();
+    
+    if (this.focusableElements.length === 0) return;
+    
+    const firstElement = this.focusableElements[0];
+    const lastElement = this.focusableElements[this.focusableElements.length - 1];
+    
+    if (e.shiftKey) {
+      // Shift + Tab: going backwards
+      if (document.activeElement === firstElement) {
+        e.preventDefault();
+        lastElement.focus();
+      }
+    } else {
+      // Tab: going forwards
+      if (document.activeElement === lastElement) {
+        e.preventDefault();
+        firstElement.focus();
+      }
+    }
+  }
+  
+  destroy() {
+    this.observer.disconnect();
+  }
+}
+
+// Initialize accessibility for all modals
+function initModalAccessibility() {
+  // Settings modal
+  const settingsModalEl = document.getElementById('settings-modal');
+  if (settingsModalEl) {
+    new ModalAccessibility(settingsModalEl, '#close-settings');
+  }
+  
+  // Widgets panel
+  const widgetsPanel = document.getElementById('widgets-panel');
+  if (widgetsPanel) {
+    new ModalAccessibility(widgetsPanel, '#close-widgets');
+  }
+  
+  // Sidepanel settings modal (embedded)
+  const sidepanelSettingsModal = document.getElementById('sidepanel-settings-modal');
+  if (sidepanelSettingsModal) {
+    new ModalAccessibility(sidepanelSettingsModal, '#close-sidepanel-settings');
+  }
+  
+  // Edit website modal (embedded)
+  const editWebsiteModal = document.getElementById('edit-website-modal');
+  if (editWebsiteModal) {
+    new ModalAccessibility(editWebsiteModal, '#close-edit');
+  }
+}
+
+// Global keyboard shortcuts
+function initGlobalKeyboardShortcuts() {
+  document.addEventListener('keydown', (e) => {
+    // Check if any modal is open
+    const openModal = document.querySelector('#settings-modal:not(.hidden), #widgets-panel:not(.hidden)');
+    
+    // Don't trigger shortcuts when focused on input elements (unless Escape)
+    const isInputFocused = ['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement?.tagName);
+    
+    if (e.key === 'Escape' && openModal) {
+      // Escape is handled by modal accessibility, but ensure it works globally
+      return;
+    }
+    
+    if (isInputFocused) return;
+    
+    // Keyboard shortcuts for action buttons
+    switch (e.key.toLowerCase()) {
+      case 's':
+        if (!openModal && !e.ctrlKey && !e.metaKey) {
+          // Open settings with 's' key
+          const settingsBtn = document.getElementById('settings-button');
+          if (settingsBtn) {
+            e.preventDefault();
+            settingsBtn.click();
+          }
+        }
+        break;
+        
+      case 'w':
+        if (!openModal && !e.ctrlKey && !e.metaKey) {
+          // Open widgets with 'w' key
+          const widgetsBtn = document.getElementById('widgets-button');
+          if (widgetsBtn) {
+            e.preventDefault();
+            widgetsBtn.click();
+          }
+        }
+        break;
+        
+      case 'e':
+        if (!openModal && !e.ctrlKey && !e.metaKey) {
+          // Toggle edit mode with 'e' key
+          const editBtn = document.getElementById('edit-button');
+          if (editBtn) {
+            e.preventDefault();
+            editBtn.click();
+          }
+        }
+        break;
+    }
+  });
+}
+
+// Initialize accessibility features
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', () => {
+    initModalAccessibility();
+    initGlobalKeyboardShortcuts();
+  });
+} else {
+  initModalAccessibility();
+  initGlobalKeyboardShortcuts();
+}
+

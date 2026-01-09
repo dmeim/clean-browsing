@@ -1,6 +1,6 @@
 # Clean-Browsing
 
-[![Version](https://img.shields.io/badge/version-0.3.0-blue)](https://github.com/dmeim/clean-browsing/releases)
+[![Version](https://img.shields.io/badge/version-0.5.0-blue)](https://github.com/dmeim/clean-browsing/releases)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Firefox Extension](https://img.shields.io/badge/platform-Firefox%20Extension-orange)](https://github.com/dmeim/clean-browsing)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
@@ -52,7 +52,7 @@ Universal website embedding with advanced capabilities:
 ## 📦 Quick Start
 
 ### 5-Minute Setup
-1. **Download**: Get the latest release from [Releases](./releases/)
+1. **Download**: Get the latest release from [Releases](release-notes/)
 2. **Install**: Load the extension temporarily in Firefox (`about:debugging#/runtime/this-firefox` → *Load Temporary Add-on* → select any file inside the `extension` folder)
 3. **Customize**: Open a new tab to access your dashboard and click the extension icon for the sidepanel!
 
@@ -90,7 +90,7 @@ extension/
 
 ## 📊 Project Status
 
-**Current Version**: v0.3.0 - Date Widget & Universal Sidepanel  
+**Current Version**: v0.5.0 - Firefox-First & Unified Architecture  
 **Development Stage**: Active development with regular releases  
 **Widget Count**: 4 shipped widgets, unlimited website embedding via sidepanel
 
@@ -125,4 +125,4 @@ MIT License - see [LICENSE](LICENSE) for details.
 
 **Ready to enhance your browsing experience?** Transform your browser into a personalized command center with dashboard widgets, universal sidepanel, and zero subscriptions.
 
-[📥 Download Latest](./releases/) | [🐛 Report Issues](../../issues) | [💡 Request Features](../../issues) | [📚 Full Documentation](docs/README.md)
+[📥 Download Latest](release-notes/) | [🐛 Report Issues](../../issues) | [💡 Request Features](../../issues) | [📚 Full Documentation](docs/README.md)
