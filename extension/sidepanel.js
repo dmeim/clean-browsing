@@ -814,6 +814,25 @@ async function backToList() {
 
 // Set up all event listeners
 function setupEventListeners() {
+  const closeBtn = document.getElementById('sidepanel-close-btn');
+  if (closeBtn) {
+    closeBtn.addEventListener('click', async () => {
+      try {
+        const iframeContainer = document.getElementById('iframe-container');
+        if (iframeContainer && !iframeContainer.classList.contains('hidden')) {
+          await backToList();
+        }
+        if (ExtensionAPI.sidebarAction?.isSupported) {
+          await ExtensionAPI.sidebarAction.close();
+        } else {
+          window.close();
+        }
+      } catch (error) {
+        console.error('Error closing sidebar:', error);
+      }
+    });
+  }
+
   // Settings button
   document.getElementById('sidepanel-settings-btn').addEventListener('click', openSettings);
   

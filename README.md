@@ -2,14 +2,14 @@
 
 [![Version](https://img.shields.io/badge/version-0.3.0-blue)](https://github.com/dmeim/clean-browsing/releases)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Chrome Extension](https://img.shields.io/badge/platform-Chrome%20Extension-brightgreen)](https://chromewebstore.google.com)
+[![Firefox Extension](https://img.shields.io/badge/platform-Firefox%20Extension-orange)](https://github.com/dmeim/clean-browsing)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
 
-**A comprehensive browsing enhancement suite** – Transform your browsing experience with a customizable dashboard, universal sidepanel, and productivity tools. Zero subscriptions, unlimited personalization.
+**A comprehensive browsing enhancement suite** – Transform your browsing experience with a customizable dashboard, universal sidepanel, and productivity tools. Built for Firefox-family browsers with zero subscriptions and unlimited personalization.
 
 ## 🌟 Overview
 
-A privacy-first Chrome extension that enhances your browsing experience with multiple powerful features: a customizable dashboard (new tab), universal sidepanel for any website, and extensible productivity tools. Built with vanilla web technologies, offering complete customization while keeping all your data local.
+A privacy-first Firefox extension that enhances your browsing experience with multiple powerful features: a customizable dashboard (new tab), universal sidepanel for any website, and extensible productivity tools. Built with vanilla web technologies, offering complete customization while keeping all your data local.
 
 ### ✨ Key Highlights
 - 🎯 **Zero Subscriptions** - Completely free and open source
@@ -45,7 +45,7 @@ Universal website embedding with advanced capabilities:
 - **ANY Website Support** - Embed virtually any website with advanced iframe technology
 - **Header Stripping** - Clean, distraction-free browsing experience
 - **Cross-Site Compatibility** - Advanced frame rules for maximum compatibility
-- **Toggle Integration** - Seamless browser toolbar integration
+- **Native Firefox Sidebar** - Toggle the extension's sidebar directly from the toolbar
 
 📋 **[View All Features & Roadmap](docs/features/README.md)**
 
@@ -53,14 +53,14 @@ Universal website embedding with advanced capabilities:
 
 ### 5-Minute Setup
 1. **Download**: Get the latest release from [Releases](./releases/)
-2. **Install**: Load unpacked extension in Chrome (`chrome://extensions` → Developer mode → Load unpacked → select `extension` folder)
-3. **Customize**: Open new tab to access your dashboard and click the extension icon for sidepanel!
+2. **Install**: Load the extension temporarily in Firefox (`about:debugging#/runtime/this-firefox` → *Load Temporary Add-on* → select any file inside the `extension` folder)
+3. **Customize**: Open a new tab to access your dashboard and click the extension icon for the sidepanel!
 
 ### For Developers
 ```bash
 git clone https://github.com/dmeim/clean-browsing.git
 cd clean-browsing
-# Load extension/ folder in Chrome extensions
+# Load the extension in Firefox via about:debugging
 ```
 
 🛠️ **[Full Development Setup](docs/README.md#getting-started)**

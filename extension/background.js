@@ -1,46 +1,80 @@
-// Background service worker for Clean-Browsing extension (Manifest V3)
-// Uses declarativeNetRequest for header modification in Chrome MV3
-// Falls back to webRequest for Firefox MV2
+// Background script for Clean-Browsing (Firefox-focused WebExtension)
+// Relies on the shared ExtensionAPI wrapper for promise-based access.
 
-// Import required modules for service worker
-importScripts('default-settings.js', 'browser-api.js');
+// Import required modules after the polyfill has initialised the browser API
+importScripts('browser-api.js', 'default-settings.js');
 
 // Track active sessions for header modification
-// Per-tab mapping of allowed origins to modify
-const sessionsByTab = new Map(); // tabId -> Set<string origin>
+// Context mapping of allowed origins (tabId or special keys like 'sidebar')
+const sessionsByContext = new Map(); // contextKey -> Set<string origin>
 
-function addOriginForTab(tabId, origin) {
-  if (typeof tabId !== 'number' || !origin) return;
-  let set = sessionsByTab.get(tabId);
-  if (!set) { 
-    set = new Set(); 
-    sessionsByTab.set(tabId, set); 
+function addOriginForContext(contextKey, origin) {
+  if (contextKey == null || !origin) return;
+  let set = sessionsByContext.get(contextKey);
+  if (!set) {
+    set = new Set();
+    sessionsByContext.set(contextKey, set);
   }
   set.add(origin);
-  console.log(`Added origin ${origin} for tab ${tabId}`);
+  console.log(`Added origin ${origin} for context ${contextKey}`);
 }
 
-function removeOriginForTab(tabId, origin) {
-  if (typeof tabId !== 'number' || !origin) return;
-  const set = sessionsByTab.get(tabId);
+function removeOriginForContext(contextKey, origin) {
+  if (contextKey == null || !origin) return;
+  const set = sessionsByContext.get(contextKey);
   if (set) {
     set.delete(origin);
-    if (set.size === 0) sessionsByTab.delete(tabId);
-    console.log(`Removed origin ${origin} for tab ${tabId}`);
+    if (set.size === 0) sessionsByContext.delete(contextKey);
+    console.log(`Removed origin ${origin} for context ${contextKey}`);
   }
+}
+
+function clearContext(contextKey) {
+  if (contextKey == null) return;
+  if (sessionsByContext.delete(contextKey)) {
+    console.log(`Cleared frame bypass sessions for context ${contextKey}`);
+  }
+}
+
+function getContextKeyFromTabId(tabId) {
+  return (typeof tabId === 'number' && tabId >= 0) ? tabId : null;
+}
+
+function getContextKeyFromSender(sender) {
+  const tabId = sender?.tab?.id;
+  if (typeof tabId === 'number' && tabId >= 0) {
+    return tabId;
+  }
+  const senderUrl = sender?.url || '';
+  if (senderUrl.includes('/sidepanel.html')) {
+    return 'sidebar';
+  }
+  return null;
+}
+
+function getContextKeyFromDetails(details) {
+  const tabKey = getContextKeyFromTabId(details.tabId);
+  if (tabKey !== null) {
+    return tabKey;
+  }
+  const docUrl = details.documentUrl || details.initiator || '';
+  if (docUrl.includes('/sidepanel.html')) {
+    return 'sidebar';
+  }
+  return null;
 }
 
 // Clean up when tab closes
 ExtensionAPI.tabs.onRemoved.addListener((tabId) => {
-  if (sessionsByTab.has(tabId)) {
-    console.log(`Cleaning up sessions for closed tab ${tabId}`);
-    sessionsByTab.delete(tabId);
+  const contextKey = getContextKeyFromTabId(tabId);
+  if (contextKey !== null) {
+    clearContext(contextKey);
   }
 });
 
 // Session cleanup - remove old sessions after timeout
 function cleanupOldSessions() {
-  const totalSessions = Array.from(sessionsByTab.values()).reduce((sum, set) => sum + set.size, 0);
+  const totalSessions = Array.from(sessionsByContext.values()).reduce((sum, set) => sum + set.size, 0);
   
   if (totalSessions > 50) {
     console.warn(`Large number of active sessions detected (${totalSessions}) - consider cleanup`);
@@ -50,7 +84,7 @@ function cleanupOldSessions() {
 // Run cleanup periodically
 setInterval(cleanupOldSessions, 5 * 60 * 1000); // Every 5 minutes
 
-// Unified header modification using webRequest API (works in both Chrome and Firefox)
+// Unified header modification using webRequest API
 console.log(`Setting up ${ExtensionAPI.browser.name} webRequest header modification`);
 
 ExtensionAPI.webRequest.onHeadersReceived.addListener(
@@ -62,9 +96,12 @@ ExtensionAPI.webRequest.onHeadersReceived.addListener(
       }
 
       // Scope by tab and origin
-      const tabId = details.tabId;
+      const contextKey = getContextKeyFromDetails(details);
+      if (contextKey == null) {
+        return {};
+      }
       const requestOrigin = new URL(details.url).origin;
-      const set = sessionsByTab.get(tabId);
+      const set = sessionsByContext.get(contextKey);
       if (!set || !set.has(requestOrigin)) {
         return {};
       }
@@ -87,7 +124,7 @@ ExtensionAPI.webRequest.onHeadersReceived.addListener(
       
       // Only return modified headers if we actually removed something
       if (filteredHeaders.length < responseHeaders.length) {
-        console.log(`Modified headers for ${details.url} (removed ${responseHeaders.length - filteredHeaders.length} headers)`);
+        console.log(`Modified headers for ${details.url} (removed ${responseHeaders.length - filteredHeaders.length} headers) [context=${contextKey}]`);
         return { responseHeaders: filteredHeaders };
       }
       
@@ -107,10 +144,11 @@ ExtensionAPI.webRequest.onBeforeRedirect.addListener(
   function(details) {
     try {
       if (details.type !== 'sub_frame') return;
-      const tabId = details.tabId;
-      if (!sessionsByTab.has(tabId)) return;
+      const contextKey = getContextKeyFromDetails(details);
+      if (contextKey == null) return;
+      if (!sessionsByContext.has(contextKey)) return;
       const newOrigin = new URL(details.redirectUrl).origin;
-      addOriginForTab(tabId, newOrigin);
+      addOriginForContext(contextKey, newOrigin);
     } catch (e) {
       // ignore parse errors
     }
@@ -142,12 +180,12 @@ ExtensionAPI.runtime.onMessage.addListener(async (request, sender, sendResponse)
           const url = new URL(request.url);
           
           // Enable frame bypass for this tab + origin
-          const tabId = sender?.tab?.id;
-          if (typeof tabId === 'number') {
-            addOriginForTab(tabId, url.origin);
+          const contextKey = getContextKeyFromSender(sender);
+          if (contextKey !== null) {
+            addOriginForContext(contextKey, url.origin);
           }
           
-          console.log(`Frame bypass enabled for: ${url.origin} (tab ${tabId ?? 'n/a'})`);
+          console.log(`Frame bypass enabled for: ${url.origin} (context ${contextKey ?? 'n/a'})`);
           
           sendResponse({ 
             success: true, 
@@ -166,22 +204,22 @@ ExtensionAPI.runtime.onMessage.addListener(async (request, sender, sendResponse)
 
       case 'disableFrameBypass':
         try {
-          const tabId = sender?.tab?.id;
+          const contextKey = getContextKeyFromSender(sender);
           if (request.url && typeof request.url === 'string') {
             try {
               const origin = new URL(request.url).origin;
-              if (typeof tabId === 'number') {
-                removeOriginForTab(tabId, origin);
+              if (contextKey !== null) {
+                removeOriginForContext(contextKey, origin);
               }
             } catch (_) {
               // ignore parse errors
             }
-          } else if (typeof tabId === 'number') {
-            // If no URL, clear all for tab
-            sessionsByTab.delete(tabId);
+          } else if (contextKey !== null) {
+            // If no URL, clear all for context
+            clearContext(contextKey);
           }
           
-          console.log(`Frame bypass disabled for tab ${tabId ?? 'n/a'}`);
+          console.log(`Frame bypass disabled for context ${contextKey ?? 'n/a'}`);
           
           sendResponse({ 
             success: true, 
@@ -244,14 +282,25 @@ function getDefaultSidebarSettings() {
   return DefaultSettings.getDefaultSidebarSettings();
 }
 
-// Handle extension icon click - inject embedded sidepanel on non-newtab pages
+// Handle extension icon click - prefer native sidebar, fall back to injected overlay when needed
 ExtensionAPI.action.onClicked.addListener(async (tab) => {
   console.log('🖱️ Extension button clicked for tab:', tab.id, 'URL:', tab.url);
+
+  const sidebarSupported = ExtensionAPI.sidebarAction?.isSupported;
+
+  if (sidebarSupported) {
+    try {
+      const opened = await ExtensionAPI.sidebarAction.toggle(tab?.windowId);
+      console.log(opened ? '📂 Sidebar opened' : '📁 Sidebar closed');
+      return;
+    } catch (sidebarError) {
+      console.error('Sidebar toggle failed, falling back to injected sidepanel:', sidebarError);
+    }
+  }
   
   // Don't inject on new tab page (already has embedded panel) or extension/browser pages
   const excludedPrefixes = [
-    'chrome-extension://', 'chrome://', 'edge://', 'about:', 
-    'moz-extension://', 'firefox://'
+    'moz-extension://', 'about:', 'resource://', 'chrome://'
   ];
   const isExcludedUrl = excludedPrefixes.some(prefix => tab.url?.startsWith(prefix));
   
@@ -294,7 +343,7 @@ ExtensionAPI.action.onClicked.addListener(async (tab) => {
       console.error('🚫 Cannot execute scripts on this page:', scriptError.message);
       console.log('💡 This usually means:');
       console.log('   - Page has restrictive CSP');
-      console.log('   - Page is on chrome:// or other protected scheme');
+      console.log('   - Page is on a protected browser scheme (about:/chrome:/resource:)');
       console.log('   - Extension lacks necessary permissions');
     }
   }

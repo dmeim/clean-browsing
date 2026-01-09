@@ -1,71 +1,62 @@
-/**
- * Unified Cross-Browser Extension API Wrapper
- * Provides consistent API across Chrome and Firefox
- * Supports both callback and Promise-based APIs
- */
-
-(function(global) {
+(function initExtensionAPI(global) {
   'use strict';
 
-  // Detect browser API
-  const _api = (typeof browser !== 'undefined') ? browser : (typeof chrome !== 'undefined' ? chrome : undefined);
-  const _isPromise = (v) => v && typeof v.then === 'function';
+  // Normalise the extension API – the polyfill ensures `browser` exists.
+  const _api = (typeof browser !== 'undefined') ? browser : undefined;
 
-  // Browser detection
-  const isFirefox = typeof browser !== 'undefined' && browser.runtime && browser.runtime.getURL;
-  const isChrome = typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.getURL;
+  if (!_api) {
+    throw new Error('Clean-Browsing: browser API unavailable');
+  }
 
-  /**
-   * Unified Extension API
-   * All methods return Promises for consistency
-   */
+  const ua = (typeof navigator !== 'undefined' && navigator.userAgent) ? navigator.userAgent.toLowerCase() : '';
+  const isFirefox = /(firefox|waterfox|iceweasel|seamonkey|zen|librewolf)/i.test(ua);
+  const browserName = isFirefox ? 'Firefox-family' : 'Unknown';
+
   const ExtensionAPI = {
     // Browser detection
     browser: {
-      isFirefox: isFirefox,
-      isChrome: isChrome,
-      name: isFirefox ? 'Firefox' : isChrome ? 'Chrome' : 'Unknown'
+      isFirefox,
+      name: browserName
     },
 
     // Storage API
     storage: {
       async get(keys) {
-        if (!_api?.storage?.local?.get) return {};
-        const result = _api.storage.local.get(keys);
-        return _isPromise(result) ? await result : await new Promise((resolve) => _api.storage.local.get(keys, resolve));
+        if (!_api?.storage?.local?.get) {
+          return {};
+        }
+        return await _api.storage.local.get(keys);
       },
 
       async set(obj) {
-        if (!_api?.storage?.local?.set) return;
-        const result = _api.storage.local.set(obj);
-        return _isPromise(result) ? await result : await new Promise((resolve) => _api.storage.local.set(obj, resolve));
+        if (!_api?.storage?.local?.set) {
+          return;
+        }
+        return await _api.storage.local.set(obj);
       },
 
       async remove(keys) {
-        if (!_api?.storage?.local?.remove) return;
-        const result = _api.storage.local.remove(keys);
-        return _isPromise(result) ? await result : await new Promise((resolve) => _api.storage.local.remove(keys, resolve));
+        if (!_api?.storage?.local?.remove) {
+          return;
+        }
+        return await _api.storage.local.remove(keys);
       },
 
       async clear() {
-        if (!_api?.storage?.local?.clear) return;
-        const result = _api.storage.local.clear();
-        return _isPromise(result) ? await result : await new Promise((resolve) => _api.storage.local.clear(resolve));
+        if (!_api?.storage?.local?.clear) {
+          return;
+        }
+        return await _api.storage.local.clear();
       }
     },
 
     // Runtime API
     runtime: {
       async sendMessage(message) {
-        if (!_api?.runtime?.sendMessage) return {};
-        const result = _api.runtime.sendMessage(message);
-        return _isPromise(result) ? await result : await new Promise((resolve, reject) => {
-          try { 
-            _api.runtime.sendMessage(message, resolve); 
-          } catch (e) { 
-            reject(e); 
-          }
-        });
+        if (!_api?.runtime?.sendMessage) {
+          return {};
+        }
+        return await _api.runtime.sendMessage(message);
       },
 
       onMessage: {
@@ -84,21 +75,17 @@
     // Tabs API
     tabs: {
       async create(createProperties) {
-        if (!_api?.tabs?.create) return;
-        const result = _api.tabs.create(createProperties);
-        return _isPromise(result) ? await result : await new Promise((resolve) => _api.tabs.create(createProperties, resolve));
+        if (!_api?.tabs?.create) {
+          return;
+        }
+        return await _api.tabs.create(createProperties);
       },
 
       async sendMessage(tabId, message) {
-        if (!_api?.tabs?.sendMessage) return;
-        const result = _api.tabs.sendMessage(tabId, message);
-        return _isPromise(result) ? await result : await new Promise((resolve, reject) => {
-          try { 
-            _api.tabs.sendMessage(tabId, message, resolve); 
-          } catch (e) { 
-            reject(e); 
-          }
-        });
+        if (!_api?.tabs?.sendMessage) {
+          return;
+        }
+        return await _api.tabs.sendMessage(tabId, message);
       },
 
       onRemoved: {
@@ -110,63 +97,96 @@
       },
 
       async executeScript(tabId, details) {
-        if (!_api?.tabs?.executeScript) throw new Error('Script execution not available');
-        const result = _api.tabs.executeScript(tabId, details);
-        return _isPromise(result) ? await result : await new Promise((resolve, reject) => {
-          _api.tabs.executeScript(tabId, details, (result) => {
-            if (_api.runtime.lastError) {
-              reject(new Error(_api.runtime.lastError.message));
-            } else {
-              resolve(result);
-            }
-          });
-        });
+        if (!_api?.tabs?.executeScript) {
+          throw new Error('Script execution not available');
+        }
+        return await _api.tabs.executeScript(tabId, details);
       }
     },
 
-    // Script execution with fallback between MV2 and MV3 APIs
+    // Script execution helper for inline functions
     async executeScript({ tabId }, func) {
-      // Try MV3 scripting API first (Chrome)
-      if (_api?.scripting?.executeScript) {
-        const result = _api.scripting.executeScript({ target: { tabId }, func });
-        return _isPromise(result) ? await result : await new Promise((resolve) => _api.scripting.executeScript({ target: { tabId }, func }, resolve));
+      if (!_api?.tabs?.executeScript) {
+        throw new Error('No script execution API available');
       }
-      
-      // Fallback to MV2 tabs API
-      if (_api?.tabs?.executeScript) {
-        const code = '(' + func.toString() + ')()';
-        return await this.tabs.executeScript(tabId, { code });
-      }
-      
-      throw new Error('No script execution API available');
+
+      const code = '(' + func.toString() + ')()';
+      return await _api.tabs.executeScript(tabId, { code });
     },
 
     // Windows API
     windows: {
       async create(createData) {
-        if (!_api?.windows?.create) return;
-        const result = _api.windows.create(createData);
-        return _isPromise(result) ? await result : await new Promise((resolve) => _api.windows.create(createData, resolve));
+        if (!_api?.windows?.create) {
+          return;
+        }
+        return await _api.windows.create(createData);
       }
     },
 
-    // Action/BrowserAction API (unified)
+    // BrowserAction API
     action: {
       onClicked: {
         addListener(handler) {
-          // Try MV3 action API first
-          if (_api?.action?.onClicked?.addListener) {
-            _api.action.onClicked.addListener(handler);
-          }
-          // Fallback to MV2 browserAction API
-          else if (_api?.browserAction?.onClicked?.addListener) {
+          if (_api?.browserAction?.onClicked?.addListener) {
             _api.browserAction.onClicked.addListener(handler);
           }
         }
       }
     },
 
-    // WebRequest API (unified approach for header modification)
+    sidebarAction: {
+      get isSupported() {
+        return !!_api?.sidebarAction;
+      },
+
+      async open(windowId) {
+        if (!_api?.sidebarAction?.open) {
+          throw new Error('Sidebar action not available');
+        }
+        const args = typeof windowId === 'number' ? { windowId } : undefined;
+        if (args) {
+          await _api.sidebarAction.open(args);
+        } else {
+          await _api.sidebarAction.open();
+        }
+      },
+
+      async close(windowId) {
+        if (!_api?.sidebarAction?.close) {
+          throw new Error('Sidebar action not available');
+        }
+        const args = typeof windowId === 'number' ? { windowId } : undefined;
+        if (args) {
+          await _api.sidebarAction.close(args);
+        } else {
+          await _api.sidebarAction.close();
+        }
+      },
+
+      async isOpen(windowId) {
+        if (!_api?.sidebarAction?.isOpen) {
+          return false;
+        }
+        const args = typeof windowId === 'number' ? { windowId } : {};
+        return await _api.sidebarAction.isOpen(args);
+      },
+
+      async toggle(windowId) {
+        if (!this.isSupported) {
+          throw new Error('Sidebar action not available');
+        }
+        const open = await this.isOpen(windowId);
+        if (open) {
+          await this.close(windowId);
+          return false;
+        }
+        await this.open(windowId);
+        return true;
+      }
+    },
+
+    // WebRequest API
     webRequest: {
       onHeadersReceived: {
         addListener(listener, filter, extraInfoSpec) {

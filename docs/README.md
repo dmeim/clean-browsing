@@ -62,7 +62,7 @@ High-level system design
 ## 🚀 Getting Started
 
 ### Prerequisites
-- Google Chrome browser
+- Firefox or Firefox-based browser
 - Text editor or IDE
 - Basic knowledge of HTML, CSS, and JavaScript
 
@@ -75,15 +75,15 @@ High-level system design
    ```
 
 2. **Load extension for testing**
-   - Open Chrome and navigate to `chrome://extensions`
-   - Enable "Developer mode"
-   - Click "Load unpacked" and select the `extension/` folder
-   - Open new tab to see the extension in action
+   - Open Firefox and navigate to `about:debugging#/runtime/this-firefox`
+   - Click **Load Temporary Add-on…**
+   - Select any file inside the `extension/` folder (for example `manifest.json`)
+   - Open a new tab to see the extension in action
 
 3. **Make changes and reload**
    - Edit files in the `extension/` directory
-   - Click the refresh icon on the extension in `chrome://extensions`
-   - Open new tab to see changes
+   - Reload the temporary add-on from the `about:debugging` page when needed
+   - Open a new tab to see changes
 
 ### Essential Files
 - **`extension/newtab.html`** - Main HTML structure
@@ -270,7 +270,7 @@ graph TD
 - **`extension/manifest.json`** - Chrome extension configuration
 
 ### External References
-- [Chrome Extension Documentation](https://developer.chrome.com/docs/extensions/)
+- [Firefox Extension Workshop](https://extensionworkshop.com/)
 - [CSS Container Queries](https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_Container_Queries)
 - [Web Accessibility Guidelines](https://www.w3.org/WAI/WCAG21/quickref/)
 - [JavaScript Best Practices](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide)
