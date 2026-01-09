@@ -12,10 +12,10 @@
     <!-- Main content area -->
     <div id="main-content" class="main-content">
       <div id="widget-grid" class="widget-grid"></div>
-      <div id="action-buttons">
-        <div id="settings-button" class="action-button">&#9881;</div>
-        <div id="widgets-button" class="action-button">&#9638;</div>
-        <div id="edit-button" class="action-button">&#9998;</div>
+      <div id="action-buttons" role="toolbar" aria-label="Dashboard controls">
+        <button id="settings-button" class="action-button" aria-label="Open settings" title="Settings">&#9881;</button>
+        <button id="widgets-button" class="action-button" aria-label="Manage widgets" title="Widgets">&#9638;</button>
+        <button id="edit-button" class="action-button" aria-label="Edit layout" title="Edit layout">&#9998;</button>
       </div>
     </div>
     
@@ -29,8 +29,8 @@
             <img src="resources/logo.png" alt="Logo" class="sidepanel-logo">
             <span>Quick Access</span>
           </div>
-          <button id="sidepanel-settings-btn" class="icon-btn" title="Settings">⚙️</button>
-          <button id="sidepanel-close-btn" class="icon-btn" title="Close (Alt+S)">✕</button>
+          <button id="sidepanel-settings-btn" class="icon-btn" title="Settings" aria-label="Open sidepanel settings">⚙️</button>
+          <button id="sidepanel-close-btn" class="icon-btn" title="Close (Alt+S)" aria-label="Close sidepanel">✕</button>
         </div>
 
         <!-- Website List -->
@@ -41,26 +41,26 @@
         <!-- Iframe Container -->
         <div id="iframe-container" class="iframe-container hidden">
           <div class="iframe-header">
-            <button id="back-to-list" class="icon-btn" title="Back to list">←</button>
+            <button id="back-to-list" class="icon-btn" title="Back to list" aria-label="Back to website list">←</button>
             <div class="iframe-info">
               <span id="iframe-title" class="iframe-name"></span>
               <span id="iframe-current-url" class="iframe-current-url">Loading...</span>
             </div>
-            <div class="iframe-navigation">
-              <button id="nav-back" class="nav-btn" title="Back">⬅</button>
-              <button id="nav-refresh" class="nav-btn" title="Refresh">↻</button>
+            <div class="iframe-navigation" role="navigation" aria-label="Page navigation">
+              <button id="nav-back" class="nav-btn" title="Back" aria-label="Go back">⬅</button>
+              <button id="nav-refresh" class="nav-btn" title="Refresh" aria-label="Refresh page">↻</button>
             </div>
-            <button id="open-in-tab" class="icon-btn" title="Open in new tab">↗</button>
+            <button id="open-in-tab" class="icon-btn" title="Open in new tab" aria-label="Open in new tab">↗</button>
           </div>
           <iframe id="website-iframe" class="website-iframe"></iframe>
         </div>
 
         <!-- Sidepanel Settings Modal -->
-        <div id="sidepanel-settings-modal" class="sidepanel-settings-modal hidden">
+        <div id="sidepanel-settings-modal" class="sidepanel-settings-modal hidden" role="dialog" aria-modal="true" aria-labelledby="sidepanel-settings-title">
           <div class="modal-content">
             <div class="modal-header">
-              <h2>Sidepanel Settings</h2>
-              <button id="close-sidepanel-settings" class="icon-btn">✕</button>
+              <h2 id="sidepanel-settings-title">Sidepanel Settings</h2>
+              <button id="close-sidepanel-settings" class="icon-btn" aria-label="Close settings">✕</button>
             </div>
             
             <!-- Tab Navigation -->
@@ -180,11 +180,11 @@
         </div>
         
         <!-- Edit Website Modal -->
-        <div id="edit-website-modal" class="sidepanel-settings-modal hidden">
+        <div id="edit-website-modal" class="sidepanel-settings-modal hidden" role="dialog" aria-modal="true" aria-labelledby="edit-website-title">
           <div class="modal-content edit-modal">
             <div class="modal-header">
-              <h2>Edit Website</h2>
-              <button id="close-edit" class="icon-btn">✕</button>
+              <h2 id="edit-website-title">Edit Website</h2>
+              <button id="close-edit" class="icon-btn" aria-label="Close edit dialog">✕</button>
             </div>
             
             <div class="modal-body">
@@ -239,13 +239,13 @@
       </div>
     </div>
   </div>
-  <div id="settings-modal" class="hidden">
+  <div id="settings-modal" class="hidden" role="dialog" aria-modal="true" aria-labelledby="settings-modal-title">
     <div class="modal-header">
       <div class="modal-title-with-logo">
-        <img src="resources/logo.svg" alt="Clean NewTab" class="modal-logo">
-        <h2 class="modal-title">Settings</h2>
+        <img src="resources/logo.svg" alt="" class="modal-logo" aria-hidden="true">
+        <h2 id="settings-modal-title" class="modal-title">Settings</h2>
       </div>
-      <button id="close-settings" class="close-button">&times;</button>
+      <button id="close-settings" class="close-button" aria-label="Close settings">&times;</button>
     </div>
     <div class="settings-tabs">
       <button data-tab="config" class="active">Configuration</button>
@@ -592,13 +592,13 @@
       </div>
     </div>
   </div>
-  <div id="widgets-panel" class="hidden">
+  <div id="widgets-panel" class="hidden" role="dialog" aria-modal="true" aria-labelledby="widgets-panel-title">
     <div class="modal-header">
       <div class="modal-title-with-logo">
-        <img src="resources/logo.svg" alt="Clean NewTab" class="modal-logo">
-        <h2 class="modal-title">Widgets</h2>
+        <img src="resources/logo.svg" alt="" class="modal-logo" aria-hidden="true">
+        <h2 id="widgets-panel-title" class="modal-title">Widgets</h2>
       </div>
-      <button id="close-widgets" class="close-button">&times;</button>
+      <button id="close-widgets" class="close-button" aria-label="Close widgets panel">&times;</button>
     </div>
     <div id="widget-tabs" class="settings-tabs hidden">
       <button data-tab="widget-settings" class="active">Settings</button>
