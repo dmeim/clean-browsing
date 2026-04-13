@@ -15,6 +15,7 @@
   let previewW = $state<number | null>(null);
   let previewH = $state<number | null>(null);
   let interacting = $state<"drag" | "resize" | null>(null);
+  let previewValid = $state(true);
 
   const dispX = $derived(previewX ?? instance.x);
   const dispY = $derived(previewY ?? instance.y);
@@ -93,6 +94,7 @@
     interacting = "drag";
     previewX = instance.x;
     previewY = instance.y;
+    previewValid = true;
     event.preventDefault();
   }
 
@@ -102,13 +104,17 @@
     const dy = event.clientY - dragCtx.startPointerY;
     const cellDX = Math.round(dx / dragCtx.metrics.cellStrideX);
     const cellDY = Math.round(dy / dragCtx.metrics.cellStrideY);
-    const targetX = dragCtx.startCellX + cellDX;
-    const targetY = dragCtx.startCellY + cellDY;
-    if (gridStore.canPlace(instance.instanceId, targetX, targetY, instance.w, instance.h)) {
+    const rawX = dragCtx.startCellX + cellDX;
+    const rawY = dragCtx.startCellY + cellDY;
+    const targetX = Math.max(0, Math.min(gridStore.layout.cols - instance.w, rawX));
+    const targetY = Math.max(0, Math.min(gridStore.layout.rows - instance.h, rawY));
+    previewX = targetX;
+    previewY = targetY;
+    const valid = gridStore.canPlace(instance.instanceId, targetX, targetY, instance.w, instance.h);
+    previewValid = valid;
+    if (valid) {
       dragCtx.lastValidX = targetX;
       dragCtx.lastValidY = targetY;
-      previewX = targetX;
-      previewY = targetY;
     }
   }
 
@@ -118,11 +124,17 @@
     if (target.hasPointerCapture(event.pointerId)) {
       target.releasePointerCapture(event.pointerId);
     }
-    gridStore.moveWidget(instance.instanceId, dragCtx.lastValidX, dragCtx.lastValidY);
+    const dropX = previewX ?? dragCtx.lastValidX;
+    const dropY = previewY ?? dragCtx.lastValidY;
+    const landed = gridStore.canPlace(instance.instanceId, dropX, dropY, instance.w, instance.h)
+      ? { x: dropX, y: dropY }
+      : { x: dragCtx.lastValidX, y: dragCtx.lastValidY };
+    gridStore.moveWidget(instance.instanceId, landed.x, landed.y);
     dragCtx = null;
     interacting = null;
     previewX = null;
     previewY = null;
+    previewValid = true;
   }
 
   function handleResizePointerDown(event: PointerEvent) {
@@ -154,17 +166,19 @@
     const dy = event.clientY - resizeCtx.startPointerY;
     const cellDW = Math.round(dx / resizeCtx.metrics.cellStrideX);
     const cellDH = Math.round(dy / resizeCtx.metrics.cellStrideY);
-    const targetW = Math.max(1, resizeCtx.startW + cellDW);
-    const targetH = Math.max(1, resizeCtx.startH + cellDH);
     const minW = def?.minSize?.w ?? 1;
     const minH = def?.minSize?.h ?? 1;
-    const clampedW = Math.max(minW, targetW);
-    const clampedH = Math.max(minH, targetH);
-    if (gridStore.canPlace(instance.instanceId, instance.x, instance.y, clampedW, clampedH)) {
+    const maxW = def?.maxSize?.w ?? gridStore.layout.cols;
+    const maxH = def?.maxSize?.h ?? gridStore.layout.rows;
+    const clampedW = Math.max(minW, Math.min(maxW, Math.min(gridStore.layout.cols - instance.x, resizeCtx.startW + cellDW)));
+    const clampedH = Math.max(minH, Math.min(maxH, Math.min(gridStore.layout.rows - instance.y, resizeCtx.startH + cellDH)));
+    previewW = clampedW;
+    previewH = clampedH;
+    const valid = gridStore.canPlace(instance.instanceId, instance.x, instance.y, clampedW, clampedH);
+    previewValid = valid;
+    if (valid) {
       resizeCtx.lastValidW = clampedW;
       resizeCtx.lastValidH = clampedH;
-      previewW = clampedW;
-      previewH = clampedH;
     }
   }
 
@@ -175,11 +189,17 @@
     if (target.hasPointerCapture(event.pointerId)) {
       target.releasePointerCapture(event.pointerId);
     }
-    gridStore.resizeWidget(instance.instanceId, resizeCtx.lastValidW, resizeCtx.lastValidH);
+    const dropW = previewW ?? resizeCtx.lastValidW;
+    const dropH = previewH ?? resizeCtx.lastValidH;
+    const landed = gridStore.canPlace(instance.instanceId, instance.x, instance.y, dropW, dropH)
+      ? { w: dropW, h: dropH }
+      : { w: resizeCtx.lastValidW, h: resizeCtx.lastValidH };
+    gridStore.resizeWidget(instance.instanceId, landed.w, landed.h);
     resizeCtx = null;
     interacting = null;
     previewW = null;
     previewH = null;
+    previewValid = true;
   }
 
   function handleUpdateSettings(next: unknown) {
@@ -210,6 +230,7 @@
   class:jiggle={uiStore.editMode && !interacting}
   class:dragging={interacting === "drag"}
   class:resizing={interacting === "resize"}
+  class:invalid={interacting !== null && !previewValid}
   {style}
   role="group"
   aria-label={def ? `${def.name} widget` : "widget"}
@@ -298,6 +319,13 @@
     z-index: 10;
     box-shadow: 0 10px 40px rgb(0 0 0 / 0.45);
     animation: none !important;
+    opacity: 0.92;
+  }
+
+  .grid-item.invalid {
+    outline: 2px solid rgb(239 68 68 / 0.9);
+    outline-offset: 2px;
+    box-shadow: 0 0 0 4px rgb(239 68 68 / 0.25), 0 10px 40px rgb(0 0 0 / 0.45);
   }
 
   @keyframes jiggle {
