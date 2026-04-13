@@ -1,0 +1,19 @@
+{
+  "manifest_version": 2,
+  "name": "Clean Browsing (next)",
+  "version": "0.0.1",
+  "description": "A customizable new tab page — rebuilt with Svelte 5, Tailwind v4, and shadcn-svelte.",
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "clean-browsing-next@local",
+      "strict_min_version": "109.0"
+    }
+  },
+  "chrome_url_overrides": {
+    "newtab": "index.html"
+  },
+  "icons": {
+    "48": "icons/icon48.png",
+    "96": "icons/icon96.png"
+  }
+}
