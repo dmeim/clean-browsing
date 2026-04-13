@@ -1,10 +1,14 @@
 <script lang="ts">
   import type { WidgetProps } from "$lib/widgets/types.js";
   import type { PictureSettings } from "./definition.js";
+  import { imageLibrary } from "$lib/storage/imageLibrary.svelte.js";
 
   let { settings }: WidgetProps<PictureSettings> = $props();
 
-  const hasImage = $derived(!!settings.imageDataUrl);
+  const resolvedDataUrl = $derived(
+    imageLibrary.get(settings.imageId)?.dataUrl ?? settings.imageDataUrl ?? ""
+  );
+  const hasImage = $derived(!!resolvedDataUrl);
 
   const imgStyle = $derived(
     `object-fit: ${settings.fit}; ` +
@@ -18,7 +22,7 @@
 <div class="picture">
   <div class="inner" style={innerStyle}>
     {#if hasImage}
-      <img class="image" src={settings.imageDataUrl} alt="" style={imgStyle} />
+      <img class="image" src={resolvedDataUrl} alt="" style={imgStyle} />
     {:else}
       <div class="placeholder">
         <div class="placeholder-icon" aria-hidden="true">

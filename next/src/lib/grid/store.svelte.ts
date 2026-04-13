@@ -48,6 +48,8 @@ function newInstanceId(): string {
 function createStore() {
   let layout = $state<GridLayout>(emptyLayout());
   let loaded = $state(false);
+  let editSnapshot: GridLayout | null = null;
+  let editing = false;
 
   async function load() {
     const saved = await loadRaw();
@@ -61,7 +63,27 @@ function createStore() {
   }
 
   async function persist() {
+    if (editing) return;
     await saveRaw($state.snapshot(layout) as GridLayout);
+  }
+
+  function beginEdit() {
+    editSnapshot = structuredClone($state.snapshot(layout)) as GridLayout;
+    editing = true;
+  }
+
+  async function commitEdit() {
+    editing = false;
+    editSnapshot = null;
+    await saveRaw($state.snapshot(layout) as GridLayout);
+  }
+
+  function cancelEdit() {
+    if (editSnapshot) {
+      layout = editSnapshot;
+    }
+    editSnapshot = null;
+    editing = false;
   }
 
   function addWidget(widgetId: string, position?: { x: number; y: number }): void {
@@ -177,6 +199,15 @@ function createStore() {
     void persist();
   }
 
+  function replaceLayout(next: GridLayout): void {
+    layout = {
+      cols: next.cols ?? DEFAULT_COLS,
+      rows: next.rows ?? DEFAULT_ROWS,
+      instances: Array.isArray(next.instances) ? next.instances : [],
+    };
+    void persist();
+  }
+
   return {
     get layout() {
       return layout;
@@ -194,6 +225,10 @@ function createStore() {
     resizeWidget,
     findFreeSlot,
     resetLayout,
+    replaceLayout,
+    beginEdit,
+    commitEdit,
+    cancelEdit,
   };
 }
 

@@ -6,7 +6,8 @@ import PictureSettingsForm from "./PictureSettings.svelte";
 export type PictureFit = "cover" | "contain" | "fill" | "none";
 
 export type PictureSettings = {
-  imageDataUrl: string; // "" when no image set
+  imageId: string; // "" when no image from library
+  imageDataUrl: string; // legacy fallback for images not yet in library
   fit: PictureFit;
   opacity: number; // 10–100
   padding: number; // 0–30 px
@@ -23,6 +24,7 @@ export const pictureDefinition: WidgetDefinition<PictureSettings> = {
   defaultSize: { w: 4, h: 4 },
   minSize: { w: 2, h: 2 },
   defaultSettings: {
+    imageId: "",
     imageDataUrl: "",
     fit: "cover",
     opacity: 100,

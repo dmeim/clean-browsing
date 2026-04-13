@@ -1,26 +1,27 @@
 <script lang="ts">
   import type { WidgetSettingsProps } from "$lib/widgets/types.js";
   import type { PictureFit, PictureSettings } from "./definition.js";
+  import { imageLibrary } from "$lib/storage/imageLibrary.svelte.js";
 
   let { settings, updateSettings }: WidgetSettingsProps<PictureSettings> = $props();
 
-  const MAX_BYTES = 5 * 1024 * 1024; // 5 MB upload limit
+  const MAX_BYTES = 5 * 1024 * 1024;
 
   let errorMsg = $state<string | null>(null);
-  let isDragging = $state(false);
-  let fileInputEl: HTMLInputElement;
+  let fileInputEl: HTMLInputElement | null = $state(null);
+  let showPicker = $state(false);
+
+  const selectedImage = $derived(imageLibrary.get(settings.imageId));
+  const previewDataUrl = $derived(selectedImage?.dataUrl ?? settings.imageDataUrl ?? "");
+  const hasImage = $derived(!!previewDataUrl);
 
   function set<K extends keyof PictureSettings>(key: K, value: PictureSettings[K]) {
     updateSettings({ ...settings, [key]: value });
   }
 
-  function fileToDataUrl(file: File): Promise<string> {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(reader.result as string);
-      reader.onerror = () => reject(reader.error);
-      reader.readAsDataURL(file);
-    });
+  function selectFromLibrary(id: string) {
+    updateSettings({ ...settings, imageId: id, imageDataUrl: "" });
+    showPicker = false;
   }
 
   async function handleFile(file: File | null | undefined) {
@@ -35,8 +36,8 @@
       return;
     }
     try {
-      const dataUrl = await fileToDataUrl(file);
-      set("imageDataUrl", dataUrl);
+      const stored = await imageLibrary.addFromFile(file);
+      updateSettings({ ...settings, imageId: stored.id, imageDataUrl: "" });
     } catch (err) {
       errorMsg = err instanceof Error ? err.message : "Failed to read image.";
     }
@@ -45,21 +46,7 @@
   function handleFileChange(event: Event) {
     const files = (event.currentTarget as HTMLInputElement).files;
     void handleFile(files?.[0]);
-  }
-
-  function handleDrop(event: DragEvent) {
-    event.preventDefault();
-    isDragging = false;
-    void handleFile(event.dataTransfer?.files?.[0]);
-  }
-
-  function handleDragOver(event: DragEvent) {
-    event.preventDefault();
-    isDragging = true;
-  }
-
-  function handleDragLeave() {
-    isDragging = false;
+    if (fileInputEl) fileInputEl.value = "";
   }
 
   function triggerUpload() {
@@ -67,8 +54,7 @@
   }
 
   function clearImage() {
-    set("imageDataUrl", "");
-    if (fileInputEl) fileInputEl.value = "";
+    updateSettings({ ...settings, imageId: "", imageDataUrl: "" });
   }
 
   function handleRangeInput(event: Event, key: keyof PictureSettings) {
@@ -79,35 +65,38 @@
   function handleFitChange(event: Event) {
     set("fit", (event.currentTarget as HTMLSelectElement).value as PictureFit);
   }
+
+  function formatBytes(bytes: number): string {
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  }
 </script>
 
 <div class="form">
   <div class="section">
     <div class="label">Image</div>
-    <div
-      class="dropzone"
-      class:dragging={isDragging}
-      class:has-image={!!settings.imageDataUrl}
-      role="button"
-      tabindex="0"
-      onclick={triggerUpload}
-      onkeydown={(e) => (e.key === "Enter" || e.key === " ") && triggerUpload()}
-      ondrop={handleDrop}
-      ondragover={handleDragOver}
-      ondragleave={handleDragLeave}
-    >
-      {#if settings.imageDataUrl}
-        <img class="preview" src={settings.imageDataUrl} alt="" />
+
+    {#if hasImage}
+      <div class="preview-frame">
+        <img class="preview" src={previewDataUrl} alt="" />
+      </div>
+      {#if selectedImage}
+        <div class="meta">{selectedImage.name} · {formatBytes(selectedImage.bytes)}</div>
       {:else}
-        <div class="dropzone-inner">
-          <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-            <path d="m17 8-5-5-5 5" />
-            <path d="M12 3v12" />
-          </svg>
-          <div>Click or drop an image here</div>
-          <div class="hint-small">PNG, JPG, WebP, GIF · max 5 MB</div>
-        </div>
+        <div class="meta meta-warn">Legacy image (not in library)</div>
+      {/if}
+    {:else}
+      <div class="empty">No image selected.</div>
+    {/if}
+
+    <div class="button-row">
+      <button type="button" class="btn" onclick={() => (showPicker = !showPicker)}>
+        {showPicker ? "Hide library" : "Pick from library"}
+      </button>
+      <button type="button" class="btn" onclick={triggerUpload}>Upload new</button>
+      {#if hasImage}
+        <button type="button" class="btn btn-danger" onclick={clearImage}>Clear</button>
       {/if}
     </div>
 
@@ -123,10 +112,25 @@
       <div class="error">{errorMsg}</div>
     {/if}
 
-    {#if settings.imageDataUrl}
-      <div class="button-row">
-        <button type="button" class="btn" onclick={triggerUpload}>Replace</button>
-        <button type="button" class="btn btn-danger" onclick={clearImage}>Clear</button>
+    {#if showPicker}
+      <div class="library">
+        {#if imageLibrary.images.length === 0}
+          <div class="lib-empty">Library is empty. Upload an image to get started.</div>
+        {:else}
+          <div class="lib-grid">
+            {#each imageLibrary.images as img (img.id)}
+              <button
+                type="button"
+                class="lib-item"
+                class:selected={img.id === settings.imageId}
+                title="{img.name} · {formatBytes(img.bytes)}"
+                onclick={() => selectFromLibrary(img.id)}
+              >
+                <img src={img.dataUrl} alt={img.name} />
+              </button>
+            {/each}
+          </div>
+        {/if}
       </div>
     {/if}
   </div>
@@ -215,13 +219,11 @@
     flex-direction: column;
     gap: 0.9rem;
   }
-
   .section {
     display: flex;
     flex-direction: column;
     gap: 0.4rem;
   }
-
   .label {
     font-size: 0.8rem;
     color: rgb(148 163 184);
@@ -229,77 +231,59 @@
     letter-spacing: 0.04em;
     font-weight: 600;
   }
-
   .label-row {
     display: flex;
     align-items: center;
     justify-content: space-between;
   }
-
   .label-row.small {
     font-size: 0.75rem;
     color: rgb(148 163 184);
   }
-
   .value {
     font-size: 0.75rem;
     color: rgb(203 213 225);
     font-variant-numeric: tabular-nums;
   }
-
-  .dropzone {
+  .preview-frame {
+    padding: 0;
+    background: rgb(2 6 23 / 0.5);
+    border: 1px solid rgb(51 65 85);
+    border-radius: 0.5rem;
+    overflow: hidden;
+    max-height: 12rem;
     display: flex;
     align-items: center;
     justify-content: center;
-    min-height: 10rem;
-    padding: 0.75rem;
-    background: rgb(2 6 23 / 0.5);
-    border: 2px dashed rgb(71 85 105);
-    border-radius: 0.5rem;
-    color: rgb(148 163 184);
-    cursor: pointer;
-    transition: border-color 120ms ease, background 120ms ease;
-    overflow: hidden;
   }
-
-  .dropzone:hover,
-  .dropzone:focus-visible,
-  .dropzone.dragging {
-    border-color: rgb(59 130 246);
-    background: rgb(15 23 42 / 0.8);
-    outline: none;
-  }
-
-  .dropzone.has-image {
-    padding: 0;
-    border-style: solid;
-    border-color: rgb(51 65 85);
-  }
-
-  .dropzone-inner {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.35rem;
-    font-size: 0.85rem;
-  }
-
   .preview {
     width: 100%;
     max-height: 12rem;
     object-fit: contain;
     display: block;
   }
-
+  .meta {
+    font-size: 0.72rem;
+    color: rgb(148 163 184);
+  }
+  .meta-warn {
+    color: rgb(250 204 21);
+  }
+  .empty {
+    padding: 1rem;
+    text-align: center;
+    font-size: 0.8rem;
+    color: rgb(148 163 184);
+    border: 1px dashed rgb(71 85 105);
+    border-radius: 0.5rem;
+  }
   .hidden {
     display: none;
   }
-
   .hint-small {
     font-size: 0.7rem;
     color: rgb(100 116 139);
   }
-
   .error {
     font-size: 0.75rem;
     color: rgb(252 165 165);
@@ -308,14 +292,12 @@
     padding: 0.4rem 0.6rem;
     border-radius: 0.375rem;
   }
-
   .button-row {
     display: flex;
     gap: 0.5rem;
+    flex-wrap: wrap;
   }
-
   .btn {
-    flex: 1;
     padding: 0.4rem 0.75rem;
     border-radius: 0.375rem;
     background: rgb(30 41 59);
@@ -324,21 +306,17 @@
     font-size: 0.8rem;
     cursor: pointer;
   }
-
   .btn:hover {
     background: rgb(51 65 85);
   }
-
   .btn-danger {
     background: rgb(127 29 29 / 0.6);
     border-color: rgb(185 28 28);
     color: rgb(254 202 202);
   }
-
   .btn-danger:hover {
     background: rgb(185 28 28 / 0.7);
   }
-
   .select {
     width: 100%;
     padding: 0.5rem 0.75rem;
@@ -348,20 +326,60 @@
     color: rgb(241 245 249);
     font-size: 0.9rem;
   }
-
   .select:focus {
     outline: none;
     border-color: rgb(59 130 246);
   }
-
   input[type="range"] {
     width: 100%;
     accent-color: rgb(59 130 246);
   }
-
   .grid-2 {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 0.75rem;
+  }
+  .library {
+    padding: 0.5rem;
+    background: rgb(2 6 23 / 0.4);
+    border: 1px solid rgb(51 65 85);
+    border-radius: 0.5rem;
+  }
+  .lib-empty {
+    padding: 0.5rem;
+    text-align: center;
+    font-size: 0.75rem;
+    color: rgb(148 163 184);
+  }
+  .lib-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(72px, 1fr));
+    gap: 0.375rem;
+    max-height: 12rem;
+    overflow-y: auto;
+  }
+  .lib-item {
+    padding: 0;
+    aspect-ratio: 1;
+    border: 1px solid rgb(51 65 85);
+    border-radius: 0.375rem;
+    background: rgb(2 6 23);
+    cursor: pointer;
+    overflow: hidden;
+    transition: border-color 120ms ease, transform 120ms ease;
+  }
+  .lib-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+  .lib-item:hover {
+    border-color: rgb(148 163 184);
+    transform: scale(1.02);
+  }
+  .lib-item.selected {
+    border-color: rgb(59 130 246);
+    box-shadow: 0 0 0 1px rgb(59 130 246);
   }
 </style>

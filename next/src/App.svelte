@@ -6,6 +6,25 @@
   import AddWidgetDialog from "$lib/ui/AddWidgetDialog.svelte";
   import WidgetSettingsDialog from "$lib/ui/WidgetSettingsDialog.svelte";
   import { uiStore } from "$lib/ui/uiStore.svelte.js";
+  import { settingsStore, buildBackgroundCss } from "$lib/settings/store.svelte.js";
+  import { imageLibrary } from "$lib/storage/imageLibrary.svelte.js";
+
+  void settingsStore.load();
+  void imageLibrary.load();
+
+  const resolvedBackground = $derived(
+    buildBackgroundCss(
+      settingsStore.settings.background,
+      (id) => imageLibrary.get(id)?.dataUrl ?? null
+    )
+  );
+
+  const backgroundOpacity = $derived.by(() => {
+    const bg = settingsStore.settings.background;
+    if (bg.type === "image") return bg.image.opacity / 100;
+    if (bg.type === "url") return bg.url.opacity / 100;
+    return 1;
+  });
 
   $effect(() => {
     function onKeyDown(event: KeyboardEvent) {
@@ -18,6 +37,13 @@
   });
 </script>
 
+<div
+  class="app-background"
+  style:background={resolvedBackground}
+  style:opacity={backgroundOpacity}
+  aria-hidden="true"
+></div>
+
 <main class="shell">
   <Grid />
   <Toolbar />
@@ -27,9 +53,28 @@
 </main>
 
 <style>
+  .app-background {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+  }
+
   .shell {
+    position: relative;
+    z-index: 1;
     min-height: 100vh;
-    background: linear-gradient(135deg, rgb(2 6 23), rgb(15 23 42), rgb(30 41 59));
     color: rgb(241 245 249);
+  }
+
+  :global(html) {
+    min-height: 100%;
+    background: linear-gradient(135deg, rgb(2 6 23), rgb(15 23 42), rgb(30 41 59));
+  }
+
+  :global(body) {
+    min-height: 100vh;
+    margin: 0;
+    background: transparent;
   }
 </style>
