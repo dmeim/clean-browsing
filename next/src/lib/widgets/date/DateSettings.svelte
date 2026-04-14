@@ -18,7 +18,7 @@
   const examples: { token: string; label: string }[] = [
     { token: "YYYY-MM-DD", label: "ISO date" },
     { token: "MM/DD/YYYY", label: "US" },
-    { token: "DD/MM/YYYY", label: "EU" },
+    { token: "dddd, MMMM DD, YYYY", label: "Full weekday + date" },
     { token: "MMMM D, YYYY", label: "Full month" },
     { token: "ddd, MMM Do", label: "Weekday + ordinal" },
     { token: "[Today is] dddd", label: "With literal text" },

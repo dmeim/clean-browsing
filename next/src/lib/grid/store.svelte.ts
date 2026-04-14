@@ -23,7 +23,21 @@ function hasExtensionStorage(): boolean {
 async function loadRaw(): Promise<GridLayout | null> {
   if (hasExtensionStorage()) {
     const result = await browser!.storage!.local!.get(STORAGE_KEY);
-    return (result[STORAGE_KEY] as GridLayout | undefined) ?? null;
+    const value = result[STORAGE_KEY] as GridLayout | undefined;
+    if (value) return value;
+    // One-time migration from pre-permission localStorage fallback.
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (raw) {
+        const parsed = JSON.parse(raw) as GridLayout;
+        await browser!.storage!.local!.set({ [STORAGE_KEY]: parsed });
+        localStorage.removeItem(STORAGE_KEY);
+        return parsed;
+      }
+    } catch (err) {
+      console.warn("[grid] localStorage migration skipped", err);
+    }
+    return null;
   }
   const raw = localStorage.getItem(STORAGE_KEY);
   return raw ? (JSON.parse(raw) as GridLayout) : null;
@@ -50,24 +64,40 @@ function createStore() {
   let loaded = $state(false);
   let editSnapshot: GridLayout | null = null;
   let editing = false;
+  let loadPromise: Promise<void> | null = null;
 
   async function load() {
-    const saved = await loadRaw();
-    if (saved) {
-      layout = saved;
-    } else {
-      layout = defaultLayout();
-      await saveRaw(layout);
-    }
-    loaded = true;
+    if (loadPromise) return loadPromise;
+    loadPromise = (async () => {
+      const saved = await loadRaw();
+      if (saved) {
+        layout = saved;
+      } else {
+        layout = defaultLayout();
+        loaded = true;
+        await saveRaw($state.snapshot(layout) as GridLayout);
+        return;
+      }
+      loaded = true;
+    })();
+    return loadPromise;
   }
 
   async function persist() {
     if (editing) return;
+    if (!loaded) {
+      console.warn("[grid] skipped save: not yet loaded");
+      return;
+    }
     await saveRaw($state.snapshot(layout) as GridLayout);
   }
 
   function beginEdit() {
+    if (!loaded) {
+      editSnapshot = null;
+      editing = false;
+      return;
+    }
     editSnapshot = structuredClone($state.snapshot(layout)) as GridLayout;
     editing = true;
   }
@@ -75,6 +105,7 @@ function createStore() {
   async function commitEdit() {
     editing = false;
     editSnapshot = null;
+    if (!loaded) return;
     await saveRaw($state.snapshot(layout) as GridLayout);
   }
 

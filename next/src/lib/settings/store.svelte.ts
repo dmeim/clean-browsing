@@ -27,7 +27,21 @@ async function loadRaw(): Promise<GlobalSettings | null> {
   try {
     if (hasExtensionStorage()) {
       const result = await browser!.storage!.local!.get(STORAGE_KEY);
-      return (result[STORAGE_KEY] as GlobalSettings | undefined) ?? null;
+      const value = result[STORAGE_KEY] as GlobalSettings | undefined;
+      if (value) return value;
+      // One-time migration from pre-permission localStorage fallback.
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (raw) {
+          const parsed = JSON.parse(raw) as GlobalSettings;
+          await browser!.storage!.local!.set({ [STORAGE_KEY]: parsed });
+          localStorage.removeItem(STORAGE_KEY);
+          return parsed;
+        }
+      } catch (err) {
+        console.warn("[settings] localStorage migration skipped", err);
+      }
+      return null;
     }
     const raw = localStorage.getItem(STORAGE_KEY);
     return raw ? (JSON.parse(raw) as GlobalSettings) : null;
@@ -112,22 +126,36 @@ function createStore() {
   let loaded = $state(false);
   let editSnapshot: GlobalSettings | null = null;
   let editing = false;
+  let loadPromise: Promise<void> | null = null;
 
   async function load() {
-    const saved = await loadRaw();
-    settings = mergeWithDefaults(saved);
-    loaded = true;
-    applyThemeToDom($state.snapshot(settings) as GlobalSettings);
+    if (loadPromise) return loadPromise;
+    loadPromise = (async () => {
+      const saved = await loadRaw();
+      settings = mergeWithDefaults(saved);
+      loaded = true;
+      applyThemeToDom($state.snapshot(settings) as GlobalSettings);
+    })();
+    return loadPromise;
   }
 
   async function persist() {
     const snap = $state.snapshot(settings) as GlobalSettings;
     applyThemeToDom(snap);
     if (editing) return;
+    if (!loaded) {
+      console.warn("[settings] skipped save: not yet loaded");
+      return;
+    }
     await saveRaw(snap);
   }
 
   function beginEdit() {
+    if (!loaded) {
+      editSnapshot = null;
+      editing = false;
+      return;
+    }
     editSnapshot = structuredClone($state.snapshot(settings)) as GlobalSettings;
     editing = true;
   }
@@ -135,6 +163,7 @@ function createStore() {
   async function commitEdit() {
     editing = false;
     editSnapshot = null;
+    if (!loaded) return;
     await saveRaw($state.snapshot(settings) as GlobalSettings);
   }
 
