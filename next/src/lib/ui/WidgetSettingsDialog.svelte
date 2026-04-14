@@ -4,6 +4,16 @@
   import { gridStore } from "$lib/grid/store.svelte.js";
   import { imageLibrary } from "$lib/storage/imageLibrary.svelte.js";
   import { getWidget } from "$lib/widgets/registry.js";
+  import { settingsStore } from "$lib/settings/store.svelte.js";
+  import {
+    diffAgainst,
+    resolveWidgetStyle,
+  } from "$lib/widgets/style/resolve.js";
+  import type { WidgetDefaults, WidgetStylePreset } from "$lib/settings/types.js";
+  import type { WidgetStyleOverrides } from "$lib/widgets/types.js";
+  import WidgetAppearanceEditor from "./settings/WidgetAppearanceEditor.svelte";
+  import WidgetPreviewTile from "./settings/WidgetPreviewTile.svelte";
+  import WidgetPresetBar from "./settings/WidgetPresetBar.svelte";
   import { uiStore } from "./uiStore.svelte.js";
 
   const instance = $derived(
@@ -18,6 +28,8 @@
   const isOpen = $derived(uiStore.widgetSettingsInstanceId !== null);
 
   let committed = false;
+  let appearanceOpen = $state(false);
+  let workingStyle = $state<WidgetDefaults | null>(null);
 
   $effect(() => {
     const open = isOpen;
@@ -26,12 +38,44 @@
       gridStore.beginEdit();
       imageLibrary.beginEdit();
       committed = false;
+      appearanceOpen = false;
+      if (instance) {
+        workingStyle = structuredClone(
+          resolveWidgetStyle(
+            settingsStore.settings.widgetDefaults,
+            instance.styleOverrides
+          )
+        ) as WidgetDefaults;
+      }
+    });
+  });
+
+  // Diff workingStyle against globals and stamp into the instance's
+  // styleOverrides on every edit. Runs only while the dialog is open and
+  // a working buffer exists.
+  $effect(() => {
+    if (!isOpen || !workingStyle || !instance) return;
+    // Track every nested field by snapshotting.
+    const snap = $state.snapshot(workingStyle) as WidgetDefaults;
+    untrack(() => {
+      const baseSnap = $state.snapshot(
+        settingsStore.settings.widgetDefaults
+      ) as WidgetDefaults;
+      const diff = diffAgainst(baseSnap, snap) as WidgetStyleOverrides | undefined;
+      if (!diff || Object.keys(diff).length === 0) {
+        if (instance.styleOverrides) {
+          gridStore.clearAllStyleOverrides(instance.instanceId);
+        }
+      } else {
+        instance.styleOverrides = diff;
+      }
     });
   });
 
   async function handleSave() {
     committed = true;
     await Promise.all([gridStore.commitEdit(), imageLibrary.commitEdit()]);
+    workingStyle = null;
     uiStore.closeWidgetSettings();
   }
 
@@ -41,6 +85,7 @@
       imageLibrary.cancelEdit();
     }
     committed = false;
+    workingStyle = null;
     uiStore.closeWidgetSettings();
   }
 
@@ -53,6 +98,19 @@
     if (!instance) return;
     gridStore.updateWidgetSettings(instance.instanceId, nextSettings);
   }
+
+  function resetOverrides() {
+    if (!instance) return;
+    workingStyle = structuredClone(
+      settingsStore.settings.widgetDefaults
+    ) as WidgetDefaults;
+  }
+
+  function applyPreset(preset: WidgetStylePreset) {
+    workingStyle = structuredClone(preset.style) as WidgetDefaults;
+  }
+
+  const hasOverrides = $derived(!!instance?.styleOverrides && Object.keys(instance.styleOverrides).length > 0);
 </script>
 
 <Dialog.Root open={isOpen} onOpenChange={handleOpenChange}>
@@ -71,12 +129,42 @@
     </div>
 
     <div class="body">
+      {#if instance && workingStyle}
+        <section class="appearance-section">
+          <button
+            type="button"
+            class="appearance-header"
+            class:open={appearanceOpen}
+            onclick={() => (appearanceOpen = !appearanceOpen)}
+          >
+            <span class="chev">{appearanceOpen ? "▾" : "▸"}</span>
+            <span class="title-text">Appearance</span>
+            {#if hasOverrides}
+              <span class="badge">custom</span>
+            {/if}
+          </button>
+
+          {#if appearanceOpen}
+            <div class="appearance-body">
+              <WidgetPresetBar onApply={applyPreset} allowSave={false} />
+              <WidgetPreviewTile style={workingStyle} label="Preview" />
+              {#if hasOverrides}
+                <button type="button" class="reset-all" onclick={resetOverrides}>
+                  Reset to global defaults
+                </button>
+              {/if}
+              <WidgetAppearanceEditor bind:value={workingStyle} />
+            </div>
+          {/if}
+        </section>
+      {/if}
+
       {#if instance && def?.settingsComponent}
         {@const SettingsForm = def.settingsComponent}
         <SettingsForm settings={instance.settings} updateSettings={handleUpdate} />
-      {:else if instance}
+      {:else if instance && !def?.settingsComponent}
         <p class="text-sm text-slate-400">
-          This widget has no configurable settings.
+          This widget has no configurable settings beyond appearance.
         </p>
       {/if}
     </div>
@@ -109,6 +197,71 @@
     min-height: 0;
     overflow-y: auto;
     padding: 1rem 1.25rem 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+  .appearance-section {
+    background: rgb(15 23 42 / 0.5);
+    border: 1px solid rgb(51 65 85);
+    border-radius: 0.5rem;
+    overflow: hidden;
+  }
+  .appearance-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    width: 100%;
+    padding: 0.75rem 0.875rem;
+    background: transparent;
+    border: none;
+    color: rgb(226 232 240);
+    font-size: 0.875rem;
+    font-weight: 600;
+    text-align: left;
+    cursor: pointer;
+  }
+  .appearance-header:hover {
+    background: rgb(30 41 59 / 0.5);
+  }
+  .chev {
+    display: inline-block;
+    width: 0.875rem;
+    color: rgb(148 163 184);
+    font-size: 0.75rem;
+  }
+  .title-text {
+    flex: 1;
+  }
+  .badge {
+    font-size: 0.625rem;
+    font-weight: 600;
+    padding: 0.125rem 0.375rem;
+    border-radius: 9999px;
+    background: rgb(234 179 8 / 0.2);
+    color: rgb(253 224 71);
+    border: 1px solid rgb(234 179 8 / 0.4);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  .appearance-body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    padding: 0 0.75rem 0.875rem;
+  }
+  .reset-all {
+    align-self: flex-start;
+    padding: 0.375rem 0.75rem;
+    font-size: 0.75rem;
+    background: rgb(30 41 59);
+    border: 1px solid rgb(71 85 105);
+    border-radius: 0.375rem;
+    color: rgb(226 232 240);
+    cursor: pointer;
+  }
+  .reset-all:hover {
+    background: rgb(51 65 85);
   }
   .footer {
     display: flex;

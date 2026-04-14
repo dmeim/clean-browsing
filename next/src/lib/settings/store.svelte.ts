@@ -1,10 +1,14 @@
 import {
+  CURRENT_SCHEMA_VERSION,
   DEFAULT_SETTINGS,
+  DEFAULT_WIDGET_DEFAULTS,
   type BackgroundSettings,
   type GlobalSettings,
   type Theme,
   type WidgetDefaults,
+  type WidgetStylePreset,
 } from "./types.js";
+import { BUILTIN_PRESETS } from "./presets.js";
 
 const STORAGE_KEY = "clean-browsing:settings:v1";
 
@@ -23,17 +27,17 @@ function hasExtensionStorage(): boolean {
   return typeof browser !== "undefined" && !!browser?.storage?.local;
 }
 
-async function loadRaw(): Promise<GlobalSettings | null> {
+async function loadRaw(): Promise<unknown> {
   try {
     if (hasExtensionStorage()) {
       const result = await browser!.storage!.local!.get(STORAGE_KEY);
-      const value = result[STORAGE_KEY] as GlobalSettings | undefined;
+      const value = result[STORAGE_KEY];
       if (value) return value;
       // One-time migration from pre-permission localStorage fallback.
       try {
         const raw = localStorage.getItem(STORAGE_KEY);
         if (raw) {
-          const parsed = JSON.parse(raw) as GlobalSettings;
+          const parsed = JSON.parse(raw);
           await browser!.storage!.local!.set({ [STORAGE_KEY]: parsed });
           localStorage.removeItem(STORAGE_KEY);
           return parsed;
@@ -44,7 +48,7 @@ async function loadRaw(): Promise<GlobalSettings | null> {
       return null;
     }
     const raw = localStorage.getItem(STORAGE_KEY);
-    return raw ? (JSON.parse(raw) as GlobalSettings) : null;
+    return raw ? JSON.parse(raw) : null;
   } catch (err) {
     console.error("[settings] failed to load", err);
     return null;
@@ -63,30 +67,106 @@ async function saveRaw(settings: GlobalSettings): Promise<void> {
   }
 }
 
-function mergeWithDefaults(partial: Partial<GlobalSettings> | null): GlobalSettings {
-  if (!partial) return structuredClone(DEFAULT_SETTINGS);
+type FlatWidgetDefaults = {
+  borderRadius?: number;
+  shadow?: number;
+  glow?: number;
+  textColor?: string;
+  backgroundColor?: string;
+  backgroundOpacity?: number;
+  borderColor?: string;
+};
+
+function isFlatWidgetDefaults(value: unknown): value is FlatWidgetDefaults {
+  if (!value || typeof value !== "object") return false;
+  const v = value as Record<string, unknown>;
+  return (
+    typeof v.borderRadius === "number" ||
+    typeof v.borderColor === "string" ||
+    typeof v.backgroundColor === "string"
+  ) && !("border" in v);
+}
+
+function migrateWidgetDefaults(raw: unknown): WidgetDefaults {
+  const base = structuredClone(DEFAULT_WIDGET_DEFAULTS);
+  if (!raw || typeof raw !== "object") return base;
+  if (isFlatWidgetDefaults(raw)) {
+    const flat = raw as FlatWidgetDefaults;
+    if (typeof flat.textColor === "string") base.textColor = flat.textColor;
+    if (typeof flat.backgroundColor === "string") base.background.solid = flat.backgroundColor;
+    if (typeof flat.backgroundOpacity === "number") base.backgroundOpacity = flat.backgroundOpacity;
+    if (typeof flat.borderColor === "string") base.border.color = flat.borderColor;
+    if (typeof flat.borderRadius === "number") base.border.radius = flat.borderRadius;
+    if (typeof flat.shadow === "number") base.shadow.intensity = flat.shadow;
+    if (typeof flat.glow === "number") base.glow.intensity = flat.glow;
+    return base;
+  }
+  // Already nested — deep-merge over defaults so new fields get populated.
+  return mergeWidgetDefaults(base, raw as Partial<WidgetDefaults>);
+}
+
+function mergeWidgetDefaults(
+  base: WidgetDefaults,
+  patch: Partial<WidgetDefaults> | undefined
+): WidgetDefaults {
+  if (!patch) return base;
   return {
-    theme: partial.theme ?? DEFAULT_SETTINGS.theme,
+    textColor: patch.textColor ?? base.textColor,
+    accentColor: patch.accentColor ?? base.accentColor,
+    background: {
+      ...base.background,
+      ...(patch.background ?? {}),
+      gradient: {
+        ...base.background.gradient,
+        ...(patch.background?.gradient ?? {}),
+      },
+      image: {
+        ...base.background.image,
+        ...(patch.background?.image ?? {}),
+      },
+      url: {
+        ...base.background.url,
+        ...(patch.background?.url ?? {}),
+      },
+    },
+    backgroundOpacity: patch.backgroundOpacity ?? base.backgroundOpacity,
+    border: { ...base.border, ...(patch.border ?? {}) },
+    glow: { ...base.glow, ...(patch.glow ?? {}) },
+    shadow: { ...base.shadow, ...(patch.shadow ?? {}) },
+    backdropBlur: patch.backdropBlur ?? base.backdropBlur,
+    opacity: patch.opacity ?? base.opacity,
+  };
+}
+
+function mergeWithDefaults(partial: unknown): GlobalSettings {
+  if (!partial || typeof partial !== "object") return structuredClone(DEFAULT_SETTINGS);
+  const p = partial as Partial<GlobalSettings> & { widgetDefaults?: unknown };
+  const userPresets = Array.isArray(p.widgetPresets)
+    ? p.widgetPresets.filter((pr): pr is WidgetStylePreset => {
+        return !!pr && typeof pr === "object" && typeof (pr as WidgetStylePreset).id === "string" && !!((pr as WidgetStylePreset).style);
+      })
+    : [];
+  return {
+    theme: p.theme ?? DEFAULT_SETTINGS.theme,
     background: {
       ...DEFAULT_SETTINGS.background,
-      ...(partial.background ?? {}),
+      ...(p.background ?? {}),
       gradient: {
         ...DEFAULT_SETTINGS.background.gradient,
-        ...(partial.background?.gradient ?? {}),
+        ...(p.background?.gradient ?? {}),
       },
       image: {
         ...DEFAULT_SETTINGS.background.image,
-        ...(partial.background?.image ?? {}),
+        ...(p.background?.image ?? {}),
       },
       url: {
         ...DEFAULT_SETTINGS.background.url,
-        ...(partial.background?.url ?? {}),
+        ...(p.background?.url ?? {}),
       },
     },
-    widgetDefaults: {
-      ...DEFAULT_SETTINGS.widgetDefaults,
-      ...(partial.widgetDefaults ?? {}),
-    },
+    widgetDefaults: migrateWidgetDefaults(p.widgetDefaults),
+    widgetPresets: userPresets,
+    schemaVersion: typeof p.schemaVersion === "number" ? p.schemaVersion : CURRENT_SCHEMA_VERSION,
   };
 }
 
@@ -191,6 +271,45 @@ function createStore() {
     void persist();
   }
 
+  function replaceWidgetDefaults(next: WidgetDefaults) {
+    settings.widgetDefaults = mergeWidgetDefaults(
+      structuredClone(DEFAULT_WIDGET_DEFAULTS),
+      next
+    );
+    void persist();
+  }
+
+  function addPreset(name: string): WidgetStylePreset {
+    const id = `user:${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 6)}`;
+    const preset: WidgetStylePreset = {
+      id,
+      name: name.trim() || "Untitled preset",
+      style: structuredClone($state.snapshot(settings.widgetDefaults) as WidgetDefaults),
+    };
+    settings.widgetPresets.push(preset);
+    void persist();
+    return preset;
+  }
+
+  function deletePreset(id: string) {
+    settings.widgetPresets = settings.widgetPresets.filter((p) => p.id !== id);
+    void persist();
+  }
+
+  function applyPresetToDefaults(preset: WidgetStylePreset) {
+    settings.widgetDefaults = mergeWidgetDefaults(
+      structuredClone(DEFAULT_WIDGET_DEFAULTS),
+      preset.style
+    );
+    void persist();
+  }
+
+  function allPresets(): WidgetStylePreset[] {
+    const userIds = new Set(settings.widgetPresets.map((p) => p.id));
+    const builtins = BUILTIN_PRESETS.filter((p) => !userIds.has(p.id));
+    return [...builtins, ...settings.widgetPresets];
+  }
+
   function replaceAll(next: GlobalSettings) {
     settings = mergeWithDefaults(next);
     void persist();
@@ -213,6 +332,11 @@ function createStore() {
     setTheme,
     updateBackground,
     updateWidgetDefaults,
+    replaceWidgetDefaults,
+    addPreset,
+    deletePreset,
+    applyPresetToDefaults,
+    allPresets,
     replaceAll,
     reset,
     beginEdit,

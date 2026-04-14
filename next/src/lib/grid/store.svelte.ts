@@ -1,5 +1,14 @@
-import type { GridLayout, WidgetInstance } from "$lib/widgets/types.js";
+import type {
+  GridLayout,
+  WidgetInstance,
+  WidgetStyleOverrides,
+} from "$lib/widgets/types.js";
 import { getWidget } from "$lib/widgets/registry.js";
+import { deepMerge } from "$lib/widgets/style/resolve.js";
+import {
+  type OverridePath,
+  unsetAtPath,
+} from "$lib/widgets/style/path.js";
 
 const STORAGE_KEY = "clean-browsing:layout:v2";
 const DEFAULT_COLS = 24;
@@ -148,6 +157,32 @@ function createStore() {
     void persist();
   }
 
+  function updateInstanceStyleOverrides(
+    instanceId: string,
+    patch: WidgetStyleOverrides
+  ): void {
+    const inst = layout.instances.find((i) => i.instanceId === instanceId);
+    if (!inst) return;
+    const current = (inst.styleOverrides ?? {}) as WidgetStyleOverrides;
+    inst.styleOverrides = deepMerge(current, patch) as WidgetStyleOverrides;
+    void persist();
+  }
+
+  function clearStyleOverridePath(instanceId: string, path: OverridePath): void {
+    const inst = layout.instances.find((i) => i.instanceId === instanceId);
+    if (!inst || !inst.styleOverrides) return;
+    const next = unsetAtPath(inst.styleOverrides as object, path) as WidgetStyleOverrides;
+    inst.styleOverrides = Object.keys(next as object).length === 0 ? undefined : next;
+    void persist();
+  }
+
+  function clearAllStyleOverrides(instanceId: string): void {
+    const inst = layout.instances.find((i) => i.instanceId === instanceId);
+    if (!inst) return;
+    inst.styleOverrides = undefined;
+    void persist();
+  }
+
   function rectsOverlap(
     a: { x: number; y: number; w: number; h: number },
     b: { x: number; y: number; w: number; h: number }
@@ -251,6 +286,9 @@ function createStore() {
     addWidgetAuto,
     removeWidget,
     updateWidgetSettings,
+    updateInstanceStyleOverrides,
+    clearStyleOverridePath,
+    clearAllStyleOverrides,
     canPlace,
     moveWidget,
     resizeWidget,

@@ -4,6 +4,12 @@
   import { gridStore } from "./store.svelte.js";
   import { uiStore } from "$lib/ui/uiStore.svelte.js";
   import { widgetScaler } from "./widgetScaler.js";
+  import { settingsStore } from "$lib/settings/store.svelte.js";
+  import { imageLibrary } from "$lib/storage/imageLibrary.svelte.js";
+  import {
+    resolveWidgetStyle,
+    widgetStyleToInlineStyle,
+  } from "$lib/widgets/style/resolve.js";
 
   type Props = { instance: WidgetInstance };
   let { instance }: Props = $props();
@@ -223,6 +229,13 @@
   }
 
   const hasSettings = $derived(!!def?.settingsComponent);
+
+  const resolvedStyle = $derived(
+    resolveWidgetStyle(settingsStore.settings.widgetDefaults, instance.styleOverrides)
+  );
+  const widgetStyleVars = $derived(
+    widgetStyleToInlineStyle(resolvedStyle, (id) => imageLibrary.get(id)?.dataUrl ?? null)
+  );
 </script>
 
 <div
@@ -240,7 +253,7 @@
   onpointerup={handleDragPointerUp}
   onpointercancel={handleDragPointerUp}
 >
-  <div class="grid-item-inner" use:widgetScaler>
+  <div class="grid-item-inner" use:widgetScaler style={widgetStyleVars}>
     {#if def}
       {@const Widget = def.component}
       <Widget settings={instance.settings} updateSettings={handleUpdateSettings} />

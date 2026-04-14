@@ -1,4 +1,11 @@
 import type { Component } from "svelte";
+import type { WidgetDefaults } from "$lib/settings/types.js";
+
+export type DeepPartial<T> = T extends object
+  ? { [K in keyof T]?: DeepPartial<T[K]> }
+  : T;
+
+export type WidgetStyleOverrides = DeepPartial<WidgetDefaults>;
 
 export type GridSize = {
   w: number;
@@ -40,6 +47,7 @@ export type WidgetInstance = {
   w: number;
   h: number;
   settings: unknown;
+  styleOverrides?: WidgetStyleOverrides;
 };
 
 export type GridLayout = {

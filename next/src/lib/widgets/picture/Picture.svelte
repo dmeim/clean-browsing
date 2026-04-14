@@ -19,7 +19,7 @@
   const innerStyle = $derived(`inset: ${settings.padding}px;`);
 </script>
 
-<div class="picture">
+<div class="widget-card picture">
   <div class="inner" style={innerStyle}>
     {#if hasImage}
       <img class="image" src={resolvedDataUrl} alt="" style={imgStyle} />
@@ -39,17 +39,6 @@
 </div>
 
 <style>
-  .picture {
-    position: relative;
-    width: 100%;
-    height: 100%;
-    border-radius: 0.75rem;
-    overflow: hidden;
-    background: rgb(15 23 42 / 0.6);
-    border: 1px solid rgb(51 65 85 / 0.5);
-    backdrop-filter: blur(12px);
-  }
-
   .inner {
     position: absolute;
     overflow: hidden;

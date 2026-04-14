@@ -50,13 +50,6 @@
 </div>
 
 <style>
-  .date-widget {
-    background: rgb(15 23 42 / 0.6);
-    border: 1px solid rgb(51 65 85 / 0.5);
-    border-radius: 0.75rem;
-    backdrop-filter: blur(12px);
-  }
-
   .date-inner {
     display: flex;
     align-items: center;
@@ -67,7 +60,7 @@
   .date-text {
     font-size: 1rem;
     font-weight: 500;
-    color: rgb(241 245 249);
+    color: var(--widget-accent, rgb(241 245 249));
     letter-spacing: 0.01em;
     white-space: nowrap;
     line-height: 1;

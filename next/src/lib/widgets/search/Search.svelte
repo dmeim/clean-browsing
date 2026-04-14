@@ -102,13 +102,6 @@
 </div>
 
 <style>
-  .search {
-    background: rgb(15 23 42 / 0.6);
-    border: 1px solid rgb(51 65 85 / 0.5);
-    border-radius: 0.75rem;
-    backdrop-filter: blur(12px);
-  }
-
   .search-inner {
     display: flex;
     align-items: center;
@@ -160,7 +153,7 @@
     background: transparent;
     border: none;
     outline: none;
-    color: rgb(241 245 249);
+    color: var(--widget-text, rgb(241 245 249));
     font-size: max(0.85rem, calc(var(--widget-unit, 0.16rem) * 45));
     min-width: 0;
   }

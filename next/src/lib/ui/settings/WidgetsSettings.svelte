@@ -1,39 +1,33 @@
 <script lang="ts">
-  const items = [
-    "Corner roundness",
-    "Shadows",
-    "Glow",
-    "Text color",
-    "Background color",
-    "Border color",
-  ];
+  import { settingsStore } from "$lib/settings/store.svelte.js";
+  import type { WidgetStylePreset } from "$lib/settings/types.js";
+  import WidgetAppearanceEditor from "./WidgetAppearanceEditor.svelte";
+  import WidgetPreviewTile from "./WidgetPreviewTile.svelte";
+  import WidgetPresetBar from "./WidgetPresetBar.svelte";
+
+  function applyPreset(preset: WidgetStylePreset) {
+    settingsStore.applyPresetToDefaults(preset);
+  }
 </script>
 
 <section class="panel">
   <header>
     <h3>Widgets</h3>
-    <p>Global widget appearance defaults.</p>
+    <p>Global appearance defaults applied to every widget. Override individual widgets from their own settings.</p>
   </header>
 
-  <div class="placeholder">
-    <div class="title">Coming soon</div>
-    <p>
-      Global defaults for widget styling will live here. You'll be able to tweak these for every
-      widget at once, with per-widget overrides on individual widgets.
-    </p>
-    <ul>
-      {#each items as item}
-        <li>{item}</li>
-      {/each}
-    </ul>
-  </div>
+  <WidgetPresetBar onApply={applyPreset} />
+
+  <WidgetPreviewTile style={settingsStore.settings.widgetDefaults} label="Live preview" />
+
+  <WidgetAppearanceEditor bind:value={settingsStore.settings.widgetDefaults} />
 </section>
 
 <style>
   .panel {
     display: flex;
     flex-direction: column;
-    gap: 1rem;
+    gap: 0.875rem;
   }
   header h3 {
     margin: 0;
@@ -45,31 +39,5 @@
     margin: 0.125rem 0 0;
     font-size: 0.8125rem;
     color: rgb(148 163 184);
-  }
-  .placeholder {
-    padding: 1.25rem;
-    border: 1px dashed rgb(71 85 105);
-    background: rgb(15 23 42 / 0.4);
-    border-radius: 0.5rem;
-    color: rgb(148 163 184);
-  }
-  .title {
-    font-size: 0.875rem;
-    font-weight: 600;
-    color: rgb(226 232 240);
-    margin-bottom: 0.5rem;
-  }
-  .placeholder p {
-    margin: 0 0 0.75rem;
-    font-size: 0.8125rem;
-    line-height: 1.5;
-  }
-  ul {
-    margin: 0;
-    padding-left: 1.25rem;
-    font-size: 0.8125rem;
-    display: flex;
-    flex-direction: column;
-    gap: 0.25rem;
   }
 </style>

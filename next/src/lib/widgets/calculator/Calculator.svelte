@@ -249,13 +249,6 @@
 </div>
 
 <style>
-  .calc {
-    background: rgb(15 23 42 / 0.6);
-    border: 1px solid rgb(51 65 85 / 0.5);
-    border-radius: 0.75rem;
-    backdrop-filter: blur(12px);
-  }
-
   .calc-inner {
     display: flex;
     flex-direction: column;
@@ -283,7 +276,7 @@
   .display-text {
     flex: 1;
     text-align: right;
-    color: rgb(241 245 249);
+    color: var(--widget-accent, rgb(241 245 249));
     font-variant-numeric: tabular-nums;
     font-weight: 600;
     font-size: max(1rem, calc(var(--widget-unit, 0.16rem) * 55));
