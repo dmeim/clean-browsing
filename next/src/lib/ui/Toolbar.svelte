@@ -109,19 +109,19 @@
   }
 
   .tb-btn.active {
-    background: rgb(59 130 246 / 0.85);
-    color: white;
-    border-color: rgb(96 165 250);
+    background: var(--brand-blue);
+    color: var(--ui-accent-fg);
+    border-color: var(--brand-blue);
   }
 
   .tb-btn-accent {
-    background: rgb(34 197 94 / 0.85);
-    color: white;
-    border-color: rgb(74 222 128);
+    background: var(--brand-green);
+    color: var(--ui-accent-fg);
+    border-color: var(--brand-green);
   }
 
   .tb-btn-accent:hover {
-    background: rgb(22 163 74 / 0.95);
-    color: white;
+    background: #a8d6af;
+    color: var(--ui-accent-fg);
   }
 </style>
