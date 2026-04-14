@@ -72,3 +72,9 @@ Housekeeping
 - [ ] Clarify chosen brand in release notes and keep future notes consistent (`release-notes/`).
 - [ ] Ensure `browser_specific_settings` only appears in Firefox manifest.
 - [ ] Add CODEOWNERS if desired and update repository links in docs to match repo name.
+
+Known Issues
+- [ ] **Calculator widget scales badly at non-default sizes.** The 4×5 portrait grid renders correctly at the default `w:4 h:6` size and similar aspect ratios, but buttons overflow, overlap, and render as oversized circles when the widget is resized to short/wide or otherwise unconventional shapes. There is no horizontal (landscape) layout — a 6×3 arrangement would be the natural fit for wide sizes.
+  - Root cause is a mix of: (1) the global `button { ... !important }` rule in `extension/styles.css:1116` forcing `min-height: 48px`, `padding: 1rem 1.5rem`, and `border-radius: 10px` on every `<button>` including `.calc-btn`, which silently defeats calculator-specific sizing rules, and (2) the `.calc-btn { aspect-ratio: 1; width: 100%; max-height: 100% }` combination in the calculator block that forces cells square even when grid tracks aren't.
+  - Workaround: users should keep the calculator close to its default `w:4 h:6` proportions.
+  - Real fix needs: scoping the global `button` rule to settings-panel buttons only (or excluding `.calc-btn` via `:not()`), then either letterboxing the grid to a fixed aspect or JS-driven adaptive portrait/landscape switching. Several attempts have been made; none have held up end-to-end. Deferred.
