@@ -1,6 +1,7 @@
 <script lang="ts">
   import type { WidgetProps } from "$lib/widgets/types.js";
   import type { ClockSettings } from "./definition.js";
+  import { fitText } from "$lib/grid/fitText.js";
 
   let { settings }: WidgetProps<ClockSettings> = $props();
 
@@ -66,30 +67,41 @@
 
     return formatted;
   });
+
+  const padV = $derived(settings.paddingV ?? 0);
+  const padH = $derived(settings.paddingH ?? 0);
 </script>
 
-<div class="clock">
-  <span class="time">{timeString}</span>
+<div class="widget-card clock">
+  <div
+    class="widget-inner clock-inner"
+    style="top: {padV}px; bottom: {padV}px; left: {padH}px; right: {padH}px;"
+  >
+    <span class="time" use:fitText>{timeString}</span>
+  </div>
 </div>
 
 <style>
   .clock {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 100%;
-    height: 100%;
     background: rgb(15 23 42 / 0.6);
     border: 1px solid rgb(51 65 85 / 0.5);
     border-radius: 0.75rem;
     backdrop-filter: blur(12px);
   }
 
+  .clock-inner {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
   .time {
-    font-size: clamp(1.5rem, 4vw, 3rem);
+    font-size: 1rem;
     font-weight: 600;
     color: rgb(241 245 249);
     font-variant-numeric: tabular-nums;
     letter-spacing: 0.02em;
+    white-space: nowrap;
+    line-height: 1;
   }
 </style>

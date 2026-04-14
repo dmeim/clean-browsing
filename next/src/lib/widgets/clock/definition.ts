@@ -10,6 +10,8 @@ export type ClockSettings = {
   flashing: boolean;
   daylightSavings: boolean;
   locale: string; // "auto" → use navigator.language
+  paddingV: number; // px, top + bottom inset of the text area
+  paddingH: number; // px, left + right inset of the text area
 };
 
 export const clockDefinition: WidgetDefinition<ClockSettings> = {
@@ -27,6 +29,8 @@ export const clockDefinition: WidgetDefinition<ClockSettings> = {
     flashing: false,
     daylightSavings: true,
     locale: "auto",
+    paddingV: 0,
+    paddingH: 0,
   },
 };
 

@@ -17,6 +17,8 @@ export type CalculatorSettings = {
   colorClear: boolean;
   historyEnabled: boolean;
   history: CalcHistoryEntry[];
+  paddingV: number;
+  paddingH: number;
 };
 
 export const MAX_HISTORY = 50;
@@ -37,6 +39,8 @@ export const calculatorDefinition: WidgetDefinition<CalculatorSettings> = {
     colorClear: true,
     historyEnabled: true,
     history: [],
+    paddingV: 8,
+    paddingH: 8,
   },
 };
 

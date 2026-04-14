@@ -5,6 +5,8 @@ import DateSettingsForm from "./DateSettings.svelte";
 
 export type DateSettings = {
   format: string;
+  paddingV: number;
+  paddingH: number;
 };
 
 export const dateDefinition: WidgetDefinition<DateSettings> = {
@@ -17,6 +19,8 @@ export const dateDefinition: WidgetDefinition<DateSettings> = {
   minSize: { w: 3, h: 1 },
   defaultSettings: {
     format: "YYYY-MM-DD",
+    paddingV: 0,
+    paddingH: 0,
   },
 };
 

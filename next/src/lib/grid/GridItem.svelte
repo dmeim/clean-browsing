@@ -3,6 +3,7 @@
   import { getWidget } from "$lib/widgets/registry.js";
   import { gridStore } from "./store.svelte.js";
   import { uiStore } from "$lib/ui/uiStore.svelte.js";
+  import { widgetScaler } from "./widgetScaler.js";
 
   type Props = { instance: WidgetInstance };
   let { instance }: Props = $props();
@@ -239,7 +240,7 @@
   onpointerup={handleDragPointerUp}
   onpointercancel={handleDragPointerUp}
 >
-  <div class="grid-item-inner">
+  <div class="grid-item-inner" use:widgetScaler>
     {#if def}
       {@const Widget = def.component}
       <Widget settings={instance.settings} updateSettings={handleUpdateSettings} />

@@ -84,7 +84,7 @@
   }
 
   .placeholder-text {
-    font-size: 0.75rem;
+    font-size: max(0.7rem, calc(var(--widget-unit, 0.16rem) * 30));
     line-height: 1.2;
   }
 </style>

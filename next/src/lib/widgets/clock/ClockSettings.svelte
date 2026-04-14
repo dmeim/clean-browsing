@@ -5,7 +5,9 @@
   let { settings, updateSettings }: WidgetSettingsProps<ClockSettings> = $props();
 
   // Normalize any legacy instance missing the new fields so the form
-  // always has a complete ClockSettings shape to work with.
+  // always has a complete ClockSettings shape to work with. The old
+  // `padding` field (uniform px) is honored as a fallback for both axes.
+  const legacyPadding = $derived((settings as { padding?: number }).padding);
   const normalized = $derived<ClockSettings>({
     format24h: settings.format24h ?? false,
     showSeconds: settings.showSeconds ?? true,
@@ -13,6 +15,8 @@
     flashing: settings.flashing ?? false,
     daylightSavings: settings.daylightSavings ?? true,
     locale: settings.locale ?? "auto",
+    paddingV: settings.paddingV ?? legacyPadding ?? 0,
+    paddingH: settings.paddingH ?? legacyPadding ?? 0,
   });
 
   function set<K extends keyof ClockSettings>(key: K, value: ClockSettings[K]) {
@@ -85,6 +89,36 @@
     />
     <span class="hint">e.g. <code>en-US</code>, <code>de-DE</code>, <code>ja-JP</code>. Blank = browser default.</span>
   </div>
+
+  <div class="row stack">
+    <div class="label-row">
+      <span class="label">Vertical padding</span>
+      <span class="value">{normalized.paddingV}px</span>
+    </div>
+    <input
+      type="range"
+      min="0"
+      max="80"
+      step="1"
+      value={normalized.paddingV}
+      oninput={(e) => set("paddingV", Number((e.currentTarget as HTMLInputElement).value))}
+    />
+  </div>
+
+  <div class="row stack">
+    <div class="label-row">
+      <span class="label">Horizontal padding</span>
+      <span class="value">{normalized.paddingH}px</span>
+    </div>
+    <input
+      type="range"
+      min="0"
+      max="80"
+      step="1"
+      value={normalized.paddingH}
+      oninput={(e) => set("paddingH", Number((e.currentTarget as HTMLInputElement).value))}
+    />
+  </div>
 </div>
 
 <style>
@@ -115,6 +149,24 @@
   .label {
     font-size: 0.875rem;
     color: rgb(226 232 240);
+  }
+
+  .label-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .value {
+    font-size: 0.75rem;
+    color: rgb(148 163 184);
+    font-variant-numeric: tabular-nums;
+  }
+
+  input[type="range"] {
+    width: 100%;
+    accent-color: rgb(59 130 246);
+    cursor: pointer;
   }
 
   input[type="checkbox"] {

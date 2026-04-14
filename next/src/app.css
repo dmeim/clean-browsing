@@ -60,3 +60,29 @@
     color: hsl(var(--foreground));
   }
 }
+
+/* Widget shell — every widget renders an outer .widget-card filling the
+   grid cell, and an inner .widget-inner whose insets are driven by the
+   per-widget paddingV/paddingH settings. The widgetScaler action is
+   attached to the inner element so its content rect (and therefore the
+   computed --widget-unit) follows the padded box, not the full card. */
+.widget-card {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.widget-inner {
+  position: absolute;
+}
+
+/* Edit-mode visual cue: dashed outline of the text area inside each
+   widget card, so users can see what the padding sliders are doing. */
+.grid-item.edit-mode .widget-inner::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border: 1px dashed rgb(148 163 184 / 0.55);
+  border-radius: 4px;
+  pointer-events: none;
+}

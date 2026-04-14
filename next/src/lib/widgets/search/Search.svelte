@@ -5,6 +5,7 @@
     ENGINE_NAMES,
     getEngineLogo,
   } from "./definition.js";
+  import { widgetScaler } from "$lib/grid/widgetScaler.js";
 
   let { settings }: WidgetProps<SearchSettings> = $props();
 
@@ -63,45 +64,55 @@
     event.preventDefault();
     performSearch(query);
   }
+
+  const padV = $derived(settings.paddingV ?? 8);
+  const padH = $derived(settings.paddingH ?? 12);
 </script>
 
-<form class="search" onsubmit={handleSubmit}>
-  {#if logoSrc}
-    <img class="logo" src={logoSrc} alt={ENGINE_NAMES[settings.engine]} />
-  {:else}
-    <div class="logo-placeholder" aria-hidden="true">?</div>
-  {/if}
+<div class="widget-card search">
+  <form
+    class="widget-inner search-inner"
+    onsubmit={handleSubmit}
+    use:widgetScaler
+    style="top: {padV}px; bottom: {padV}px; left: {padH}px; right: {padH}px;"
+  >
+    {#if logoSrc}
+      <img class="logo" src={logoSrc} alt={ENGINE_NAMES[settings.engine]} />
+    {:else}
+      <div class="logo-placeholder" aria-hidden="true">?</div>
+    {/if}
 
-  <div class="input-wrap">
-    <input
-      type="text"
-      class="input"
-      {placeholder}
-      bind:value={query}
-      autocomplete="off"
-      spellcheck="false"
-    />
-    <button type="submit" class="submit" aria-label="Search">
-      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-        <circle cx="11" cy="11" r="7" />
-        <path d="m20 20-3.5-3.5" />
-      </svg>
-    </button>
-  </div>
-</form>
+    <div class="input-wrap">
+      <input
+        type="text"
+        class="input"
+        {placeholder}
+        bind:value={query}
+        autocomplete="off"
+        spellcheck="false"
+      />
+      <button type="submit" class="submit" aria-label="Search">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="11" cy="11" r="7" />
+          <path d="m20 20-3.5-3.5" />
+        </svg>
+      </button>
+    </div>
+  </form>
+</div>
 
 <style>
   .search {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    width: 100%;
-    height: 100%;
-    padding: 0.5rem 0.75rem;
     background: rgb(15 23 42 / 0.6);
     border: 1px solid rgb(51 65 85 / 0.5);
     border-radius: 0.75rem;
     backdrop-filter: blur(12px);
+  }
+
+  .search-inner {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
   }
 
   .logo {
@@ -150,7 +161,7 @@
     border: none;
     outline: none;
     color: rgb(241 245 249);
-    font-size: 0.95rem;
+    font-size: max(0.85rem, calc(var(--widget-unit, 0.16rem) * 45));
     min-width: 0;
   }
 

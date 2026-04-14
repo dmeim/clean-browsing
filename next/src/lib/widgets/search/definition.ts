@@ -13,6 +13,8 @@ export type SearchSettings = {
   customImageUrl: string;
   target: SearchTarget;
   clearAfterSearch: boolean;
+  paddingV: number;
+  paddingH: number;
 };
 
 export const ENGINE_URLS: Record<Exclude<SearchEngine, "custom">, string> = {
@@ -62,6 +64,8 @@ export const searchDefinition: WidgetDefinition<SearchSettings> = {
     customImageUrl: "",
     target: "newTab",
     clearAfterSearch: false,
+    paddingV: 8,
+    paddingH: 12,
   },
 };
 

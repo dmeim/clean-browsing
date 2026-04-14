@@ -5,6 +5,7 @@
     type CalcHistoryEntry,
     MAX_HISTORY,
   } from "./definition.js";
+  import { widgetScaler } from "$lib/grid/widgetScaler.js";
 
   let { settings, updateSettings }: WidgetProps<CalculatorSettings> = $props();
 
@@ -151,16 +152,21 @@
   }
 
   const canShowHistoryToggle = $derived(historyEnabled);
+  const padV = $derived(settings.paddingV ?? 8);
+  const padH = $derived(settings.paddingH ?? 8);
 </script>
 
+<div class="widget-card calc">
 <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
 <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
 <div
-  class="calc"
+  class="widget-inner calc-inner"
   class:round={settings.roundButtons}
   tabindex={settings.keyboardSupport ? 0 : -1}
   role="application"
   onkeydown={handleKeyDown}
+  use:widgetScaler
+  style="top: {padV}px; bottom: {padV}px; left: {padH}px; right: {padH}px;"
 >
   <div class="display">
     <div class="display-text">{currentInput}</div>
@@ -240,23 +246,24 @@
     </div>
   {/if}
 </div>
+</div>
 
 <style>
   .calc {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-    width: 100%;
-    height: 100%;
-    padding: 0.5rem;
     background: rgb(15 23 42 / 0.6);
     border: 1px solid rgb(51 65 85 / 0.5);
     border-radius: 0.75rem;
     backdrop-filter: blur(12px);
+  }
+
+  .calc-inner {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
     outline: none;
   }
 
-  .calc:focus-visible {
+  .calc-inner:focus-visible {
     border-color: rgb(59 130 246);
     box-shadow: 0 0 0 2px rgb(59 130 246 / 0.25);
   }
@@ -279,7 +286,7 @@
     color: rgb(241 245 249);
     font-variant-numeric: tabular-nums;
     font-weight: 600;
-    font-size: clamp(1.1rem, 2.2vw, 1.6rem);
+    font-size: max(1rem, calc(var(--widget-unit, 0.16rem) * 55));
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -325,7 +332,7 @@
     min-width: 0;
     min-height: 0;
     padding: 0;
-    font-size: clamp(0.9rem, 1.8vw, 1.25rem);
+    font-size: max(0.8rem, calc(var(--widget-unit, 0.16rem) * 38));
     font-weight: 600;
     color: rgb(226 232 240);
     background: rgb(30 41 59);
@@ -346,7 +353,7 @@
     transform: scale(0.96);
   }
 
-  .calc.round .btn {
+  .calc-inner.round .btn {
     border-radius: 9999px;
     aspect-ratio: 1 / 1;
   }
@@ -355,7 +362,7 @@
     grid-column: span 2;
   }
 
-  .calc.round .zero {
+  .calc-inner.round .zero {
     aspect-ratio: auto;
     border-radius: 9999px;
   }

@@ -4,6 +4,7 @@
 
   let { settings, updateSettings }: WidgetSettingsProps<CalculatorSettings> = $props();
 
+  const legacyPadding = $derived((settings as { padding?: number }).padding);
   const normalized = $derived<CalculatorSettings>({
     keyboardSupport: settings.keyboardSupport ?? true,
     roundButtons: settings.roundButtons ?? true,
@@ -12,6 +13,8 @@
     colorClear: settings.colorClear ?? true,
     historyEnabled: settings.historyEnabled ?? true,
     history: settings.history ?? [],
+    paddingV: settings.paddingV ?? legacyPadding ?? 8,
+    paddingH: settings.paddingH ?? legacyPadding ?? 8,
   });
 
   function set<K extends keyof CalculatorSettings>(key: K, value: CalculatorSettings[K]) {
@@ -80,6 +83,36 @@
     />
   </label>
 
+  <div class="row stack">
+    <div class="label-row">
+      <span class="label">Vertical padding</span>
+      <span class="value">{normalized.paddingV}px</span>
+    </div>
+    <input
+      type="range"
+      min="0"
+      max="80"
+      step="1"
+      value={normalized.paddingV}
+      oninput={(e) => set("paddingV", Number((e.currentTarget as HTMLInputElement).value))}
+    />
+  </div>
+
+  <div class="row stack">
+    <div class="label-row">
+      <span class="label">Horizontal padding</span>
+      <span class="value">{normalized.paddingH}px</span>
+    </div>
+    <input
+      type="range"
+      min="0"
+      max="80"
+      step="1"
+      value={normalized.paddingH}
+      oninput={(e) => set("paddingH", Number((e.currentTarget as HTMLInputElement).value))}
+    />
+  </div>
+
   {#if normalized.historyEnabled}
     <div class="history-info">
       <span class="history-count">
@@ -118,6 +151,31 @@
   .label {
     font-size: 0.875rem;
     color: rgb(226 232 240);
+  }
+
+  .row.stack {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.4rem;
+    cursor: default;
+  }
+
+  .label-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .value {
+    font-size: 0.75rem;
+    color: rgb(148 163 184);
+    font-variant-numeric: tabular-nums;
+  }
+
+  input[type="range"] {
+    width: 100%;
+    accent-color: rgb(59 130 246);
+    cursor: pointer;
   }
 
   input[type="checkbox"] {

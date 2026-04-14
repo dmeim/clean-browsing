@@ -3,6 +3,7 @@
   import advancedFormat from "dayjs/plugin/advancedFormat.js";
   import type { WidgetProps } from "$lib/widgets/types.js";
   import type { DateSettings } from "./definition.js";
+  import { fitText } from "$lib/grid/fitText.js";
 
   dayjs.extend(advancedFormat);
 
@@ -34,31 +35,41 @@
       return "Invalid format";
     }
   });
+
+  const padV = $derived(settings.paddingV ?? 0);
+  const padH = $derived(settings.paddingH ?? 0);
 </script>
 
-<div class="date-widget">
-  <span class="date-text">{formatted}</span>
+<div class="widget-card date-widget">
+  <div
+    class="widget-inner date-inner"
+    style="top: {padV}px; bottom: {padV}px; left: {padH}px; right: {padH}px;"
+  >
+    <span class="date-text" use:fitText>{formatted}</span>
+  </div>
 </div>
 
 <style>
   .date-widget {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 100%;
-    height: 100%;
     background: rgb(15 23 42 / 0.6);
     border: 1px solid rgb(51 65 85 / 0.5);
     border-radius: 0.75rem;
     backdrop-filter: blur(12px);
-    padding: 0.5rem 0.75rem;
+  }
+
+  .date-inner {
+    display: flex;
+    align-items: center;
+    justify-content: center;
     text-align: center;
   }
 
   .date-text {
-    font-size: clamp(1rem, 2.5vw, 1.75rem);
+    font-size: 1rem;
     font-weight: 500;
     color: rgb(241 245 249);
     letter-spacing: 0.01em;
+    white-space: nowrap;
+    line-height: 1;
   }
 </style>
