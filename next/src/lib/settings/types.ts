@@ -4,6 +4,8 @@ export type BackgroundType = "gradient" | "solid" | "image" | "url";
 
 export type GradientStop = { color: string };
 
+export type ImageFit = "cover" | "contain" | "fill" | "none";
+
 export type BackgroundSettings = {
   type: BackgroundType;
   solid: string;
@@ -15,10 +17,16 @@ export type BackgroundSettings = {
     imageId: string | null;
     dataUrl: string | null; // legacy fallback
     opacity: number;
+    fit: ImageFit;
+    positionX: number; // 0-100 %
+    positionY: number; // 0-100 %
   };
   url: {
     href: string;
     opacity: number;
+    fit: ImageFit;
+    positionX: number;
+    positionY: number;
   };
 };
 
@@ -70,7 +78,7 @@ export type GlobalSettings = {
   schemaVersion: number;
 };
 
-export const CURRENT_SCHEMA_VERSION = 2;
+export const CURRENT_SCHEMA_VERSION = 3;
 
 export const DEFAULT_WIDGET_BACKGROUND: BackgroundSettings = {
   type: "solid",
@@ -79,8 +87,21 @@ export const DEFAULT_WIDGET_BACKGROUND: BackgroundSettings = {
     angle: 135,
     stops: ["#0f172a", "#1e293b"],
   },
-  image: { imageId: null, dataUrl: null, opacity: 60 },
-  url: { href: "", opacity: 60 },
+  image: {
+    imageId: null,
+    dataUrl: null,
+    opacity: 60,
+    fit: "cover",
+    positionX: 50,
+    positionY: 50,
+  },
+  url: {
+    href: "",
+    opacity: 60,
+    fit: "cover",
+    positionX: 50,
+    positionY: 50,
+  },
 };
 
 export const DEFAULT_WIDGET_DEFAULTS: WidgetDefaults = {
@@ -121,8 +142,21 @@ export const DEFAULT_SETTINGS: GlobalSettings = {
       angle: 135,
       stops: ["#020617", "#0f172a", "#1e293b"],
     },
-    image: { imageId: null, dataUrl: null, opacity: 100 },
-    url: { href: "", opacity: 100 },
+    image: {
+      imageId: null,
+      dataUrl: null,
+      opacity: 100,
+      fit: "cover",
+      positionX: 50,
+      positionY: 50,
+    },
+    url: {
+      href: "",
+      opacity: 100,
+      fit: "cover",
+      positionX: 50,
+      positionY: 50,
+    },
   },
   widgetDefaults: structuredClone(DEFAULT_WIDGET_DEFAULTS),
   widgetPresets: [],

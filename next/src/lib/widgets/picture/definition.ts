@@ -1,9 +1,10 @@
+import type { ImageFit } from "$lib/settings/types.js";
 import type { WidgetDefinition } from "$lib/widgets/types.js";
 import { registerWidget } from "$lib/widgets/registry.js";
 import Picture from "./Picture.svelte";
 import PictureSettingsForm from "./PictureSettings.svelte";
 
-export type PictureFit = "cover" | "contain" | "fill" | "none";
+export type PictureFit = ImageFit;
 
 export type PictureSettings = {
   imageId: string; // "" when no image from library

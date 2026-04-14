@@ -8,6 +8,7 @@ import {
   type WidgetDefaults,
   type WidgetStylePreset,
 } from "./types.js";
+import { imageLayerCss } from "./backgroundCss.js";
 import { BUILTIN_PRESETS } from "./presets.js";
 
 const STORAGE_KEY = "clean-browsing:settings:v1";
@@ -184,12 +185,12 @@ export function buildBackgroundCss(
     case "image": {
       const resolved = resolveImage(bg.image.imageId) ?? bg.image.dataUrl;
       return resolved
-        ? `center / cover no-repeat url("${resolved}")`
+        ? imageLayerCss(resolved, bg.image.fit, bg.image.positionX, bg.image.positionY)
         : DEFAULT_SETTINGS.background.solid;
     }
     case "url":
       return bg.url.href
-        ? `center / cover no-repeat url("${bg.url.href}")`
+        ? imageLayerCss(bg.url.href, bg.url.fit, bg.url.positionX, bg.url.positionY)
         : DEFAULT_SETTINGS.background.solid;
   }
 }

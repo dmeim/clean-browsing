@@ -1,7 +1,10 @@
 <script lang="ts">
   import type { WidgetSettingsProps } from "$lib/widgets/types.js";
-  import type { PictureFit, PictureSettings } from "./definition.js";
+  import type { PictureSettings } from "./definition.js";
   import { imageLibrary } from "$lib/storage/imageLibrary.svelte.js";
+  import ImageAdjustments, {
+    type ImageAdjustmentValue,
+  } from "$lib/ui/common/ImageAdjustments.svelte";
 
   let { settings, updateSettings }: WidgetSettingsProps<PictureSettings> = $props();
 
@@ -15,8 +18,16 @@
   const previewDataUrl = $derived(selectedImage?.dataUrl ?? settings.imageDataUrl ?? "");
   const hasImage = $derived(!!previewDataUrl);
 
-  function set<K extends keyof PictureSettings>(key: K, value: PictureSettings[K]) {
-    updateSettings({ ...settings, [key]: value });
+  const adjustmentValue = $derived<ImageAdjustmentValue>({
+    fit: settings.fit,
+    positionX: settings.positionX,
+    positionY: settings.positionY,
+    opacity: settings.opacity,
+    padding: settings.padding,
+  });
+
+  function applyAdjustments(next: ImageAdjustmentValue) {
+    updateSettings({ ...settings, ...next });
   }
 
   function selectFromLibrary(id: string) {
@@ -55,15 +66,6 @@
 
   function clearImage() {
     updateSettings({ ...settings, imageId: "", imageDataUrl: "" });
-  }
-
-  function handleRangeInput(event: Event, key: keyof PictureSettings) {
-    const value = Number((event.currentTarget as HTMLInputElement).value);
-    set(key, value as never);
-  }
-
-  function handleFitChange(event: Event) {
-    set("fit", (event.currentTarget as HTMLSelectElement).value as PictureFit);
   }
 
   function formatBytes(bytes: number): string {
@@ -135,82 +137,12 @@
     {/if}
   </div>
 
-  <div class="section">
-    <label for="pic-fit" class="label">Image fit</label>
-    <select id="pic-fit" class="select" value={settings.fit} onchange={handleFitChange}>
-      <option value="cover">Cover — fill frame, may crop</option>
-      <option value="contain">Contain — fit inside, letterbox</option>
-      <option value="fill">Fill — stretch to fit</option>
-      <option value="none">None — original size</option>
-    </select>
-  </div>
-
-  <div class="section">
-    <label for="pic-opacity" class="label-row">
-      <span class="label">Opacity</span>
-      <span class="value">{settings.opacity}%</span>
-    </label>
-    <input
-      id="pic-opacity"
-      type="range"
-      min="10"
-      max="100"
-      step="5"
-      value={settings.opacity}
-      oninput={(e) => handleRangeInput(e, "opacity")}
-    />
-  </div>
-
-  <div class="section">
-    <label for="pic-padding" class="label-row">
-      <span class="label">Padding</span>
-      <span class="value">{settings.padding}px</span>
-    </label>
-    <input
-      id="pic-padding"
-      type="range"
-      min="0"
-      max="30"
-      step="1"
-      value={settings.padding}
-      oninput={(e) => handleRangeInput(e, "padding")}
-    />
-  </div>
-
-  <div class="section">
-    <div class="label">Image position</div>
-    <div class="grid-2">
-      <div>
-        <div class="label-row small">
-          <span>Horizontal</span>
-          <span class="value">{settings.positionX}%</span>
-        </div>
-        <input
-          type="range"
-          min="0"
-          max="100"
-          step="5"
-          value={settings.positionX}
-          oninput={(e) => handleRangeInput(e, "positionX")}
-        />
-      </div>
-      <div>
-        <div class="label-row small">
-          <span>Vertical</span>
-          <span class="value">{settings.positionY}%</span>
-        </div>
-        <input
-          type="range"
-          min="0"
-          max="100"
-          step="5"
-          value={settings.positionY}
-          oninput={(e) => handleRangeInput(e, "positionY")}
-        />
-      </div>
-    </div>
-    <div class="hint-small">Choose which part of the image shows in the frame.</div>
-  </div>
+  <ImageAdjustments
+    value={adjustmentValue}
+    onChange={applyAdjustments}
+    showPadding
+    opacityMin={10}
+  />
 </div>
 
 <style>
@@ -230,20 +162,6 @@
     text-transform: uppercase;
     letter-spacing: 0.04em;
     font-weight: 600;
-  }
-  .label-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-  }
-  .label-row.small {
-    font-size: 0.75rem;
-    color: rgb(148 163 184);
-  }
-  .value {
-    font-size: 0.75rem;
-    color: rgb(203 213 225);
-    font-variant-numeric: tabular-nums;
   }
   .preview-frame {
     padding: 0;
@@ -280,10 +198,6 @@
   .hidden {
     display: none;
   }
-  .hint-small {
-    font-size: 0.7rem;
-    color: rgb(100 116 139);
-  }
   .error {
     font-size: 0.75rem;
     color: rgb(252 165 165);
@@ -316,28 +230,6 @@
   }
   .btn-danger:hover {
     background: rgb(185 28 28 / 0.7);
-  }
-  .select {
-    width: 100%;
-    padding: 0.5rem 0.75rem;
-    border-radius: 0.5rem;
-    background: rgb(2 6 23 / 0.7);
-    border: 1px solid rgb(71 85 105);
-    color: rgb(241 245 249);
-    font-size: 0.9rem;
-  }
-  .select:focus {
-    outline: none;
-    border-color: rgb(59 130 246);
-  }
-  input[type="range"] {
-    width: 100%;
-    accent-color: rgb(59 130 246);
-  }
-  .grid-2 {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 0.75rem;
   }
   .library {
     padding: 0.5rem;

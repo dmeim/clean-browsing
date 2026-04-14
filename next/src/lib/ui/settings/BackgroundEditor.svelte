@@ -1,6 +1,9 @@
 <script lang="ts">
   import type { BackgroundSettings, BackgroundType } from "$lib/settings/types.js";
   import { imageLibrary } from "$lib/storage/imageLibrary.svelte.js";
+  import ImageAdjustments, {
+    type ImageAdjustmentValue,
+  } from "$lib/ui/common/ImageAdjustments.svelte";
 
   type Props = {
     value: BackgroundSettings;
@@ -110,6 +113,40 @@
   function clearImage() {
     value.image.imageId = null;
     value.image.dataUrl = null;
+  }
+
+  const imageAdjustmentValue = $derived<ImageAdjustmentValue>({
+    fit: value.image.fit,
+    positionX: value.image.positionX,
+    positionY: value.image.positionY,
+    opacity: value.image.opacity,
+    padding: 0,
+  });
+
+  function applyImageAdjustments(next: ImageAdjustmentValue) {
+    value.image.fit = next.fit;
+    value.image.positionX = next.positionX;
+    value.image.positionY = next.positionY;
+    value.image.opacity = next.opacity;
+  }
+
+  const imagePreviewUrl = $derived(
+    selectedImage?.dataUrl ?? value.image.dataUrl ?? null
+  );
+
+  const urlAdjustmentValue = $derived<ImageAdjustmentValue>({
+    fit: value.url.fit,
+    positionX: value.url.positionX,
+    positionY: value.url.positionY,
+    opacity: value.url.opacity,
+    padding: 0,
+  });
+
+  function applyUrlAdjustments(next: ImageAdjustmentValue) {
+    value.url.fit = next.fit;
+    value.url.positionX = next.positionX;
+    value.url.positionY = next.positionY;
+    value.url.opacity = next.opacity;
   }
 </script>
 
@@ -237,17 +274,16 @@
 
     {#if selectedImage}
       <div class="meta">{selectedImage.name} · {formatBytes(selectedImage.bytes)}</div>
-      <img class="preview" src={selectedImage.dataUrl} alt="Background preview" />
     {:else if value.image.dataUrl}
       <div class="meta meta-warn">Legacy image (not in library)</div>
-      <img class="preview" src={value.image.dataUrl} alt="Background preview" />
     {/if}
 
-    {#if selectedImage || value.image.dataUrl}
-      <label class="slider-label">
-        <span>Opacity: {value.image.opacity}%</span>
-        <input type="range" min="0" max="100" bind:value={value.image.opacity} />
-      </label>
+    {#if imagePreviewUrl}
+      <ImageAdjustments
+        value={imageAdjustmentValue}
+        onChange={applyImageAdjustments}
+        previewUrl={imagePreviewUrl}
+      />
     {/if}
   {/if}
 
@@ -259,10 +295,13 @@
       placeholder="https://example.com/photo.jpg"
       bind:value={value.url.href}
     />
-    <label class="slider-label">
-      <span>Opacity: {value.url.opacity}%</span>
-      <input type="range" min="0" max="100" bind:value={value.url.opacity} />
-    </label>
+    {#if value.url.href}
+      <ImageAdjustments
+        value={urlAdjustmentValue}
+        onChange={applyUrlAdjustments}
+        previewUrl={value.url.href}
+      />
+    {/if}
   {/if}
 </div>
 
@@ -381,13 +420,6 @@
   .preset:hover {
     transform: scale(1.03);
     border-color: rgb(148 163 184);
-  }
-  .preview {
-    max-width: 100%;
-    max-height: 8rem;
-    object-fit: cover;
-    border-radius: 0.375rem;
-    border: 1px solid rgb(51 65 85);
   }
   .row {
     display: flex;

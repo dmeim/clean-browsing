@@ -1,38 +1,51 @@
 <script lang="ts">
   import { settingsStore } from "$lib/settings/store.svelte.js";
   import { gridStore } from "$lib/grid/store.svelte.js";
+  import { imageLibrary } from "$lib/storage/imageLibrary.svelte.js";
   import type { GlobalSettings } from "$lib/settings/types.js";
   import type { GridLayout } from "$lib/widgets/types.js";
+  import {
+    buildZipExport,
+    parseJsonImport,
+    parseZipImport,
+    downloadBlob,
+    isoDate,
+    type ParsedImport,
+  } from "$lib/settings/exportBundle.js";
 
-  type Bundle = {
+  type JsonBundle = {
     version: 1;
     settings: GlobalSettings;
     layout: GridLayout;
   };
 
   let jsonText = $state("");
-  let status = $state<{ kind: "ok" | "err" | "none"; message: string }>({
+  let status = $state<{ kind: "ok" | "err" | "warn" | "none"; message: string }>({
     kind: "none",
     message: "",
   });
 
   let fileInput: HTMLInputElement | null = $state(null);
 
-  function buildBundle(): Bundle {
+  function snapshot(): { settings: GlobalSettings; layout: GridLayout } {
     return {
-      version: 1,
       settings: $state.snapshot(settingsStore.settings) as GlobalSettings,
       layout: $state.snapshot(gridStore.layout) as GridLayout,
     };
   }
 
+  function buildJsonBundle(): JsonBundle {
+    const snap = snapshot();
+    return { version: 1, ...snap };
+  }
+
   function fillTextarea() {
-    jsonText = JSON.stringify(buildBundle(), null, 2);
+    jsonText = JSON.stringify(buildJsonBundle(), null, 2);
     status = { kind: "ok", message: "Current configuration loaded into editor." };
   }
 
   async function copyToClipboard() {
-    const text = JSON.stringify(buildBundle(), null, 2);
+    const text = JSON.stringify(buildJsonBundle(), null, 2);
     try {
       await navigator.clipboard.writeText(text);
       status = { kind: "ok", message: "Copied to clipboard." };
@@ -42,65 +55,103 @@
     }
   }
 
-  function downloadFile() {
-    const blob = new Blob([JSON.stringify(buildBundle(), null, 2)], {
-      type: "application/json",
-    });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `clean-browsing-${new Date().toISOString().slice(0, 10)}.json`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-    status = { kind: "ok", message: "Download started." };
+  function downloadJson() {
+    const text = JSON.stringify(buildJsonBundle(), null, 2);
+    downloadBlob(text, "application/json", `clean-browsing-${isoDate()}.json`);
+    status = { kind: "ok", message: "JSON download started." };
   }
 
-  function applyBundle(raw: string) {
-    let parsed: unknown;
+  async function downloadZip() {
     try {
-      parsed = JSON.parse(raw);
+      const snap = snapshot();
+      const zipped = await buildZipExport(snap.settings, snap.layout, imageLibrary.images);
+      downloadBlob(zipped, "application/zip", `clean-browsing-${isoDate()}.zip`);
+      const refCount = countImageRefs(snap.settings, snap.layout);
+      status = {
+        kind: "ok",
+        message: `ZIP download started (${refCount} image${refCount === 1 ? "" : "s"} bundled).`,
+      };
     } catch (err) {
-      status = { kind: "err", message: `Invalid JSON: ${(err as Error).message}` };
-      return;
+      status = { kind: "err", message: `Failed to build ZIP: ${(err as Error).message}` };
     }
-    if (!parsed || typeof parsed !== "object") {
-      status = { kind: "err", message: "JSON must be an object." };
-      return;
-    }
-    const obj = parsed as Partial<Bundle>;
-    if (obj.settings) settingsStore.replaceAll(obj.settings as GlobalSettings);
-    if (obj.layout) gridStore.replaceLayout(obj.layout as GridLayout);
-    if (!obj.settings && !obj.layout) {
-      status = { kind: "err", message: "No `settings` or `layout` field found." };
-      return;
-    }
-    status = { kind: "ok", message: "Configuration imported." };
   }
 
-  function importFromTextarea() {
+  function countImageRefs(settings: GlobalSettings, layout: GridLayout): number {
+    // Lightweight duplicate of collectReferencedImageIds so the status line can
+    // show a count without importing the walker explicitly here.
+    const ids = new Set<string>();
+    const add = (id: string | null | undefined) => {
+      if (typeof id === "string" && id.length > 0) ids.add(id);
+    };
+    add(settings.background.image.imageId);
+    add(settings.widgetDefaults.background.image.imageId);
+    for (const preset of settings.widgetPresets) {
+      add(preset.style?.background?.image?.imageId);
+    }
+    for (const inst of layout.instances) {
+      if (inst.widgetId === "picture") {
+        add((inst.settings as { imageId?: string } | null | undefined)?.imageId);
+      }
+      add(inst.styleOverrides?.background?.image?.imageId);
+    }
+    return ids.size;
+  }
+
+  async function applyParsed(parsed: ParsedImport, source: string) {
+    if (parsed.images) {
+      await imageLibrary.replaceAll(parsed.images);
+    }
+    if (parsed.settings) settingsStore.replaceAll(parsed.settings);
+    if (parsed.layout) gridStore.replaceLayout(parsed.layout);
+    if (parsed.warnings.length > 0) {
+      status = {
+        kind: "warn",
+        message: `${source} imported with warnings: ${parsed.warnings.join(" ")}`,
+      };
+    } else {
+      status = { kind: "ok", message: `${source} imported.` };
+    }
+  }
+
+  async function importFromTextarea() {
     if (!jsonText.trim()) {
       status = { kind: "err", message: "Paste JSON into the editor first." };
       return;
     }
-    applyBundle(jsonText);
+    try {
+      const parsed = parseJsonImport(jsonText);
+      await applyParsed(parsed, "Configuration");
+    } catch (err) {
+      status = { kind: "err", message: (err as Error).message };
+    }
   }
 
-  function onFileChange(event: Event) {
+  async function handleJsonFile(file: File) {
+    const text = await file.text();
+    jsonText = text;
+    const parsed = parseJsonImport(text);
+    await applyParsed(parsed, file.name);
+  }
+
+  async function handleZipFile(file: File) {
+    const buffer = await file.arrayBuffer();
+    const parsed = await parseZipImport(new Uint8Array(buffer));
+    await applyParsed(parsed, file.name);
+  }
+
+  async function onFileChange(event: Event) {
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0];
     if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => {
-      const text = typeof reader.result === "string" ? reader.result : "";
-      jsonText = text;
-      applyBundle(text);
-    };
-    reader.onerror = () => {
-      status = { kind: "err", message: "Failed to read file." };
-    };
-    reader.readAsText(file);
+    try {
+      if (file.name.toLowerCase().endsWith(".zip")) {
+        await handleZipFile(file);
+      } else {
+        await handleJsonFile(file);
+      }
+    } catch (err) {
+      status = { kind: "err", message: `Import failed: ${(err as Error).message}` };
+    }
     input.value = "";
   }
 </script>
@@ -108,13 +159,14 @@
 <section class="panel">
   <header>
     <h3>Configuration</h3>
-    <p>Export or import your settings and layout as JSON.</p>
+    <p>Export or import your settings, layout, and image library.</p>
   </header>
 
   <div class="row">
     <button class="btn" onclick={fillTextarea}>Load current</button>
     <button class="btn" onclick={copyToClipboard}>Copy to clipboard</button>
-    <button class="btn btn-primary" onclick={downloadFile}>Download JSON</button>
+    <button class="btn" onclick={downloadJson}>Download JSON</button>
+    <button class="btn btn-primary" onclick={downloadZip}>Download ZIP (with images)</button>
   </div>
 
   <textarea
@@ -130,14 +182,21 @@
     <input
       bind:this={fileInput}
       type="file"
-      accept="application/json,.json"
+      accept="application/json,application/zip,.json,.zip"
       onchange={onFileChange}
       hidden
     />
   </div>
 
+  <p class="hint">
+    JSON exports include settings and layout only. ZIP exports bundle every referenced image
+    so picture widgets and image backgrounds restore exactly.
+  </p>
+
   {#if status.kind !== "none"}
-    <p class="status" class:err={status.kind === "err"}>{status.message}</p>
+    <p class="status" class:err={status.kind === "err"} class:warn={status.kind === "warn"}>
+      {status.message}
+    </p>
   {/if}
 </section>
 
@@ -202,10 +261,19 @@
     background: rgb(29 78 216);
     border-color: rgb(29 78 216);
   }
+  .hint {
+    margin: 0;
+    font-size: 0.75rem;
+    color: rgb(100 116 139);
+    line-height: 1.5;
+  }
   .status {
     margin: 0;
     font-size: 0.8125rem;
     color: rgb(134 239 172);
+  }
+  .status.warn {
+    color: rgb(250 204 21);
   }
   .status.err {
     color: rgb(248 113 113);

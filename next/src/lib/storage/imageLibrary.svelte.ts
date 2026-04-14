@@ -254,6 +254,12 @@ function createStore() {
     void persist();
   }
 
+  async function replaceAll(next: StoredImage[]): Promise<void> {
+    await ensureLoaded();
+    images = next.map((img) => ({ ...img }));
+    await safeSave();
+  }
+
   return {
     get images() {
       return images;
@@ -270,6 +276,7 @@ function createStore() {
     addFromFile,
     remove,
     rename,
+    replaceAll,
     beginEdit,
     commitEdit,
     cancelEdit,

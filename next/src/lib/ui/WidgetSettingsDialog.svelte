@@ -40,19 +40,23 @@
       committed = false;
       appearanceOpen = false;
       if (instance) {
-        workingStyle = structuredClone(
-          resolveWidgetStyle(
-            settingsStore.settings.widgetDefaults,
-            instance.styleOverrides
-          )
-        ) as WidgetDefaults;
+        // $state.snapshot unwraps Svelte 5 reactive proxies to plain objects.
+        // structuredClone would throw "Proxy object could not be cloned" in
+        // Firefox when resolveWidgetStyle returns the raw defaults proxy (which
+        // happens whenever the instance has no styleOverrides yet).
+        const resolved = resolveWidgetStyle(
+          settingsStore.settings.widgetDefaults,
+          instance.styleOverrides
+        );
+        workingStyle = $state.snapshot(resolved) as WidgetDefaults;
       }
     });
   });
 
   // Diff workingStyle against globals and stamp into the instance's
   // styleOverrides on every edit. Runs only while the dialog is open and
-  // a working buffer exists.
+  // a working buffer exists. Skips redundant writes so repeated no-op runs
+  // can't trigger downstream reactivity cascades.
   $effect(() => {
     if (!isOpen || !workingStyle || !instance) return;
     // Track every nested field by snapshotting.
@@ -62,6 +66,10 @@
         settingsStore.settings.widgetDefaults
       ) as WidgetDefaults;
       const diff = diffAgainst(baseSnap, snap) as WidgetStyleOverrides | undefined;
+      const currentOverrides = instance.styleOverrides;
+      const nextJson = JSON.stringify(diff ?? null);
+      const currentJson = JSON.stringify(currentOverrides ?? null);
+      if (nextJson === currentJson) return;
       if (!diff || Object.keys(diff).length === 0) {
         if (instance.styleOverrides) {
           gridStore.clearAllStyleOverrides(instance.instanceId);
@@ -101,13 +109,13 @@
 
   function resetOverrides() {
     if (!instance) return;
-    workingStyle = structuredClone(
+    workingStyle = $state.snapshot(
       settingsStore.settings.widgetDefaults
     ) as WidgetDefaults;
   }
 
   function applyPreset(preset: WidgetStylePreset) {
-    workingStyle = structuredClone(preset.style) as WidgetDefaults;
+    workingStyle = $state.snapshot(preset.style) as WidgetDefaults;
   }
 
   const hasOverrides = $derived(!!instance?.styleOverrides && Object.keys(instance.styleOverrides).length > 0);
@@ -170,8 +178,8 @@
     </div>
 
     <div class="footer">
-      <button class="btn" onclick={handleCancel}>Cancel</button>
-      <button class="btn btn-primary" onclick={handleSave}>Save</button>
+      <button type="button" class="btn" onclick={handleCancel}>Cancel</button>
+      <button type="button" class="btn btn-primary" onclick={handleSave}>Save</button>
     </div>
   </Dialog.Content>
 </Dialog.Root>

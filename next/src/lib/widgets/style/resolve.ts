@@ -2,6 +2,7 @@ import type {
   BackgroundSettings,
   WidgetDefaults,
 } from "$lib/settings/types.js";
+import { imageLayerCss } from "$lib/settings/backgroundCss.js";
 import type { WidgetStyleOverrides } from "$lib/widgets/types.js";
 
 type ImageResolver = (id: string | null | undefined) => string | null;
@@ -80,13 +81,15 @@ export function widgetBackgroundCss(
       // widget's solid color (and whatever is behind it) without needing a
       // pseudo-element.
       const veil = rgba(bg.solid, 1 - imgAlpha);
-      return `linear-gradient(${veil}, ${veil}), center / cover no-repeat url("${resolved}")`;
+      const layer = imageLayerCss(resolved, bg.image.fit, bg.image.positionX, bg.image.positionY);
+      return `linear-gradient(${veil}, ${veil}), ${layer}`;
     }
     case "url": {
       if (!bg.url.href) return rgba(bg.solid, alpha);
       const urlAlpha = clamp(bg.url.opacity, 0, 100) / 100;
       const veil = rgba(bg.solid, 1 - urlAlpha);
-      return `linear-gradient(${veil}, ${veil}), center / cover no-repeat url("${bg.url.href}")`;
+      const layer = imageLayerCss(bg.url.href, bg.url.fit, bg.url.positionX, bg.url.positionY);
+      return `linear-gradient(${veil}, ${veil}), ${layer}`;
     }
   }
 }
