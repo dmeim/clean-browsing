@@ -64,12 +64,12 @@
     position: relative;
     z-index: 1;
     min-height: 100vh;
-    color: rgb(241 245 249);
+    color: var(--ui-page-fg);
   }
 
   :global(html) {
     min-height: 100%;
-    background: linear-gradient(135deg, rgb(2 6 23), rgb(15 23 42), rgb(30 41 59));
+    background: var(--ui-page-bg);
   }
 
   :global(body) {

@@ -39,13 +39,12 @@
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    color: rgb(148 163 184);
+    color: var(--ui-muted-fg);
   }
   .preview-host {
     padding: 1rem;
-    background:
-      linear-gradient(135deg, rgb(2 6 23) 0%, rgb(15 23 42) 50%, rgb(30 41 59) 100%);
-    border: 1px solid rgb(51 65 85);
+    background: var(--ui-page-bg);
+    border: 1px solid var(--ui-panel-border);
     border-radius: 0.5rem;
     display: grid;
     place-items: center;

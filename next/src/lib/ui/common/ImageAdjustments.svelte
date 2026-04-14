@@ -156,7 +156,7 @@
   }
   .label {
     font-size: 0.8rem;
-    color: rgb(148 163 184);
+    color: var(--ui-muted-fg);
     text-transform: uppercase;
     letter-spacing: 0.04em;
     font-weight: 600;
@@ -168,29 +168,29 @@
   }
   .label-row.small {
     font-size: 0.75rem;
-    color: rgb(148 163 184);
+    color: var(--ui-muted-fg);
   }
   .value {
     font-size: 0.75rem;
-    color: rgb(203 213 225);
+    color: var(--ui-btn-fg);
     font-variant-numeric: tabular-nums;
   }
   .select {
     width: 100%;
     padding: 0.5rem 0.75rem;
     border-radius: 0.5rem;
-    background: rgb(2 6 23 / 0.7);
-    border: 1px solid rgb(71 85 105);
-    color: rgb(241 245 249);
+    background: var(--ui-input-bg);
+    border: 1px solid var(--ui-border-soft);
+    color: var(--ui-btn-fg-strong);
     font-size: 0.9rem;
   }
   .select:focus {
     outline: none;
-    border-color: rgb(59 130 246);
+    border-color: var(--ui-focus);
   }
   input[type="range"] {
     width: 100%;
-    accent-color: rgb(59 130 246);
+    accent-color: var(--ui-focus);
   }
   .grid-2 {
     display: grid;
@@ -199,22 +199,22 @@
   }
   .hint-small {
     font-size: 0.7rem;
-    color: rgb(100 116 139);
+    color: var(--ui-subtle-fg);
   }
   .preview-frame {
     width: 100%;
     height: 6rem;
-    border: 1px solid rgb(51 65 85);
+    border: 1px solid var(--ui-panel-border);
     border-radius: 0.5rem;
     overflow: hidden;
     background:
-      linear-gradient(45deg, rgb(30 41 59) 25%, transparent 25%),
-      linear-gradient(-45deg, rgb(30 41 59) 25%, transparent 25%),
-      linear-gradient(45deg, transparent 75%, rgb(30 41 59) 75%),
-      linear-gradient(-45deg, transparent 75%, rgb(30 41 59) 75%);
+      linear-gradient(45deg, var(--ui-subtle-bg) 25%, transparent 25%),
+      linear-gradient(-45deg, var(--ui-subtle-bg) 25%, transparent 25%),
+      linear-gradient(45deg, transparent 75%, var(--ui-subtle-bg) 75%),
+      linear-gradient(-45deg, transparent 75%, var(--ui-subtle-bg) 75%);
     background-size: 12px 12px;
     background-position: 0 0, 0 6px, 6px -6px, -6px 0;
-    background-color: rgb(2 6 23);
+    background-color: var(--ui-deep-bg);
   }
   .preview-image {
     width: 100%;

@@ -81,7 +81,7 @@
 
 <Dialog.Root open={uiStore.settingsOpen} onOpenChange={handleOpenChange}>
   <Dialog.Content
-    class="!max-w-4xl !w-[calc(100vw-2rem)] !p-0 !gap-0 bg-slate-900 border-slate-700 text-slate-100 overflow-hidden flex flex-col !max-h-[min(90vh,760px)] !h-[min(90vh,760px)]"
+    class="!max-w-4xl !w-[calc(100vw-2rem)] !p-0 !gap-0 bg-background border-border text-foreground overflow-hidden flex flex-col !max-h-[min(90vh,760px)] !h-[min(90vh,760px)]"
   >
     <div class="header">
       <Dialog.Title class="title">Settings</Dialog.Title>
@@ -129,17 +129,17 @@
 <style>
   .header {
     padding: 1rem 1.25rem 0.75rem;
-    border-bottom: 1px solid rgb(51 65 85);
+    border-bottom: 1px solid var(--ui-panel-border);
   }
   :global(.title) {
     font-size: 1.0625rem !important;
     font-weight: 600 !important;
-    color: rgb(241 245 249) !important;
+    color: var(--ui-btn-fg-strong) !important;
     margin: 0 !important;
   }
   :global(.description) {
     font-size: 0.8125rem !important;
-    color: rgb(148 163 184) !important;
+    color: var(--ui-muted-fg) !important;
     margin-top: 0.125rem !important;
   }
 
@@ -156,8 +156,8 @@
     flex-direction: column;
     gap: 0.125rem;
     padding: 0.75rem 0.5rem;
-    background: rgb(2 6 23 / 0.5);
-    border-right: 1px solid rgb(51 65 85);
+    background: var(--ui-inset-bg);
+    border-right: 1px solid var(--ui-panel-border);
   }
 
   .tab {
@@ -168,7 +168,7 @@
     border-radius: 0.375rem;
     border: 1px solid transparent;
     background: transparent;
-    color: rgb(148 163 184);
+    color: var(--ui-muted-fg);
     font-size: 0.8125rem;
     text-align: left;
     cursor: pointer;
@@ -180,13 +180,13 @@
     flex-shrink: 0;
   }
   .tab:hover {
-    background: rgb(30 41 59);
-    color: rgb(226 232 240);
+    background: var(--ui-subtle-bg);
+    color: var(--ui-fg);
   }
   .tab.active {
-    background: rgb(37 99 235 / 0.15);
-    border-color: rgb(37 99 235 / 0.5);
-    color: rgb(191 219 254);
+    background: var(--ui-accent-soft-bg);
+    border-color: var(--ui-accent-soft-border);
+    color: var(--ui-accent-soft-fg);
   }
 
   .content {
@@ -199,30 +199,30 @@
     justify-content: flex-end;
     gap: 0.5rem;
     padding: 0.75rem 1.25rem;
-    border-top: 1px solid rgb(51 65 85);
-    background: rgb(2 6 23 / 0.4);
+    border-top: 1px solid var(--ui-panel-border);
+    background: var(--ui-inset-bg);
   }
   .btn {
     padding: 0.5rem 1rem;
     border-radius: 0.375rem;
-    background: rgb(30 41 59);
-    border: 1px solid rgb(51 65 85);
-    color: rgb(226 232 240);
+    background: var(--ui-subtle-bg);
+    border: 1px solid var(--ui-panel-border);
+    color: var(--ui-fg);
     font-size: 0.8125rem;
     cursor: pointer;
     transition: background 120ms ease, border-color 120ms ease;
   }
   .btn:hover {
-    background: rgb(51 65 85);
+    background: var(--ui-subtle-bg-hover);
   }
   .btn-primary {
-    background: rgb(37 99 235);
-    border-color: rgb(37 99 235);
-    color: white;
+    background: var(--ui-accent);
+    border-color: var(--ui-accent);
+    color: var(--ui-accent-fg);
   }
   .btn-primary:hover {
-    background: rgb(29 78 216);
-    border-color: rgb(29 78 216);
+    background: var(--ui-accent-hover);
+    border-color: var(--ui-accent-hover);
   }
 
   @media (max-width: 640px) {
@@ -234,7 +234,7 @@
       flex-direction: row;
       overflow-x: auto;
       border-right: none;
-      border-bottom: 1px solid rgb(51 65 85);
+      border-bottom: 1px solid var(--ui-panel-border);
     }
     .tab {
       flex-shrink: 0;

@@ -25,6 +25,48 @@
     --input: 214.3 31.8% 91.4%;
     --ring: 222.2 84% 4.9%;
     --radius: 0.5rem;
+
+    --ui-page-bg: linear-gradient(135deg, rgb(241 245 249), rgb(226 232 240), rgb(203 213 225));
+    --ui-page-fg: rgb(15 23 42);
+    --ui-btn-bg: rgb(255 255 255 / 0.75);
+    --ui-btn-bg-hover: rgb(255 255 255 / 0.95);
+    --ui-btn-fg: rgb(51 65 85);
+    --ui-btn-fg-strong: rgb(15 23 42);
+    --ui-btn-border: rgb(203 213 225 / 0.8);
+    --ui-panel-bg: rgb(248 250 252 / 0.9);
+    --ui-panel-border: rgb(203 213 225);
+    --ui-muted-fg: rgb(100 116 139);
+    --ui-subtle-bg: rgb(226 232 240);
+    --ui-subtle-bg-hover: rgb(203 213 225);
+
+    --ui-fg: rgb(30 41 59);
+    --ui-subtle-fg: rgb(100 116 139);
+    --ui-inset-bg: rgb(226 232 240 / 0.6);
+    --ui-input-bg: rgb(255 255 255 / 0.8);
+    --ui-deep-bg: rgb(248 250 252);
+    --ui-border-soft: rgb(148 163 184);
+
+    --ui-accent: rgb(37 99 235);
+    --ui-accent-hover: rgb(29 78 216);
+    --ui-accent-fg: rgb(255 255 255);
+    --ui-accent-soft-bg: rgb(37 99 235 / 0.12);
+    --ui-accent-soft-border: rgb(37 99 235 / 0.5);
+    --ui-accent-soft-fg: rgb(29 78 216);
+    --ui-accent-teal: rgb(20 184 166);
+    --ui-focus: rgb(59 130 246);
+
+    --ui-success: rgb(21 128 61);
+    --ui-warning: rgb(161 98 7);
+    --ui-error: rgb(185 28 28);
+
+    --ui-danger-bg: rgb(254 202 202 / 0.6);
+    --ui-danger-bg-hover: rgb(252 165 165 / 0.7);
+    --ui-danger-border: rgb(220 38 38);
+    --ui-danger-fg: rgb(153 27 27);
+
+    --ui-badge-bg: rgb(253 224 71 / 0.35);
+    --ui-badge-fg: rgb(161 98 7);
+    --ui-badge-border: rgb(234 179 8 / 0.6);
   }
 
   .dark {
@@ -47,6 +89,48 @@
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
     --ring: 212.7 26.8% 83.9%;
+
+    --ui-page-bg: linear-gradient(135deg, rgb(2 6 23), rgb(15 23 42), rgb(30 41 59));
+    --ui-page-fg: rgb(241 245 249);
+    --ui-btn-bg: rgb(15 23 42 / 0.7);
+    --ui-btn-bg-hover: rgb(30 41 59 / 0.9);
+    --ui-btn-fg: rgb(203 213 225);
+    --ui-btn-fg-strong: rgb(241 245 249);
+    --ui-btn-border: rgb(51 65 85 / 0.6);
+    --ui-panel-bg: rgb(15 23 42 / 0.5);
+    --ui-panel-border: rgb(51 65 85);
+    --ui-muted-fg: rgb(148 163 184);
+    --ui-subtle-bg: rgb(30 41 59);
+    --ui-subtle-bg-hover: rgb(51 65 85);
+
+    --ui-fg: rgb(226 232 240);
+    --ui-subtle-fg: rgb(100 116 139);
+    --ui-inset-bg: rgb(2 6 23 / 0.5);
+    --ui-input-bg: rgb(2 6 23 / 0.6);
+    --ui-deep-bg: rgb(2 6 23);
+    --ui-border-soft: rgb(71 85 105);
+
+    --ui-accent: rgb(37 99 235);
+    --ui-accent-hover: rgb(29 78 216);
+    --ui-accent-fg: rgb(255 255 255);
+    --ui-accent-soft-bg: rgb(37 99 235 / 0.15);
+    --ui-accent-soft-border: rgb(37 99 235 / 0.5);
+    --ui-accent-soft-fg: rgb(191 219 254);
+    --ui-accent-teal: rgb(94 234 212);
+    --ui-focus: rgb(59 130 246);
+
+    --ui-success: rgb(134 239 172);
+    --ui-warning: rgb(250 204 21);
+    --ui-error: rgb(248 113 113);
+
+    --ui-danger-bg: rgb(127 29 29 / 0.4);
+    --ui-danger-bg-hover: rgb(153 27 27 / 0.6);
+    --ui-danger-border: rgb(153 27 27);
+    --ui-danger-fg: rgb(254 226 226);
+
+    --ui-badge-bg: rgb(234 179 8 / 0.2);
+    --ui-badge-fg: rgb(253 224 71);
+    --ui-badge-border: rgb(234 179 8 / 0.4);
   }
 }
 

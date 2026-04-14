@@ -143,32 +143,32 @@
     margin: 0;
     font-size: 1rem;
     font-weight: 600;
-    color: rgb(241 245 249);
+    color: var(--ui-btn-fg-strong);
   }
   header p {
     margin: 0.125rem 0 0;
     font-size: 0.8125rem;
-    color: rgb(148 163 184);
+    color: var(--ui-muted-fg);
   }
   .summary {
     display: flex;
     align-items: center;
     gap: 1.5rem;
     padding: 0.875rem 1rem;
-    background: rgb(15 23 42 / 0.5);
-    border: 1px solid rgb(51 65 85);
+    background: var(--ui-panel-bg);
+    border: 1px solid var(--ui-panel-border);
     border-radius: 0.5rem;
   }
   .summary-label {
     font-size: 0.6875rem;
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    color: rgb(148 163 184);
+    color: var(--ui-muted-fg);
   }
   .summary-value {
     font-size: 1.125rem;
     font-weight: 600;
-    color: rgb(241 245 249);
+    color: var(--ui-btn-fg-strong);
   }
   .summary-actions {
     margin-left: auto;
@@ -177,8 +177,8 @@
     padding: 1.25rem;
     text-align: center;
     font-size: 0.8125rem;
-    color: rgb(148 163 184);
-    border: 1px dashed rgb(71 85 105);
+    color: var(--ui-muted-fg);
+    border: 1px dashed var(--ui-border-soft);
     border-radius: 0.5rem;
   }
   .items {
@@ -194,8 +194,8 @@
     align-items: center;
     gap: 0.75rem;
     padding: 0.625rem;
-    background: rgb(15 23 42 / 0.5);
-    border: 1px solid rgb(51 65 85);
+    background: var(--ui-panel-bg);
+    border: 1px solid var(--ui-panel-border);
     border-radius: 0.5rem;
   }
   .item img {
@@ -203,8 +203,8 @@
     height: 3rem;
     object-fit: cover;
     border-radius: 0.375rem;
-    border: 1px solid rgb(51 65 85);
-    background: rgb(2 6 23);
+    border: 1px solid var(--ui-panel-border);
+    background: var(--ui-deep-bg);
   }
   .item-body {
     flex: 1;
@@ -212,40 +212,40 @@
   }
   .item-label {
     font-size: 0.8125rem;
-    color: rgb(226 232 240);
+    color: var(--ui-fg);
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
   }
   .item-meta {
     font-size: 0.75rem;
-    color: rgb(148 163 184);
+    color: var(--ui-muted-fg);
   }
   .item-meta .used {
-    color: rgb(134 239 172);
+    color: var(--ui-success);
   }
   .btn {
     padding: 0.375rem 0.75rem;
     border-radius: 0.375rem;
-    background: rgb(30 41 59);
-    border: 1px solid rgb(51 65 85);
-    color: rgb(226 232 240);
+    background: var(--ui-subtle-bg);
+    border: 1px solid var(--ui-panel-border);
+    color: var(--ui-fg);
     font-size: 0.8125rem;
     cursor: pointer;
   }
   .btn:hover:not(:disabled) {
-    background: rgb(51 65 85);
+    background: var(--ui-subtle-bg-hover);
   }
   .btn:disabled {
     opacity: 0.5;
     cursor: not-allowed;
   }
   .btn-danger {
-    background: rgb(127 29 29 / 0.4);
-    border-color: rgb(153 27 27);
-    color: rgb(254 226 226);
+    background: var(--ui-danger-bg);
+    border-color: var(--ui-danger-border);
+    color: var(--ui-danger-fg);
   }
   .btn-danger:hover:not(:disabled) {
-    background: rgb(153 27 27 / 0.6);
+    background: var(--ui-danger-bg-hover);
   }
 </style>

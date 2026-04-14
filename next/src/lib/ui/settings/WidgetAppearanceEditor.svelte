@@ -228,8 +228,8 @@
     gap: 0.5rem;
   }
   .group {
-    background: rgb(15 23 42 / 0.5);
-    border: 1px solid rgb(51 65 85);
+    background: var(--ui-panel-bg);
+    border: 1px solid var(--ui-panel-border);
     border-radius: 0.5rem;
     overflow: hidden;
   }
@@ -240,7 +240,7 @@
     padding: 0 0.5rem 0 0;
   }
   .section-header:hover {
-    background: rgb(30 41 59 / 0.5);
+    background: var(--ui-subtle-bg);
   }
   .section-toggle {
     flex: 1;
@@ -250,7 +250,7 @@
     padding: 0.625rem 0.75rem;
     background: transparent;
     border: none;
-    color: rgb(226 232 240);
+    color: var(--ui-fg);
     font-size: 0.8125rem;
     font-weight: 600;
     text-align: left;
@@ -262,7 +262,7 @@
   .chev {
     display: inline-block;
     width: 0.875rem;
-    color: rgb(148 163 184);
+    color: var(--ui-muted-fg);
     font-size: 0.75rem;
   }
   .badge {
@@ -270,9 +270,9 @@
     font-weight: 600;
     padding: 0.125rem 0.375rem;
     border-radius: 9999px;
-    background: rgb(234 179 8 / 0.2);
-    color: rgb(253 224 71);
-    border: 1px solid rgb(234 179 8 / 0.4);
+    background: var(--ui-badge-bg);
+    color: var(--ui-badge-fg);
+    border: 1px solid var(--ui-badge-border);
     text-transform: uppercase;
     letter-spacing: 0.04em;
   }
@@ -280,13 +280,13 @@
     font-size: 0.6875rem;
     padding: 0.125rem 0.5rem;
     border-radius: 0.25rem;
-    background: rgb(30 41 59);
-    border: 1px solid rgb(71 85 105);
-    color: rgb(203 213 225);
+    background: var(--ui-subtle-bg);
+    border: 1px solid var(--ui-border-soft);
+    color: var(--ui-btn-fg);
     cursor: pointer;
   }
   .reset-btn:hover {
-    background: rgb(51 65 85);
+    background: var(--ui-subtle-bg-hover);
   }
   .group-body {
     display: flex;
@@ -304,7 +304,7 @@
     flex-direction: column;
     gap: 0.25rem;
     font-size: 0.75rem;
-    color: rgb(148 163 184);
+    color: var(--ui-muted-fg);
   }
   .color-row {
     display: flex;
@@ -314,7 +314,7 @@
   .color-row input[type="color"] {
     width: 2rem;
     height: 1.75rem;
-    border: 1px solid rgb(51 65 85);
+    border: 1px solid var(--ui-panel-border);
     border-radius: 0.375rem;
     background: transparent;
     cursor: pointer;
@@ -325,21 +325,21 @@
     padding: 0.25rem 0.5rem;
     font-size: 0.75rem;
     font-family: ui-monospace, Menlo, monospace;
-    background: rgb(2 6 23 / 0.6);
-    border: 1px solid rgb(51 65 85);
+    background: var(--ui-input-bg);
+    border: 1px solid var(--ui-panel-border);
     border-radius: 0.375rem;
-    color: rgb(226 232 240);
+    color: var(--ui-fg);
   }
   .color-row input[type="text"]:focus {
     outline: none;
-    border-color: rgb(59 130 246);
+    border-color: var(--ui-focus);
   }
   .select {
     padding: 0.375rem 0.5rem;
-    background: rgb(2 6 23 / 0.6);
-    border: 1px solid rgb(51 65 85);
+    background: var(--ui-input-bg);
+    border: 1px solid var(--ui-panel-border);
     border-radius: 0.375rem;
-    color: rgb(226 232 240);
+    color: var(--ui-fg);
     font-size: 0.8125rem;
   }
   .slider-label {
@@ -347,19 +347,19 @@
     flex-direction: column;
     gap: 0.25rem;
     font-size: 0.75rem;
-    color: rgb(203 213 225);
+    color: var(--ui-btn-fg);
   }
   .slider-label input[type="range"] {
     width: 100%;
-    accent-color: rgb(59 130 246);
+    accent-color: var(--ui-focus);
   }
   .subtle {
-    color: rgb(100 116 139);
+    color: var(--ui-subtle-fg);
     font-weight: 400;
   }
   .hint {
     margin: 0;
     font-size: 0.6875rem;
-    color: rgb(234 179 8);
+    color: var(--ui-badge-fg);
   }
 </style>

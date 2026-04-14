@@ -1,5 +1,12 @@
 <script lang="ts">
   import { uiStore } from "./uiStore.svelte.js";
+  import { settingsStore } from "$lib/settings/store.svelte.js";
+
+  const isDark = $derived(settingsStore.settings.theme === "dark");
+
+  function toggleTheme() {
+    settingsStore.setTheme(isDark ? "light" : "dark");
+  }
 </script>
 
 <div class="toolbar">
@@ -38,6 +45,25 @@
   <button
     type="button"
     class="tb-btn"
+    aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
+    title={isDark ? "Light mode" : "Dark mode"}
+    onclick={toggleTheme}
+  >
+    {#if isDark}
+      <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="4" />
+        <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" />
+      </svg>
+    {:else}
+      <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+      </svg>
+    {/if}
+  </button>
+
+  <button
+    type="button"
+    class="tb-btn"
     aria-label="Settings"
     onclick={uiStore.openSettings}
   >
@@ -65,17 +91,17 @@
     align-items: center;
     justify-content: center;
     border-radius: 9999px;
-    background: rgb(15 23 42 / 0.7);
-    color: rgb(203 213 225);
-    border: 1px solid rgb(51 65 85 / 0.6);
+    background: var(--ui-btn-bg);
+    color: var(--ui-btn-fg);
+    border: 1px solid var(--ui-btn-border);
     cursor: pointer;
     backdrop-filter: blur(12px);
     transition: background 120ms ease, color 120ms ease, transform 120ms ease;
   }
 
   .tb-btn:hover {
-    background: rgb(30 41 59 / 0.9);
-    color: rgb(241 245 249);
+    background: var(--ui-btn-bg-hover);
+    color: var(--ui-btn-fg-strong);
   }
 
   .tb-btn:active {

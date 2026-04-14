@@ -20,10 +20,10 @@
   open={uiStore.addWidgetOpen}
   onOpenChange={(v) => uiStore.setAddWidgetOpen(v)}
 >
-  <Dialog.Content class="bg-slate-900 border-slate-700 text-slate-100">
+  <Dialog.Content class="bg-background border-border text-foreground">
     <Dialog.Header>
-      <Dialog.Title class="text-slate-100">Add widget</Dialog.Title>
-      <Dialog.Description class="text-slate-400">
+      <Dialog.Title>Add widget</Dialog.Title>
+      <Dialog.Description>
         Pick a widget to drop onto the grid.
       </Dialog.Description>
     </Dialog.Header>
@@ -46,7 +46,7 @@
       {/each}
 
       {#if widgets.length === 0}
-        <div class="col-span-2 text-slate-500 text-sm text-center py-4">
+        <div class="col-span-2 text-sm text-center py-4" style="color: var(--ui-subtle-fg);">
           No widgets registered yet.
         </div>
       {/if}
@@ -59,16 +59,16 @@
     text-align: left;
     padding: 0.75rem 1rem;
     border-radius: 0.5rem;
-    background: rgb(15 23 42 / 0.6);
-    border: 1px solid rgb(51 65 85);
-    color: rgb(241 245 249);
+    background: var(--ui-panel-bg);
+    border: 1px solid var(--ui-panel-border);
+    color: var(--ui-btn-fg-strong);
     cursor: pointer;
     transition: background 120ms ease, border-color 120ms ease;
   }
 
   .widget-card:hover {
-    background: rgb(30 41 59 / 0.9);
-    border-color: rgb(96 165 250);
+    background: var(--ui-subtle-bg);
+    border-color: var(--ui-focus);
   }
 
   .widget-card-name {
@@ -78,13 +78,13 @@
 
   .widget-card-desc {
     font-size: 0.75rem;
-    color: rgb(148 163 184);
+    color: var(--ui-muted-fg);
     margin-top: 0.15rem;
   }
 
   .widget-card-size {
     font-size: 0.7rem;
-    color: rgb(100 116 139);
+    color: var(--ui-subtle-fg);
     margin-top: 0.4rem;
     font-variant-numeric: tabular-nums;
   }

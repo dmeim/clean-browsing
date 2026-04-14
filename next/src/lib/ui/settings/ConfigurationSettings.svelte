@@ -209,13 +209,13 @@
   header h3 {
     font-size: 1rem;
     font-weight: 600;
-    color: rgb(241 245 249);
+    color: var(--ui-btn-fg-strong);
     margin: 0;
   }
   header p {
     margin: 0.125rem 0 0;
     font-size: 0.8125rem;
-    color: rgb(148 163 184);
+    color: var(--ui-muted-fg);
   }
   .row {
     display: flex;
@@ -229,53 +229,53 @@
     line-height: 1.5;
     padding: 0.75rem;
     border-radius: 0.5rem;
-    background: rgb(2 6 23 / 0.6);
-    border: 1px solid rgb(51 65 85);
-    color: rgb(226 232 240);
+    background: var(--ui-input-bg);
+    border: 1px solid var(--ui-panel-border);
+    color: var(--ui-fg);
     resize: vertical;
   }
   textarea:focus {
     outline: none;
-    border-color: rgb(59 130 246);
+    border-color: var(--ui-focus);
   }
   .btn {
     padding: 0.375rem 0.75rem;
     border-radius: 0.375rem;
-    background: rgb(30 41 59);
-    border: 1px solid rgb(51 65 85);
-    color: rgb(226 232 240);
+    background: var(--ui-subtle-bg);
+    border: 1px solid var(--ui-panel-border);
+    color: var(--ui-fg);
     font-size: 0.8125rem;
     cursor: pointer;
     transition: background 120ms ease, border-color 120ms ease;
   }
   .btn:hover {
-    background: rgb(51 65 85);
-    border-color: rgb(71 85 105);
+    background: var(--ui-subtle-bg-hover);
+    border-color: var(--ui-border-soft);
   }
   .btn-primary {
-    background: rgb(37 99 235);
-    border-color: rgb(37 99 235);
-    color: white;
+    background: var(--ui-accent);
+    border-color: var(--ui-accent);
+    color: var(--ui-accent-fg);
   }
   .btn-primary:hover {
-    background: rgb(29 78 216);
-    border-color: rgb(29 78 216);
+    background: var(--ui-accent-hover);
+    border-color: var(--ui-accent-hover);
   }
   .hint {
     margin: 0;
     font-size: 0.75rem;
-    color: rgb(100 116 139);
+    color: var(--ui-subtle-fg);
     line-height: 1.5;
   }
   .status {
     margin: 0;
     font-size: 0.8125rem;
-    color: rgb(134 239 172);
+    color: var(--ui-success);
   }
   .status.warn {
-    color: rgb(250 204 21);
+    color: var(--ui-warning);
   }
   .status.err {
-    color: rgb(248 113 113);
+    color: var(--ui-error);
   }
 </style>

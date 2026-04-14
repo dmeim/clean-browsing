@@ -109,14 +109,14 @@
     display: flex;
     align-items: center;
     gap: 0.125rem;
-    border: 1px solid rgb(51 65 85);
-    background: rgb(15 23 42 / 0.6);
+    border: 1px solid var(--ui-panel-border);
+    background: var(--ui-panel-bg);
     border-radius: 9999px;
     flex-shrink: 0;
     padding: 0 0.25rem 0 0;
   }
   .chip-wrap:hover {
-    border-color: rgb(94 234 212);
+    border-color: var(--ui-accent-teal);
   }
   .chip-main {
     display: flex;
@@ -125,7 +125,7 @@
     padding: 0.375rem 0.625rem;
     background: transparent;
     border: none;
-    color: rgb(226 232 240);
+    color: var(--ui-fg);
     font-size: 0.75rem;
     cursor: pointer;
     border-radius: 9999px;
@@ -135,7 +135,7 @@
     width: 0.9rem;
     height: 0.9rem;
     border-radius: 9999px;
-    border: 1px solid rgb(71 85 105);
+    border: 1px solid var(--ui-border-soft);
   }
   .name {
     white-space: nowrap;
@@ -148,7 +148,7 @@
     height: 1.1rem;
     border: none;
     background: transparent;
-    color: rgb(148 163 184);
+    color: var(--ui-muted-fg);
     cursor: pointer;
     border-radius: 9999px;
     font-size: 0.9rem;
@@ -156,22 +156,22 @@
     padding: 0;
   }
   .trash:hover {
-    background: rgb(127 29 29 / 0.4);
-    color: rgb(254 226 226);
+    background: var(--ui-danger-bg);
+    color: var(--ui-danger-fg);
   }
   .save-btn {
     align-self: flex-start;
     padding: 0.25rem 0.625rem;
     font-size: 0.75rem;
     background: transparent;
-    border: 1px dashed rgb(71 85 105);
+    border: 1px dashed var(--ui-border-soft);
     border-radius: 0.375rem;
-    color: rgb(148 163 184);
+    color: var(--ui-muted-fg);
     cursor: pointer;
   }
   .save-btn:hover {
-    border-color: rgb(94 234 212);
-    color: rgb(226 232 240);
+    border-color: var(--ui-accent-teal);
+    color: var(--ui-fg);
   }
   .save-row {
     display: flex;
@@ -181,27 +181,27 @@
     flex: 1;
     padding: 0.375rem 0.625rem;
     font-size: 0.8125rem;
-    background: rgb(2 6 23 / 0.6);
-    border: 1px solid rgb(51 65 85);
+    background: var(--ui-input-bg);
+    border: 1px solid var(--ui-panel-border);
     border-radius: 0.375rem;
-    color: rgb(226 232 240);
+    color: var(--ui-fg);
   }
   .save-row input:focus {
     outline: none;
-    border-color: rgb(59 130 246);
+    border-color: var(--ui-focus);
   }
   .btn {
     padding: 0.375rem 0.75rem;
     border-radius: 0.375rem;
-    background: rgb(30 41 59);
-    border: 1px solid rgb(51 65 85);
-    color: rgb(226 232 240);
+    background: var(--ui-subtle-bg);
+    border: 1px solid var(--ui-panel-border);
+    color: var(--ui-fg);
     font-size: 0.8125rem;
     cursor: pointer;
   }
   .btn-primary {
-    background: rgb(37 99 235);
-    border-color: rgb(37 99 235);
-    color: white;
+    background: var(--ui-accent);
+    border-color: var(--ui-accent);
+    color: var(--ui-accent-fg);
   }
 </style>

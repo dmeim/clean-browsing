@@ -33,11 +33,11 @@
     margin: 0;
     font-size: 1rem;
     font-weight: 600;
-    color: rgb(241 245 249);
+    color: var(--ui-btn-fg-strong);
   }
   header p {
     margin: 0.125rem 0 0;
     font-size: 0.8125rem;
-    color: rgb(148 163 184);
+    color: var(--ui-muted-fg);
   }
 </style>
