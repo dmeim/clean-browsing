@@ -7,7 +7,7 @@ This document outlines the styling conventions, design system, and CSS patterns 
 ### Color Palette
 
 #### Brand Colors
-The official brand palette, sampled from the logo (`next/public/icons/logo.png`). Use these anywhere an on-brand accent is appropriate — widget highlights, illustrations, status chips, marketing surfaces, etc.
+The official brand palette, sampled from the logo (`public/icons/logo.png`). Use these anywhere an on-brand accent is appropriate — widget highlights, illustrations, status chips, marketing surfaces, etc.
 
 - **Brand Orange**: `#eda95d`
 - **Brand Green**: `#95c69d`

@@ -1,8 +1,8 @@
 # Clean Browsing — Developer Documentation
 
-Clean Browsing is a Firefox (MV2) new-tab extension: a persistent grid of draggable, resizable widgets, all local-first. This doc covers the active rewrite in [`next/`](../next) using **Svelte 5**, **Vite**, **TypeScript**, **Tailwind v4**, and **shadcn-svelte**.
+Clean Browsing is a Firefox (MV2) new-tab extension: a persistent grid of draggable, resizable widgets, all local-first. This doc covers the codebase at the repo root, built on **Svelte 5**, **Vite**, **TypeScript**, **Tailwind v4**, and **shadcn-svelte**.
 
-> 🚧 The legacy vanilla-JS implementation under [`extension/`](../extension) is still in the repo for reference but is no longer the build target. The older docs in this folder (`WIDGET_DEVELOPMENT.md`, `STYLING_GUIDE.md`, `COMPONENT_RULES.md`, `UI_BEHAVIOR.md`) describe that legacy build and will be rewritten as the port progresses.
+> 🚧 The older docs in this folder (`WIDGET_DEVELOPMENT.md`, `STYLING_GUIDE.md`, `COMPONENT_RULES.md`, `UI_BEHAVIOR.md`) still describe the legacy vanilla-JS build that was removed in v1.0.0 (preserved at the `legacy-final` git tag) and are being rewritten.
 
 ---
 
@@ -27,13 +27,12 @@ Clean Browsing is a Firefox (MV2) new-tab extension: a persistent grid of dragga
 Prerequisites: Node 20+, npm, Firefox.
 
 ```bash
-cd next
 npm install
 
 # Live dev: vite build --watch + web-ext run (Firefox auto-loads dist/)
 npm run dev
 
-# Production build → next/dist/
+# Production build → dist/
 npm run build
 
 # Svelte + TS diagnostics
@@ -42,17 +41,17 @@ npm run check
 
 `npm run dev` runs two processes concurrently:
 
-1. `vite build --watch` — rebuilds `next/dist/` on every save.
+1. `vite build --watch` — rebuilds `dist/` on every save.
 2. `web-ext run --source-dir=dist --target=firefox-desktop` — launches a dev Firefox with the extension installed and reloads it when `dist/` changes.
 
-For a one-off manual load, use `about:debugging#/runtime/this-firefox` → **Load Temporary Add-on…** → pick `next/dist/manifest.json`.
+For a one-off manual load, use `about:debugging#/runtime/this-firefox` → **Load Temporary Add-on…** → pick `dist/manifest.json`.
 
 ---
 
 ## 📁 Project Layout
 
 ```
-next/
+.
 ├── index.html                # Vite entry, becomes the new tab page
 ├── vite.config.ts            # svelte() + tailwindcss() plugins, $lib alias
 ├── tsconfig.json
@@ -163,7 +162,7 @@ Each widget's `definition.ts` calls `registerWidget(def)` at module load. `src/l
 
 ## 🧩 Adding a Widget
 
-1. **Create the folder**: `next/src/lib/widgets/<name>/`
+1. **Create the folder**: `src/lib/widgets/<name>/`
 2. **Widget component** — `<Name>.svelte`:
    ```svelte
    <script lang="ts">
