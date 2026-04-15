@@ -13,9 +13,9 @@
   <div class="group">
     <div class="group-title">Density</div>
     <div class="group-help">
-      Dense mode doubles the grid to 48×32 for finer placement. Existing widgets are
-      rescaled so the layout looks the same. Switching back halves them and re-packs any
-      that would otherwise collide.
+      Dense mode doubles the grid to 48×32 for finer placement. Existing widgets are rescaled so the
+      layout looks the same. Switching back halves them and re-packs any that would otherwise
+      collide.
     </div>
     <div class="density-toggle">
       <button
