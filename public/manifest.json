@@ -1,15 +1,21 @@
 {
   "manifest_version": 2,
   "name": "Clean Browsing",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "A customizable, local-first new tab page for Firefox — a grid of draggable, resizable widgets.",
   "permissions": [
     "storage",
     "unlimitedStorage",
     "geolocation",
+    "notifications",
+    "alarms",
     "https://api.open-meteo.com/*",
     "https://geocoding-api.open-meteo.com/*"
   ],
+  "background": {
+    "scripts": ["background.js"],
+    "persistent": false
+  },
   "browser_specific_settings": {
     "gecko": {
       "id": "clean-browsing-next@local",

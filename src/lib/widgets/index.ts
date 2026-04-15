@@ -6,3 +6,5 @@ import "./search/definition.js";
 import "./picture/definition.js";
 import "./calculator/definition.js";
 import "./weather/definition.js";
+import "./stopwatch/definition.js";
+import "./timer/definition.js";
