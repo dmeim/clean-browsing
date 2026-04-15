@@ -103,17 +103,18 @@ See [`docs/README.md`](docs/README.md) for the deeper walkthrough.
 
 ## 📚 Documentation
 
-- **[Developer Guide](docs/README.md)** — stack overview, architecture, and conventions
-- **[Widget Development](docs/WIDGET_DEVELOPMENT.md)** — *being rewritten for the Svelte stack*
-- **[Styling Guide](docs/STYLING_GUIDE.md)** — *being rewritten for Tailwind v4*
-- **[Component Rules](docs/COMPONENT_RULES.md)** — *being rewritten*
-- **[UI Behavior](docs/UI_BEHAVIOR.md)** — *being rewritten*
+- **[Developer Guide](docs/README.md)** — stack overview and architecture
+- **[Widget Development](docs/WIDGET_DEVELOPMENT.md)** — how to build a new widget
+- **[Styling Guide](docs/STYLING_GUIDE.md)** — Tailwind v4 and design tokens
+- **[Component Rules](docs/COMPONENT_RULES.md)** — Svelte 5 patterns and conventions
+- **[UI Behavior](docs/UI_BEHAVIOR.md)** — edit mode, drag/resize, dialogs
+- **[Roadmap](docs/ROADMAP.md)** — what's planned after v1.0
 - **[Release Notes](release-notes/)**
 
 ## 📊 Status
 
-- **Shipped**: grid with drag/resize, edit mode, persistent layout, clock/date/search/calculator/picture widgets, per-widget settings dialogs, light/dark mode, JSON settings export, ZIP image library export
-- **Coming next**: widget appearance system, import/export UI, sidepanel port, notes widget
+- **Shipped**: 24×16 widget grid with drag/resize, edit mode, persistent layout, clock/date/search/calculator/picture widgets, per-widget settings dialogs, light/dark mode, global widget appearance defaults, JSON settings export, ZIP image library export
+- **Coming next**: see [docs/ROADMAP.md](docs/ROADMAP.md) — notes widget, per-instance appearance overrides, full layout import/export, additional widgets
 
 ## 🤝 Contributing
 

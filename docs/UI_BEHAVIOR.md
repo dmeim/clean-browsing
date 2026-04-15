@@ -1,395 +1,238 @@
-# UI Behavior Standards
+# UI Behavior
 
-This document defines the interaction patterns, user experience standards, and behavioral rules for the NewTab PlusProMaxUltra extension interface.
+How the Clean Browsing UI actually behaves — edit mode, drag/resize, dialogs,
+and the interaction patterns a contributor needs to know to ship a
+coherent-feeling change.
 
-## Core UI Principles
+This reflects the **current Svelte 5 codebase**. A prior version of this
+file documented the legacy vanilla-JS extension, preserved at the
+`legacy-final` git tag.
 
-### Design Philosophy
-- **Glassmorphism Aesthetic**: Translucent elements with backdrop blur effects
-- **Smooth Interactions**: Fluid animations with consistent easing curves
-- **Contextual Feedback**: Visual responses that guide user understanding
-- **Non-Destructive Editing**: Safe exploration with clear save/cancel patterns
-- **Progressive Disclosure**: Advanced features revealed contextually
+## The Two Modes
 
-### Interaction States
-All interactive elements follow a consistent state system:
+Clean Browsing has exactly two modes at the new-tab page level, tracked by
+`uiStore.editMode`:
 
-1. **Default**: Base appearance with subtle visual cues
-2. **Hover**: Enhanced visibility and gentle animation
-3. **Active/Focus**: Clear indication of current interaction
-4. **Disabled**: Reduced opacity with no interaction capability
-5. **Loading**: Animation or indicator during async operations
+### View Mode (default)
 
-## Grid System Behavior
+- Widgets render normally on the 24×16 grid.
+- No drag, no resize, no delete buttons, no jiggle.
+- Interactive widgets (calculator buttons, search input) receive clicks
+  and keystrokes directly.
+- The toolbar floats with the edit (✎), add-widget (+), settings (⚙), and
+  theme (☀/🌙) buttons.
 
-### Default Mode (Navigation)
-- **Grid Structure**: Fixed 40×24 invisible grid system
-- **Widget Interactions**: Widgets respond to hover with gentle lift effect
-- **Background**: Solid gradient background with subtle animated overlays
-- **Scrolling**: Page is fixed height - no vertical scrolling
+### Edit Mode
 
-```css
-/* Default widget hover behavior */
-.widget:hover {
-  transform: translateY(-4px) scale(1.02);
-  border-color: rgba(255, 255, 255, 0.2);
-}
+Toggled by the ✎ button in the toolbar. `uiStore.toggleEditMode()` flips
+`editMode` on the UI store; the grid and its children react.
+
+In edit mode:
+
+- Every `GridItem` gets an `edit-mode` class and starts showing its inner
+  dashed padding outline.
+- Pointer down on a widget **starts a drag** instead of passing the click
+  through to widget content.
+- Resize handles become active on the south, east, and southeast edges.
+- Per-widget settings and delete affordances become available.
+- Exiting edit mode closes any open Add Widget / per-widget Settings dialog
+  (`uiStore.exitEditMode()`), but does *not* close the global Settings
+  dialog — that's independent.
+
+The edit mode toggle is the gating input for every "structural" operation.
+Widget-internal state (calculator memory, etc.) is not affected.
+
+## Drag and Resize
+
+All drag/resize logic lives in `src/lib/grid/GridItem.svelte`. Widgets do
+not implement their own — it's uniform across every widget.
+
+### The math
+
+- The grid is `grid-template-columns: repeat(cols, 1fr)` /
+  `grid-template-rows: repeat(rows, 1fr)` with a gap.
+- On pointer down, `GridItem` reads the parent's computed `gridTemplateColumns`
+  and `gridTemplateRows` to compute cell stride (cell size + gap).
+- During pointer move, the delta in pixels is divided by the stride to get
+  a delta in cells.
+- The preview position follows the cursor freely — the widget visually
+  floats over other tiles rather than fighting for placement.
+- `gridStore.canPlace(instanceId, x, y, w, h)` validates each hovered cell
+  against grid bounds and rectangle overlap with every other instance
+  (skipping the caller's own instance so it can "move in place"). Invalid
+  hover spots get a red outline on the floating widget.
+- On pointer up, the current cell is committed if valid; otherwise the
+  item snaps back to the last valid position. There is no "drop and fail"
+  state — every drag always ends in a valid cell.
+
+### Resize
+
+Resize uses the same stride math, read from `GridItem`'s edges:
+
+- **South edge** — height only, `s-resize` cursor.
+- **East edge** — width only, `e-resize` cursor.
+- **Southeast corner** — both dimensions, `se-resize` cursor.
+
+Resize is bounded by the widget's `minSize` / `maxSize` (from its
+`WidgetDefinition`) and by `canPlace`.
+
+### Pointer capture
+
+`GridItem` uses `setPointerCapture()` on the drag element so the drag
+continues even if the pointer leaves the widget bounds. This is why drag
+still works when you fling a widget off-screen and pull it back.
+
+### Touch
+
+Pointer events cover touch by default — no separate touch handler. Drag
+works on a touchscreen, but the fine-grained resize handles are small;
+touch users should lean on the corner handle, not the edges.
+
+## Dialogs
+
+Three dialogs, all built from shadcn-svelte primitives:
+
+### 1. Settings Dialog — `src/lib/ui/SettingsDialog.svelte`
+
+Global settings: theme, widget appearance defaults, background, image
+library, storage. Opens via the ⚙ button in the toolbar.
+`uiStore.settingsOpen` controls visibility. Tabs inside the dialog use
+shadcn-svelte tabs and the local `settings/*.svelte` panels.
+
+### 2. Add Widget Dialog — `src/lib/ui/AddWidgetDialog.svelte`
+
+Lists every registered widget via `listWidgets()` from the registry.
+Clicking one calls `gridStore.addWidgetAuto(id)`, which finds the first
+free slot on the grid using the widget's `defaultSize`. Opens via the +
+button in edit mode. `uiStore.addWidgetOpen` controls visibility.
+
+### 3. Per-Widget Settings Dialog — `src/lib/ui/WidgetSettingsDialog.svelte`
+
+Opens via a per-widget control when the user wants to configure a specific
+instance. Looks up the widget's `settingsComponent` from the registry and
+renders it with the instance's `settings` and a wrapped `updateSettings`
+that calls `gridStore.updateWidgetSettings(instanceId, next)`.
+`uiStore.widgetSettingsInstanceId` holds the target instance (or `null`
+when closed).
+
+### Dialog conventions
+
+- Always use shadcn-svelte primitives under `src/lib/components/ui/dialog/`.
+  They handle focus trapping, Escape-to-close, and overlay click behavior.
+- Dialogs close on Escape by default.
+- Clicking outside a modal dialog closes it; clicking inside doesn't.
+- Only one dialog is open at a time. If you need to open a new one,
+  close the current one first via the `uiStore` setter.
+
+## Toolbar
+
+`src/lib/ui/Toolbar.svelte` is the **only** toolbar. Every top-level
+interactive affordance lives there — edit mode, add widget, settings,
+theme toggle. Don't scatter floating buttons across the page.
+
+Buttons follow shadcn-svelte's `Button` variant system. Icon-only buttons
+require an `aria-label`.
+
+## Toasts
+
+Toast notifications use **`svelte-sonner`**. Import `toast` and call it
+for transient feedback (successes, non-blocking errors, undo prompts).
+
+```ts
+import { toast } from "svelte-sonner";
+
+toast.success("Layout reset");
+toast.error("Could not load image");
 ```
 
-### Jiggle Mode (Edit Mode)
-Activated by clicking the edit button (pencil icon → checkmark when active).
+Do **not** use `alert()` / `confirm()`. For destructive confirmations,
+open a small shadcn-svelte Dialog with explicit Cancel / Confirm buttons.
 
-#### Visual Changes
-- **Grid Overlay**: Semi-transparent grid lines appear showing 40×24 layout
-- **Grid Animation**: Subtle pulsing effect on the entire grid
-- **Widget Animation**: All widgets jiggle with gentle rotation and scale
-- **Background Enhancement**: Additional animated gradient overlays
+## Keyboard Behavior
 
-```css
-/* Grid visualization in jiggle mode */
-#widget-grid.jiggle-mode::before {
-  background-image: 
-    linear-gradient(to right, rgba(255, 255, 255, 0.6) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(255, 255, 255, 0.6) 1px, transparent 1px);
-}
+- **Escape** — close the current dialog.
+- **Tab / Shift+Tab** — standard focus movement; shadcn-svelte primitives
+  trap focus inside dialogs.
+- **Enter** — activate focused button, submit focused input where
+  appropriate.
+- **Space** — toggle focused checkboxes and buttons.
 
-/* Widget jiggle animation */
-.jiggle-mode .widget {
-  animation: jiggle 0.5s ease-in-out infinite alternate;
-}
-```
+Widget-internal keyboard handling is the widget's own responsibility. For
+example, the search widget captures Enter to submit.
 
-#### Interactive Features
-1. **Drag and Drop**: Click and drag widgets to reposition
-2. **Resize Handles**: Three resize handles appear on each widget
-3. **Widget Actions**: Remove and settings buttons appear
-4. **Drop Previews**: Visual feedback shows valid drop positions
+There are currently no global keyboard shortcuts for edit mode or dialogs.
+If you add one, put the binding in `App.svelte` and make sure it doesn't
+fire while an `<input>` has focus.
 
-### Edit Mode Interactions
+## Light / Dark Theme
 
-#### Drag and Drop Behavior
-- **Drag Initiation**: Mouse down on widget (not on buttons/controls)
-- **Drag Preview**: Teal dashed outline shows target position
-- **Drop Validation**: Preview only appears for valid grid positions
-- **Smooth Transition**: Widget animates to final position on drop
-- **Grid Snapping**: Widgets automatically align to grid boundaries
+- `mode-watcher` owns the `.dark` class on `<html>`.
+- The theme toggle in `Toolbar.svelte` flips it through `mode-watcher`'s
+  API, not by setting classes directly.
+- Every `--ui-*` variable has a light and dark value in `src/app.css`.
+  Widget chrome variables pick up their theme-aware defaults from the
+  global widget appearance store.
 
-```javascript
-// Drag preview styling
-.drag-preview-indicator {
-  background: rgba(120, 255, 198, 0.2);
-  border: 2px dashed rgba(120, 255, 198, 0.6);
-  animation: pulse-preview 1s ease-in-out infinite;
-}
-```
-
-#### Resize Handle System
-Three resize handles provide different resize capabilities:
-
-1. **Southeast Handle** (bottom-right corner):
-   - Resizes both width and height proportionally
-   - Cursor: `se-resize`
-   - Visual: Diagonal line pattern
-
-2. **South Handle** (bottom edge):
-   - Resizes height only
-   - Cursor: `s-resize`
-   - Visual: Horizontal resize indicator
-
-3. **East Handle** (right edge):
-   - Resizes width only
-   - Cursor: `e-resize`
-   - Visual: Vertical resize indicator
-
-```css
-/* Resize handle styling */
-.jiggle-mode .widget .resize-handle {
-  background-color: rgba(120, 119, 198, 0.1);
-  border: 1px solid rgba(120, 119, 198, 0.2);
-  transition: background-color 0.2s ease;
-}
-
-.jiggle-mode .widget .resize-handle:hover {
-  background-color: rgba(120, 119, 198, 0.4);
-  border-color: rgba(120, 119, 198, 0.6);
-}
-```
-
-#### Widget Action Buttons
-Two action buttons appear in jiggle mode:
-
-1. **Remove Button** (×):
-   - Position: Top-left corner
-   - Color: Red accent on hover
-   - Behavior: Instant removal (no confirmation)
-   - Keyboard: Delete key when widget focused
-
-2. **Settings Button** (⚙️):
-   - Position: Top-right corner  
-   - Color: Blue accent on hover
-   - Behavior: Opens widget configuration panel
-   - Keyboard: Enter key when widget focused
-
-## Panel and Modal System
-
-### Panel Types and Behavior
-
-#### Settings Panel (Right Slide-in)
-- **Trigger**: Settings button (gear icon)
-- **Animation**: Slides in from the right edge
-- **Backdrop**: Semi-transparent overlay
-- **Tabs**: Horizontal tab system with smooth transitions
-- **Close**: Close button or clicking outside panel area
-
-```css
-/* Settings panel slide animation */
-.settings-modal {
-  transform: translateX(100%);
-  transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-}
-
-.settings-modal:not(.hidden) {
-  transform: translateX(0);
-}
-```
-
-#### Widgets Panel (Center Modal)
-- **Trigger**: Widgets button (plus icon)
-- **Animation**: Fade in with gentle scale effect
-- **Position**: Centered with backdrop blur
-- **Modes**: Widget list view → Configuration view
-- **Close**: Close button, escape key, or clicking backdrop
-
-#### Tab System Behavior
-Both panels use consistent tab switching:
-
-1. **Active Indicator**: Highlighted tab button with accent color
-2. **Content Switching**: Smooth fade between tab contents
-3. **State Preservation**: Tab contents remain in DOM (hidden/shown)
-4. **Keyboard Navigation**: Arrow keys move between tabs
-
-### Button Behavior Standards
-
-#### Action Buttons (Bottom-right)
-Floating action buttons follow consistent interaction patterns:
-
-```css
-/* Standard action button hover effect */
-.action-button:hover {
-  background: rgba(255, 255, 255, 0.15);
-  transform: scale(1.05) translateY(-2px);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
-}
-
-/* Shine effect on hover */
-.action-button:hover::before {
-  left: 100%; /* Slide shine effect across button */
-}
-```
-
-#### Primary Actions
-- **Color**: Enhanced glassmorphism with accent glow
-- **Animation**: Lift and scale on hover
-- **Feedback**: Shine effect sweeps across surface
-- **States**: Clear hover, active, and disabled appearances
-
-#### Secondary Actions  
-- **Color**: Subtle glassmorphism without accent
-- **Animation**: Gentle lift on hover
-- **Feedback**: Increased opacity and border brightness
-- **Usage**: Cancel, close, and supporting actions
-
-### Form Input Behavior
-
-#### Input Field Standards
-All form inputs follow consistent styling and behavior:
-
-```css
-/* Standard input styling */
-input, select, textarea {
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 8px;
-  color: #ffffff;
-  padding: 0.5rem 0.75rem;
-}
-
-/* Focus state */
-input:focus, select:focus, textarea:focus {
-  border-color: rgba(120, 119, 198, 0.5);
-  box-shadow: 0 0 0 2px rgba(120, 119, 198, 0.2);
-  outline: none;
-}
-```
-
-#### Checkbox and Radio Patterns
-Custom-styled form controls maintain consistent appearance:
-
-- **Visual Style**: Rounded corners with glassmorphism background
-- **Check Animation**: Smooth transition when toggled
-- **Label Interaction**: Full label area clickable
-- **Keyboard Support**: Standard spacebar and arrow key navigation
-
-#### Input Validation Feedback
-- **Success**: Subtle green accent border
-- **Error**: Gentle red accent border with shake animation
-- **Warning**: Yellow accent border
-- **Info**: Blue accent border for informational states
-
-## Animation System
-
-### Timing and Easing
-Consistent animation curves create unified experience:
-
-```css
-/* Standard transitions */
-transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-
-/* Quick feedback */
-transition: transform 0.1s ease;
-
-/* Long operations */  
-transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-```
-
-### Animation Categories
-
-#### Micro-interactions
-- **Duration**: 100-200ms
-- **Purpose**: Immediate feedback (button press, hover)
-- **Easing**: Ease or ease-out for snappy response
-
-#### UI Transitions  
-- **Duration**: 300ms
-- **Purpose**: Panel transitions, tab switching
-- **Easing**: Custom cubic-bezier for smooth movement
-
-#### Widget Animations
-- **Duration**: 400-500ms  
-- **Purpose**: Widget position changes, size adjustments
-- **Easing**: Bounce curve for playful effect
-
-#### Ambient Animations
-- **Duration**: 1-3 seconds
-- **Purpose**: Background gradients, jiggle effects
-- **Easing**: Ease-in-out for gentle rhythm
-
-## Responsive Behavior
-
-### Container Query System
-Widgets use container queries for internal responsive behavior:
-
-```css
-.widget {
-  container-type: size;
-}
-
-/* Widget content adapts to container size */
-.clock-widget {
-  font-size: clamp(0.8rem, 4cqw, 3rem);
-}
-
-.calc-buttons {
-  gap: clamp(0.25rem, 1cqw, 0.5rem);
-}
-```
-
-### Fixed Grid System
-- **Grid Dimensions**: Always 40×24 regardless of screen size
-- **Cell Scaling**: Grid cells scale proportionally with viewport
-- **Content Adaptation**: Widget content uses container queries
-- **Minimum Sizes**: Enforce minimum widget dimensions for usability
-
-### Touch and Mobile Considerations
-- **Touch Targets**: Minimum 44px touch area for interactive elements
-- **Drag Sensitivity**: Appropriate drag threshold for touch devices
-- **Hover Alternatives**: Touch interactions provide equivalent feedback
-- **Resize Handles**: Larger touch-friendly resize handles
-
-## Keyboard Navigation
-
-### Focus Management
-- **Tab Order**: Logical tab sequence through interface
-- **Focus Indicators**: Clear visual indication of focused elements
-- **Skip Links**: Hidden shortcuts for accessibility
-- **Focus Trapping**: Modal dialogs trap focus within their boundaries
-
-### Keyboard Shortcuts
-- **Escape**: Close current modal or panel
-- **Enter**: Activate focused button or widget settings
-- **Space**: Toggle checkboxes and buttons
-- **Arrow Keys**: Navigate between tabs
-- **Delete**: Remove focused widget (in jiggle mode)
-
-### Widget-Specific Keys
-Each widget type can define custom keyboard behavior:
-- **Calculator**: Numeric keys map to calculator buttons
-- **Clock**: No specific keyboard interactions
-- **Search**: Enter key submits search query
+Widgets that need theme awareness should read from CSS variables
+(`--ui-fg`, `--widget-accent`), not from a JS flag. That way a live theme
+switch is instant and zero JS.
 
 ## Error and Loading States
 
-### Error Display Patterns
-Consistent error presentation across all components:
+### Loading
 
-```html
-<!-- Standard error widget display -->
-<div class="widget-error">
-  <div class="error-icon">⚠️</div>
-  <div class="error-message">Unable to load data</div>
-</div>
-```
+- The grid store's `load()` is async; `loaded` becomes `true` on resolve.
+  `Grid.svelte` should not render items until `loaded` — empty grid is
+  fine as a loading state, or a subtle "Loading…" in the toolbar.
 
-### Loading State Behavior
-- **Skeleton Loading**: Placeholder content during async operations
-- **Progressive Loading**: Show available content, load additional parts
-- **Timeout Handling**: Graceful degradation after reasonable timeouts
-- **Retry Mechanisms**: Clear options for user to retry failed operations
+### Errors
 
-### Feedback Patterns
-- **Success**: Subtle green accent or checkmark animation
-- **Warning**: Yellow accent with informational message
-- **Error**: Red accent with clear explanation and next steps
-- **Info**: Blue accent for neutral informational messages
+- Transient errors use `svelte-sonner` toasts.
+- Unknown widget types in stored layouts log a `console.warn` in the
+  registry lookup and are skipped from render. We don't show a user-visible
+  error — the widget just doesn't appear. If this starts happening to real
+  users, reconsider.
+- Storage write failures are rare (`browser.storage.local` has a
+  `unlimitedStorage` permission) but should log and surface a toast if
+  they do happen.
 
-## Accessibility Standards
+## Accessibility Baseline
 
-### ARIA Support
-- **Roles**: Appropriate ARIA roles for custom components
-- **Labels**: Descriptive labels for all interactive elements
-- **Live Regions**: Announce dynamic content changes
-- **States**: ARIA states reflect current UI state
+- Every interactive element is keyboard-reachable.
+- Every icon-only button has an `aria-label`.
+- Color is not the only carrier of information — success/error/warning
+  use an icon + text, not color alone.
+- Focus ring is always visible on `:focus-visible` (see `--ui-focus` in
+  `STYLING_GUIDE.md`).
+- Dialogs trap focus and return it to the trigger on close. (shadcn-svelte
+  handles this for you.)
 
-### Color and Contrast
-- **Contrast Ratios**: Minimum 4.5:1 for normal text, 3:1 for large text
-- **Color Independence**: Information not conveyed by color alone
-- **High Contrast**: Respect system high contrast preferences
-- **Focus Indicators**: Visible focus rings for keyboard navigation
+## Performance
 
-### Screen Reader Support
-- **Content Structure**: Semantic HTML structure
-- **Alternative Text**: Descriptive alt text for icons and images
-- **Skip Navigation**: Skip links for efficiency
-- **Content Updates**: Announce important changes to users
+- Prefer CSS transitions (`transform`, `opacity`) over JS-driven animation.
+- Never put a `setInterval` in a component without a matching cleanup in
+  `$effect`'s returned function — leaked timers compound across edit-mode
+  toggles.
+- Widget layout computations (fitText, widgetScaler) read from
+  `ResizeObserver` rather than polling.
+- If a widget does heavy work, debounce it inside the widget — don't push
+  that concern into the grid or the store.
 
-## Performance Considerations
+## The Spirit of the UI
 
-### Animation Performance
-- **Hardware Acceleration**: Use `transform` and `opacity` for smooth animations
-- **Reduce Repaints**: Minimize layout-triggering property changes
-- **Frame Rate**: Target 60fps for all animations
-- **Performance Budgets**: Limit concurrent animations
+If you're about to add a new piece of UI, ask:
 
-### Interaction Response Time
-- **Immediate Feedback**: Visual response within 100ms
-- **User Control**: Ability to cancel long operations
-- **Progressive Enhancement**: Core functionality works without animations
-- **Graceful Degradation**: Reduce motion for users who prefer it
+1. **Does it need to live in the toolbar, a dialog, or inline on a widget?**
+   Inline edits should be rare and obviously local to a single widget.
+2. **Does it work in both view mode and edit mode?** If yes, prefer the
+   toolbar. If it's structural (add, remove, move), it belongs behind
+   edit mode.
+3. **Is there already a shadcn-svelte primitive for it?** Use that before
+   writing a custom component.
+4. **Does it respect the "no network" rule?** No fonts from a CDN, no
+   telemetry, no fetching icons at runtime.
+5. **Does it have a light and a dark treatment?** If you're hardcoding a
+   color, stop and find (or add) a CSS variable.
 
-### Memory and Resource Management
-- **Event Cleanup**: Remove event listeners when components unmount
-- **Animation Cleanup**: Cancel animations when elements are removed
-- **Efficient Selectors**: Use efficient DOM queries and caching
-- **Lazy Loading**: Load resources only when needed
-
-This comprehensive UI behavior guide ensures consistent, accessible, and delightful user interactions throughout the extension interface.
+When in doubt, mimic the clock widget + toolbar + SettingsDialog trio —
+they embody the conventions this doc describes.

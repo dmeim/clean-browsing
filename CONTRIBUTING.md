@@ -1,218 +1,159 @@
 # Contributing to Clean Browsing
 
-Thank you for your interest in contributing to Clean Browsing! This document provides guidelines and information for contributors.
+Thank you for your interest in contributing! Clean Browsing is a Firefox
+Manifest V2 new-tab extension built with Svelte 5, Vite, TypeScript, Tailwind
+v4, and shadcn-svelte. Everything is local-first — no accounts, no network,
+no telemetry.
 
-## 🚀 Getting Started
+## Prerequisites
 
-### Prerequisites
-- Firefox or Firefox-based browser (Zen, LibreWolf, Waterfox, etc.)
-- Basic knowledge of HTML, CSS, and JavaScript
-- Git for version control
+- **Node 20+** and **npm**
+- **Firefox** (or a Firefox-compatible fork: Zen, LibreWolf, Waterfox, etc.)
+- **Git**
 
-### Development Setup
-1. Fork the repository
-2. Clone your fork:
+## Development Setup
+
+1. Fork and clone:
    ```bash
-   git clone https://github.com/yourusername/clean-browsing.git
+   git clone https://github.com/<your-username>/clean-browsing.git
    cd clean-browsing
+   npm install
    ```
-3. Load the extension in Firefox:
-   - Open `about:debugging#/runtime/this-firefox`
-   - Click **Load Temporary Add-on…**
-   - Choose any file inside the `extension/` folder (for example `manifest.json`)
-4. Make your changes and test the extension features
+2. Live dev loop (rebuilds + launches Firefox with the extension loaded):
+   ```bash
+   npm run dev
+   ```
+   This runs `vite build --watch` alongside `web-ext run --target=firefox-desktop`.
+   Save any `.svelte` / `.ts` / `.css` file and Firefox reloads automatically.
+3. One-off production build:
+   ```bash
+   npm run build      # outputs to dist/
+   npm run check      # svelte-check (TS + Svelte diagnostics)
+   ```
+4. Manual install in a regular Firefox profile:
+   - `about:debugging#/runtime/this-firefox` → **Load Temporary Add-on…** → pick `dist/manifest.json`.
 
-## 🛠️ Development Guidelines
+## Project Layout
 
-### Code Style
-- **JavaScript**: Use ES6+ features, consistent indentation (2 spaces)
-- **CSS**: Follow existing naming conventions, use CSS custom properties
-- **HTML**: Semantic markup, consistent formatting
-
-### Architecture Principles
-- **Modular Design**: Keep widgets as separate, self-contained modules
-- **No Build Process**: Maintain vanilla JavaScript compatibility
-- **Local Storage**: All data must remain local to the user's browser
-- **Privacy First**: No external tracking or data collection
-
-### File Organization
 ```
-extension/
-├── newtab.html          # Main entry point
-├── settings.js          # Settings management core
-├── widgets.js           # Widget system core  
-├── styles.css           # Complete styling system
-├── widgets/             # Individual widget implementations
-└── resources/           # Assets and resources
-```
-
-## 🧩 Adding New Widgets
-
-### Widget Structure
-Each widget should be a self-contained JavaScript module that registers itself:
-
-```javascript
-// widgets/my-widget.js
-(function() {
-  'use strict';
-
-  function renderMyWidget(widget, index) {
-    const container = createWidgetContainer(widget, index, 'my-widget');
-    // Widget rendering logic
-    setupJiggleModeControls(container, widget, index);
-    widgetGrid.appendChild(container);
-  }
-
-  function addMyWidget(options) {
-    const widget = {
-      type: 'mywidget',
-      x: 0, y: 0, w: 4, h: 3,
-      settings: options
-    };
-    settings.widgets.push(widget);
-    saveAndRender();
-  }
-
-  function openMyWidgetConfig(existing, index) {
-    // Configuration UI logic
-  }
-
-  // Register the widget
-  registerWidget('mywidget', {
-    name: 'My Widget',
-    render: renderMyWidget,
-    openConfig: openMyWidgetConfig
-  });
-})();
+.
+├── index.html                  # Vite entry → new tab page
+├── vite.config.ts              # svelte() + @tailwindcss/vite
+├── public/manifest.json        # MV2 manifest
+└── src/
+    ├── main.ts                 # mounts App.svelte
+    ├── App.svelte
+    ├── app.css                 # Tailwind v4 entry + design tokens
+    └── lib/
+        ├── grid/               # Grid, GridItem, store, fitText, widgetScaler
+        ├── ui/                 # Toolbar, dialogs, uiStore, settings/
+        ├── widgets/            # clock, date, search, calculator, picture + registry
+        ├── settings/           # global settings store, export bundle
+        ├── storage/            # idb + image library store
+        └── components/ui/      # shadcn-svelte primitives
 ```
 
-### Widget Requirements
-- Must use the widget registration system
-- Should support appearance inheritance from global settings
-- Must clean up resources (intervals, observers) in `renderWidgets()`
-- Should work at all widget sizes (responsive design)
+## Architecture Principles
 
-## 📝 Pull Request Process
+- **Local-first.** Every byte of user data lives in `browser.storage.local`
+  (falls back to `localStorage` when running outside the extension). No
+  telemetry, no phoning home, no accounts.
+- **Svelte 5 runes everywhere.** Stores are factory functions returning
+  getters + mutators (`createStore()` pattern), not `svelte/store` writables.
+  See `src/lib/grid/store.svelte.ts` and `src/lib/ui/uiStore.svelte.ts`.
+- **Widget registry.** Each widget registers itself at module load via
+  `registerWidget(def)`. The grid looks widgets up by `widgetId` — no direct
+  references between widgets. See `src/lib/widgets/registry.ts`.
+- **Tailwind v4 with design tokens.** Colors and surfaces go through CSS
+  variables defined in `src/app.css` (`--ui-*`, `--surface-*`, `--widget-*`).
+  Reach for `<style>` blocks only when utilities can't express the thing.
+- **This is a Firefox extension.** Never use "chrome" to mean UI shell — it
+  reads as the browser. Use `--ui-*` / `--shell-*` / `--surface-*` prefixes.
 
-### Before Submitting
-1. **Test Thoroughly**: Verify your changes work across different widget sizes
-2. **Version Update**: Increment version in `manifest.json` (alpha: +0.0.1)
-3. **Code Style**: Follow existing patterns and formatting
-4. **Documentation**: Update relevant documentation
+## Adding a Widget
 
-### PR Guidelines
-- **Clear Title**: Describe what your PR accomplishes
-- **Detailed Description**: Explain the changes and reasoning
-- **Screenshots**: Include before/after screenshots for UI changes
-- **Testing Notes**: Describe how you tested the changes
+See **[`docs/WIDGET_DEVELOPMENT.md`](docs/WIDGET_DEVELOPMENT.md)** for the full
+walkthrough. Short version:
 
-### Review Process
-1. Code review by maintainers
-2. Testing in different browsers/environments
-3. Documentation review
-4. Final approval and merge
+1. Create `src/lib/widgets/<id>/` with `<Name>.svelte`, `<Name>Settings.svelte`,
+   and `definition.ts`.
+2. In `definition.ts`, export a typed `WidgetDefinition<TSettings>` and call
+   `registerWidget(def)` at the bottom of the file.
+3. Add `import "./<id>/definition.js";` to `src/lib/widgets/index.ts` so the
+   registration side-effect runs at startup.
+4. `npm run dev` — the widget shows up in the Add Widget dialog.
 
-## 🐛 Bug Reports
+The clock widget (`src/lib/widgets/clock/`) is the canonical reference.
 
-### Before Reporting
-- Check existing issues to avoid duplicates
-- Test with a fresh extension installation
-- Identify steps to reproduce the bug
+## Code Style
 
-### Bug Report Template
-```markdown
-**Bug Description**
-Brief description of the issue
+- **TypeScript strict mode.** No `any` without a comment explaining why.
+- **Svelte 5 runes** for state: `$state`, `$derived`, `$effect` (with cleanup),
+  `$props`. Avoid legacy reactive statements (`$:`) and `svelte/store`.
+- **Import specifiers** must include the `.js` extension (`import foo from "./bar.js"`)
+  because `tsconfig.json` uses `module: "NodeNext"`.
+- **`$lib` alias** for every cross-folder import.
+- **No comments explaining what the code does** — name things well instead.
+  Comments should explain *why* something non-obvious is happening (a hidden
+  constraint, a workaround, a subtle invariant).
 
-**Steps to Reproduce**
-1. Step one
-2. Step two
-3. Step three
+## Pull Request Process
 
-**Expected Behavior**
-What should have happened
+### Before Opening a PR
 
-**Actual Behavior** 
-What actually happened
+1. **Test in Firefox.** Load `dist/manifest.json` via `about:debugging` and
+   verify your change actually works — type checks and builds confirm code
+   correctness, not feature correctness.
+2. **`npm run check`** — must pass (ignoring the 2 pre-existing `bits-ui`
+   namespace errors in `src/lib/components/ui/button/index.ts`, which do not
+   affect builds).
+3. **`npm run build`** — must succeed.
+4. **Version bump.** Increment the patch (Z) digit in both `package.json` and
+   `public/manifest.json` — they must stay in sync. Only bump the minor (Y)
+   or major (X) digit if a maintainer has explicitly asked for it.
+5. **Release notes.** If your PR is user-visible, add an entry to the
+   appropriate `release-notes/vX.Y.Z.md` file (create one if it doesn't exist
+   yet for the in-progress version).
 
-**Environment**
-- Browser: Firefox/Zen/etc
-- Version: Extension version number
-- OS: Windows/Mac/Linux
+### PR Checklist
 
-**Screenshots**
-If applicable, add screenshots
-```
+- [ ] Clear title describing the *user-facing* effect of the change
+- [ ] Description explains the "why," not just the "what"
+- [ ] Screenshots or recordings for any UI change
+- [ ] Testing notes: how you verified it works in Firefox
+- [ ] `npm run check` and `npm run build` both pass locally
+- [ ] Version bumped in `package.json` and `public/manifest.json`
+- [ ] Release notes updated if user-visible
 
-## 💡 Feature Requests
+### Review
 
-We welcome feature requests! Please:
-- Check existing issues for similar requests
-- Describe the use case and benefits
-- Consider implementation complexity
-- Be open to discussion and alternatives
+- A maintainer reviews the PR, runs CI, and may test it locally.
+- Accept that review feedback can ask for structural changes — it's easier
+  to adjust in PR than in a follow-up.
 
-### Feature Request Template
-```markdown
-**Feature Description**
-Clear description of the proposed feature
+## Reporting Bugs
 
-**Use Case**
-Why would this feature be useful?
+File an issue with:
 
-**Proposed Implementation**
-Ideas for how this could work (optional)
+1. **Brief description** of what's wrong
+2. **Steps to reproduce** (exact clicks, inputs, state)
+3. **Expected vs actual** behavior
+4. **Environment**: Firefox version, OS, extension version from `about:addons`
+5. **Screenshots / console errors** if relevant (Shift+F9 or `about:debugging`)
 
-**Alternatives Considered**
-Any alternative solutions you've thought of
-```
+Check existing issues first to avoid duplicates.
 
-## 🏗️ Widget Development Best Practices
+## Feature Requests
 
-### Performance
-- Use `ResizeObserver` for dynamic sizing
-- Clean up intervals and observers in widget lifecycle
-- Minimize DOM manipulations
-- Use CSS transforms for animations
+Feature requests are welcome. Describe the *use case* first — what are you
+trying to accomplish? Then the proposed solution. Keep in mind the project's
+local-first principle: features that require network calls, accounts, or
+external services are unlikely to land.
 
-### Accessibility  
-- Provide keyboard navigation support
-- Use semantic HTML elements
-- Include proper ARIA labels
-- Ensure good color contrast
+See [`docs/ROADMAP.md`](docs/ROADMAP.md) for features that are already on the
+radar.
 
-### Responsiveness
-- Use container queries for widget-specific breakpoints
-- Implement proper text scaling
-- Handle very small widget sizes gracefully
-- Test across different grid configurations
+## License
 
-## 📚 Resources
-
-### Documentation
-- [Firefox Extension Workshop](https://extensionworkshop.com/)
-- [CSS Container Queries](https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_Container_Queries)
-- [Web Components Best Practices](https://developers.google.com/web/fundamentals/web-components)
-
-### Tools
-- Firefox Developer Tools for debugging
-- Extension Reloader for faster development
-- Git hooks for code quality checks
-
-## 🤝 Community
-
-### Communication
-- Use GitHub Issues for bugs and feature requests
-- Be respectful and constructive in discussions
-- Help other contributors when possible
-
-### Recognition
-Contributors will be acknowledged in release notes and project documentation.
-
-## 📄 License
-
-By contributing to Clean-Browsing, you agree that your contributions will be licensed under the MIT License.
-
----
-
-Thank you for helping make Clean-Browsing better for everyone! 🚀
+By contributing, you agree that your contributions are licensed under the
+project's [MIT License](LICENSE).

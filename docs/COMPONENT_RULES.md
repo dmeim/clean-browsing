@@ -1,495 +1,246 @@
-# Component Architecture Rules
+# Component Rules
 
-This document defines the architectural patterns, conventions, and rules for organizing and developing components in the NewTab PlusProMaxUltra extension.
+Architectural conventions for components and stores in Clean Browsing. These
+are rules for how things are *organized*, not how they're styled — see
+[`STYLING_GUIDE.md`](STYLING_GUIDE.md) for Tailwind/CSS conventions.
 
-## File Organization
+## 1. Stores are runes, never `svelte/store`
 
-### Core Architecture Files
-```
-extension/
-├── newtab.html          # Main entry point, defines DOM structure
-├── settings.js          # Global settings management and persistence
-├── widgets.js           # Core widget system and grid management
-├── styles.css           # Complete styling system
-└── widgets/             # Individual widget implementations
-    ├── clock-widget.js
-    ├── calculator-widget.js
-    ├── date-widget.js
-    └── search-widget.js
-```
+Every store in this codebase is a **factory function returning getters and
+mutators**, using Svelte 5 runes internally. We do not use `writable()`,
+`readable()`, or `derived()` from `svelte/store` — those are legacy patterns
+from Svelte 3/4 and don't compose with runes.
 
-### Loading Order Dependencies
-The extension follows a strict loading order that MUST be maintained:
+### Store shape
 
-1. **DOM Ready**: `newtab.html` defines structure
-2. **Settings Layer**: `settings.js` - Provides global settings object
-3. **Widget System**: `widgets.js` - Core widget management functions
-4. **Widget Types**: `widgets/*.js` - Individual widget implementations
-5. **Initialization**: Event-driven setup after DOM content loaded
+```ts
+// src/lib/ui/uiStore.svelte.ts
+function createUiStore() {
+  let editMode = $state(false);
+  let settingsOpen = $state(false);
 
-## Global State Management
-
-### Settings Object Structure
-The `settings` object is the single source of truth for all configuration:
-
-```javascript
-const settings = {
-  // Background configuration
-  background: { type: 'color|image', value: string },
-  lastColor: string,
-  
-  // Global widget appearance defaults
-  globalWidgetAppearance: {
-    fontSize: number,        // Percentage (100 = default)
-    fontWeight: number,      // CSS font-weight values
-    italic: boolean,
-    underline: boolean,
-    textColor: string,       // Hex color
-    textOpacity: number,     // Percentage
-    backgroundColor: string, // Hex color
-    backgroundOpacity: number, // Percentage
-    blur: number,           // Backdrop filter blur amount
-    borderRadius: number,   // Border radius in pixels
-    opacity: number,        // Overall widget opacity
-    textAlign: string,      // 'left'|'center'|'right'
-    verticalAlign: string,  // 'top'|'center'|'bottom'
-    padding: number         // Internal padding in pixels
-  },
-  
-  // Widget instances array
-  widgets: [
-    {
-      type: string,         // Widget type identifier
-      x: number,           // Grid X position (0-39)
-      y: number,           // Grid Y position (0-23) 
-      w: number,           // Width in grid units
-      h: number,           // Height in grid units
-      settings: object     // Widget-specific configuration
-    }
-  ]
-};
-```
-
-### Settings Persistence
-Settings are automatically persisted to `localStorage` using these functions:
-
-```javascript
-// Load settings from localStorage with defaults
-function loadSettings() { /* Merges stored + default settings */ }
-
-// Save settings to localStorage
-function saveSettings() { /* Persists current settings object */ }
-
-// Convenience function for save + re-render
-function saveAndRender() { /* Calls saveSettings() + renderWidgets() */ }
-```
-
-## Widget Registry System
-
-### Registry Pattern
-All widgets must register with the global widget system:
-
-```javascript
-// Widget registration (called by each widget file)
-registerWidget('widget-type', {
-  name: 'Display Name',
-  render: renderFunction,
-  openConfig: configFunction
-});
-
-// Registry lookup
-const definition = getWidgetDefinition('widget-type');
-```
-
-### Global Widget Variables
-These variables are available globally after `widgets.js` loads:
-
-```javascript
-let widgetGrid;        // Main grid DOM element
-let jiggleMode;        // Boolean - edit mode state
-let activeIntervals;   // Array - tracks timers for cleanup
-let widgetRegistry;    // Object - registered widget types
-```
-
-## Component Lifecycle
-
-### Initialization Sequence
-1. **DOM Content Loaded**: Core UI elements initialized
-2. **Settings Load**: `loadSettings()` called to restore user configuration
-3. **Widget Registry**: Widget files register their types
-4. **Initial Render**: `renderWidgets()` called to display saved widgets
-5. **Event Binding**: UI interactions set up (buttons, drag/drop, etc.)
-
-### Widget Lifecycle
-1. **Registration**: Widget type added to registry
-2. **Creation**: User configures and adds widget instance
-3. **Rendering**: `render{Widget}Widget()` creates DOM elements
-4. **Setup**: Widget-specific event handlers and timers initialized
-5. **Updates**: Widget responds to settings changes or external events
-6. **Cleanup**: Intervals cleared when widget is removed or page refreshed
-
-### Cleanup Requirements
-All components must properly clean up resources:
-
-```javascript
-// Track intervals for cleanup
-const intervalId = setInterval(updateFunction, 1000);
-activeIntervals.push(intervalId);
-
-// Cleanup is handled automatically during re-renders
-function clearActiveIntervals() {
-  activeIntervals.forEach(clearInterval);
-  activeIntervals.length = 0;
-}
-```
-
-## DOM Manipulation Rules
-
-### Element Selection Patterns
-Use consistent selectors and caching:
-
-```javascript
-// Cache DOM elements during initialization
-const settingsButton = document.getElementById('settings-button');
-const widgetGrid = document.getElementById('widget-grid');
-
-// Use specific IDs for configuration forms
-const configInput = document.getElementById('{widget-type}-{setting-name}');
-```
-
-### Container Creation Standards
-Always use the provided helper functions:
-
-```javascript
-// For widgets - includes positioning, styling, and interaction setup
-const container = createWidgetContainer(widget, index, 'additional-class');
-
-// For modals and panels - consistent show/hide patterns
-element.classList.add('hidden');    // Hide
-element.classList.remove('hidden'); // Show
-```
-
-### Event Handling Patterns
-Follow consistent event handling approaches:
-
-```javascript
-// Button click handlers
-button.addEventListener('click', (e) => {
-  e.stopPropagation(); // Prevent unintended bubbling
-  // Handle click
-});
-
-// Form submissions  
-form.addEventListener('submit', (e) => {
-  e.preventDefault(); // Prevent default form behavior
-  // Handle form data
-});
-
-// Drag and drop (use provided helpers)
-setupJiggleModeControls(container, widget, index);
-```
-
-## Naming Conventions
-
-### JavaScript Naming
-- **Functions**: camelCase - `renderClockWidget()`, `saveSettings()`
-- **Variables**: camelCase - `widgetGrid`, `jiggleMode`, `activeIntervals`
-- **Constants**: camelCase - `defaultSettings`, `widgetRegistry`
-- **Widget Functions**: Specific pattern - `render{Type}Widget()`, `open{Type}Config()`
-
-### CSS Class Naming
-- **Widget Base**: `.{type}-widget` - `.clock-widget`, `.calculator-widget`
-- **Component Parts**: `.{component}-{part}` - `.calc-display`, `.calc-button`
-- **State Classes**: `.{state}` - `.jiggle-mode`, `.dragging`, `.hidden`
-- **Utility Classes**: `.{utility}-{variant}` - `.input-group`, `.checkbox-group`
-
-### HTML ID Naming
-- **Static Elements**: kebab-case - `settings-button`, `widget-grid`
-- **Dynamic Elements**: `{type}-{setting}` - `clock-show-seconds`, `calc-round-buttons`
-- **Form Elements**: Match JavaScript access patterns
-
-### File Naming
-- **Widget Files**: `{name}-widget.js` - Always kebab-case with `-widget` suffix
-- **Core Files**: Single descriptive word - `settings.js`, `widgets.js`
-
-## Data Flow Architecture
-
-### Unidirectional Data Flow
-```
-User Interaction → Settings Update → Save to localStorage → Re-render UI
-```
-
-### Settings Flow Pattern
-1. User interacts with configuration UI
-2. Configuration values collected and validated  
-3. Settings object updated in memory
-4. `saveSettings()` persists to localStorage
-5. `renderWidgets()` updates display to match new settings
-
-### Widget Communication
-Widgets communicate through the settings system, not direct references:
-
-```javascript
-// CORRECT: Update via settings
-widget.settings.newValue = value;
-saveAndRender();
-
-// INCORRECT: Direct DOM manipulation across widgets
-document.querySelector('.other-widget').textContent = value;
-```
-
-## Modal and Panel Management
-
-### Panel Visibility Pattern
-Consistent show/hide pattern for all modals and panels:
-
-```javascript
-// Show pattern
-panel.classList.remove('hidden');
-relatedButton.classList.add('hidden'); // Hide trigger button
-
-// Hide pattern  
-panel.classList.add('hidden');
-relatedButton.classList.remove('hidden'); // Show trigger button
-```
-
-### Tab Management Pattern
-For panels with multiple tabs:
-
-```javascript
-// Tab switching logic
-tabButtons.forEach(btn => {
-  btn.addEventListener('click', () => {
-    // Clear all active states
-    tabButtons.forEach(b => b.classList.remove('active'));
-    tabContents.forEach(c => c.classList.add('hidden'));
-    
-    // Set new active state
-    btn.classList.add('active');
-    document.getElementById(`${btn.dataset.tab}-tab`).classList.remove('hidden');
-  });
-});
-```
-
-### Modal Position Management
-Modals should reset position on open for consistent UX:
-
-```javascript
-if (settings.resetModalPosition) {
-  modal.style.transform = 'translate(0, 0)';
-}
-```
-
-## Helper Functions Standards
-
-### Configuration Helper Usage
-Always use provided helpers for consistent behavior:
-
-```javascript
-// Widget configuration buttons (save/cancel logic)
-setupWidgetConfigButtons(isEdit, 'widget-type', index, addFunction, optionsFunction);
-
-// Widget appearance application
-applyWidgetAppearance(container, widget);
-
-// Jiggle mode controls (drag, resize, edit buttons)
-setupJiggleModeControls(container, widget, index);
-```
-
-### Validation and Error Handling
-Implement consistent validation patterns:
-
-```javascript
-function validateInput(value, type, min, max) {
-  if (type === 'number') {
-    const num = parseFloat(value);
-    return !isNaN(num) && num >= min && num <= max;
+  function toggleEditMode() {
+    editMode = !editMode;
   }
-  return typeof value === type;
+
+  return {
+    get editMode() {
+      return editMode;
+    },
+    get settingsOpen() {
+      return settingsOpen;
+    },
+    toggleEditMode,
+    // ...
+  };
 }
 
-function showError(message) {
-  console.error(message);
-  // Could extend to show user-visible error messages
-}
+export const uiStore = createUiStore();
 ```
 
-## Integration Requirements
+Consumers read fields via the getters and call the exposed functions to
+mutate. The rune system propagates changes to every dependent `$derived` /
+`$effect` / template binding.
 
-### Settings Integration
-All components must properly integrate with the settings system:
+### Why getters?
 
-```javascript
-// REQUIRED: Check settings availability
-if (typeof settings === 'undefined') {
-  console.error('Settings not available');
-  return;
-}
+Returning raw `$state` variables from a function would break reactivity at
+the boundary — the caller would get a snapshot. Getters defer the read
+until the consumer actually accesses the field, which is when Svelte
+registers the dependency.
 
-// REQUIRED: Initialize default widget settings
-if (!settings.widgets) settings.widgets = [];
+### Three stores to know
 
-// REQUIRED: Apply global appearance settings
-applyWidgetAppearance(container, widget);
+- **`src/lib/grid/store.svelte.ts`** — single source of truth for layout.
+  Owns the `GridLayout` (cols, rows, instances), exposes `addWidget`,
+  `moveWidget`, `resizeWidget`, `canPlace`, `findFreeSlot`, `removeWidget`,
+  `updateWidgetSettings`, `resetLayout`. Persists to `browser.storage.local`
+  under `clean-browsing:layout:v2` (falls back to `localStorage` when not
+  running as an extension). Handles one-time migration from the legacy
+  `localStorage` key.
+- **`src/lib/ui/uiStore.svelte.ts`** — ephemeral UI state: `editMode`,
+  `settingsOpen`, `addWidgetOpen`, `widgetSettingsInstanceId`. Not persisted.
+- **`src/lib/settings/store.svelte.ts`** — global settings (theme, widget
+  defaults, background, etc.) with its own migration hooks and persistence.
+
+New stores follow the same pattern. **Do not** introduce `svelte/store`
+writables; **do not** return the `$state` variable directly.
+
+## 2. Component prop conventions
+
+All components use `$props()` destructuring with a TypeScript type annotation:
+
+```svelte
+<script lang="ts">
+  import type { WidgetProps } from "$lib/widgets/types.js";
+  import type { ClockSettings } from "./definition.js";
+
+  let { settings, updateSettings }: WidgetProps<ClockSettings> = $props();
+</script>
 ```
 
-### Grid System Integration
-Components that render in the grid must follow positioning rules:
+- No legacy `export let` declarations anywhere.
+- No positional props. Always named.
+- For widgets specifically, use `WidgetProps<TSettings>` and
+  `WidgetSettingsProps<TSettings>` from `$lib/widgets/types.js` so the
+  generic binding stays consistent.
 
-```javascript
-// REQUIRED: Use grid positioning
-container.style.gridColumn = `${widget.x + 1} / ${widget.x + widget.w + 1}`;
-container.style.gridRow = `${widget.y + 1} / ${widget.y + widget.h + 1}`;
+## 3. Reactive state, derivations, effects
 
-// REQUIRED: Enable container queries for responsive behavior
-container.style.containerType = 'size';
-```
+- **`$state(...)`** — mutable reactive state local to a component or store.
+- **`$derived(expr)`** — cached computation from other reactive values. Use
+  the `$derived.by(() => ...)` form for multi-statement derivations.
+- **`$effect(() => { ...; return cleanup; })`** — imperative side effects
+  (timers, subscriptions, DOM APIs that can't be expressed declaratively).
+  **Always return a cleanup function** when you set up anything that needs
+  to be torn down. The effect re-runs on dependency change and cleans up
+  automatically; you never need a global `activeIntervals` list.
 
-### Jiggle Mode Integration
-Interactive widgets must support edit mode:
+### Example: interval that cleans up
 
-```javascript
-// REQUIRED: Respond to jiggle mode changes
-if (jiggleMode) {
-  // Add edit controls, resize handles, etc.
-  setupJiggleModeControls(container, widget, index);
-}
-```
+```ts
+let now = $state(new Date());
 
-## Performance Considerations
-
-### Efficient Rendering
-Minimize DOM manipulation and reflows:
-
-```javascript
-// GOOD: Batch DOM changes
-const fragment = document.createDocumentFragment();
-widgets.forEach(widget => {
-  const container = renderWidget(widget);
-  fragment.appendChild(container);
+$effect(() => {
+  const id = setInterval(() => {
+    now = new Date();
+  }, 1000);
+  return () => clearInterval(id);
 });
-widgetGrid.appendChild(fragment);
-
-// AVOID: Individual DOM insertions in loops
-widgets.forEach(widget => {
-  const container = renderWidget(widget);
-  widgetGrid.appendChild(container); // Causes multiple reflows
-});
 ```
 
-### Memory Management
-Prevent memory leaks through proper cleanup:
+### Do not
 
-```javascript
-// Clean up intervals
-activeIntervals.forEach(clearInterval);
-activeIntervals.length = 0;
+- ❌ Use `$:` reactive statements (Svelte 3/4 legacy).
+- ❌ Mutate a `$derived` value — derivations are read-only.
+- ❌ Call `$state` or `$derived` outside the top level of a component or a
+  `.svelte.ts` store file.
 
-// Remove event listeners when elements are destroyed
-element.removeEventListener('click', handlerFunction);
+## 4. The widget registry pattern
 
-// Clear references to DOM elements
-componentReferences = null;
+Widgets do not import each other. They do not touch the grid store directly.
+They register themselves with the registry at module load, and the grid
+looks them up by `widgetId`.
+
+```ts
+// src/lib/widgets/<id>/definition.ts
+export const myDefinition: WidgetDefinition<MySettings> = { /* ... */ };
+registerWidget(myDefinition);
 ```
 
-### Efficient State Updates
-Batch state changes when possible:
-
-```javascript
-// GOOD: Batch multiple setting changes
-widget.settings.prop1 = value1;
-widget.settings.prop2 = value2;
-widget.settings.prop3 = value3;
-saveAndRender(); // Single render
-
-// AVOID: Multiple individual updates
-widget.settings.prop1 = value1;
-saveAndRender();
-widget.settings.prop2 = value2;
-saveAndRender(); // Multiple renders
+```ts
+// src/lib/widgets/index.ts
+import "./clock/definition.js";
+import "./date/definition.js";
+import "./my/definition.js"; // add your widget here
 ```
 
-## Error Handling Standards
+`src/lib/widgets/index.ts` side-effect-imports every definition before the
+grid renders for the first time. Order doesn't matter — the registry is a
+plain `Map` keyed by `id`.
 
-### Defensive Programming
-Always check for required dependencies:
+### Rules
 
-```javascript
-// Check for required global objects
-if (typeof settings === 'undefined') {
-  console.error('Settings object not available');
-  return;
-}
+- A widget's `definition.ts` is the **only** file allowed to import its
+  own `.svelte` components and call `registerWidget`.
+- Widgets do not import from other widgets. If two widgets need to share
+  code, lift it to `src/lib/widgets/style/`, `src/lib/grid/`, or a new
+  `src/lib/common/` folder.
+- The grid store holds `WidgetInstance` objects with `widgetId`, `x`, `y`,
+  `w`, `h`, and an untyped `settings: unknown`. The widget definition
+  provides the type. `GridItem.svelte` looks up the definition via
+  `getWidget(instance.widgetId)` and renders
+  `<def.component settings={...} updateSettings={...} />`.
 
-// Check for required DOM elements
-const requiredElement = document.getElementById('required-element');
-if (!requiredElement) {
-  console.error('Required DOM element not found');
-  return;
-}
-```
+## 5. Persistence contract
 
-### Graceful Degradation
-Handle missing or invalid data gracefully:
+- **Layout**: `browser.storage.local` key `clean-browsing:layout:v2`.
+  The entire `GridLayout` is serialized as one JSON blob. Widget settings
+  live inside `WidgetInstance.settings`.
+- **Global settings**: a separate key owned by `settings/store.svelte.ts`.
+- **Image library**: IndexedDB via `src/lib/storage/idb.ts`, exposed through
+  `src/lib/storage/imageLibrary.svelte.ts`. Large binary data goes here,
+  not in `browser.storage.local`.
 
-```javascript
-// Provide sensible defaults
-const locale = widget.settings?.locale || navigator.language || 'en-US';
-const fontSize = widget.settings?.fontSize || 100;
+When you add a new field to `TSettings` or the global settings type, **read
+with nullish coalescing** (`settings.newField ?? default`) so existing
+instances don't crash. Migrations that mutate stored state live in the
+store's `load()` path.
 
-// Handle missing widget types
-const definition = getWidgetDefinition(widget.type);
-if (!definition) {
-  console.warn(`Unknown widget type: ${widget.type}`);
-  return createErrorWidget(widget, index);
-}
-```
+## 6. Component ownership
 
-### User-Facing Error Messages
-Provide clear feedback for user-facing errors:
+### Grid is a closed system
 
-```javascript
-function showUserError(container, message) {
-  container.innerHTML = `
-    <div class="widget-error">
-      <div class="error-icon">⚠️</div>
-      <div class="error-message">${message}</div>
-    </div>
-  `;
-}
-```
+- `src/lib/grid/Grid.svelte` renders the CSS grid and iterates
+  `gridStore.layout.instances`.
+- `src/lib/grid/GridItem.svelte` is the only component that handles pointer
+  drag/resize. It reads cell stride from the parent's computed grid template,
+  handles pointer capture, and calls `gridStore.moveWidget` / `resizeWidget`.
 
-## Security Considerations
+Widgets should **not** try to handle their own drag, resize, or positioning.
+If you need the widget to react to being dragged/resized, read from the
+grid store — don't wire pointer events inside the widget.
 
-### Input Validation
-Validate all user inputs before processing:
+### UI shell is a closed system
 
-```javascript
-function sanitizeInput(input) {
-  if (typeof input !== 'string') return '';
-  return input.replace(/[<>]/g, ''); // Basic XSS prevention
-}
+- `src/lib/ui/Toolbar.svelte` is the single toolbar. New buttons go here.
+- Dialogs live in `src/lib/ui/{Settings,AddWidget,WidgetSettings}Dialog.svelte`
+  and are opened/closed via `uiStore`. Never use `window.alert` / `confirm`
+  or push a new dialog file per widget — per-widget settings already route
+  through `WidgetSettingsDialog` which looks up the widget's
+  `settingsComponent`.
+- Toast notifications: `svelte-sonner`. Import `toast` from it.
 
-function validateNumber(value, min = 0, max = 1000) {
-  const num = parseFloat(value);
-  if (isNaN(num)) return min;
-  return Math.min(Math.max(num, min), max);
-}
-```
+## 7. Imports and paths
 
-### Safe DOM Insertion
-Use safe methods for dynamic content:
+- **`$lib` alias** for every cross-folder import: `import { x } from "$lib/ui/uiStore.svelte.js"`.
+- **`.js` extension on specifiers** (TS will still resolve the `.ts` file).
+  Required by `tsconfig.json`'s `module: "NodeNext"`.
+- Type imports use `import type`:
+  ```ts
+  import type { WidgetProps } from "$lib/widgets/types.js";
+  ```
+- shadcn-svelte primitives live under `src/lib/components/ui/` — never
+  reach into `bits-ui` directly; always go through the shadcn wrappers.
 
-```javascript
-// SAFE: Use textContent for user data
-element.textContent = userInput;
+## 8. Error handling
 
-// SAFE: Use createElement for structure
-const div = document.createElement('div');
-div.className = 'safe-class';
+- **At system boundaries**, validate. (User input, parsed storage blobs,
+  URL parameters, etc.) The grid store's `loadRaw()` catches JSON parse
+  errors and logs them; follow that pattern.
+- **Inside trusted internal code**, don't add defensive checks for states
+  that can't happen. If `getWidget(id)` returns `undefined` in a place where
+  the caller *just* got the id out of the registry, wrapping it in
+  `if (!def) return` is dead code.
+- **Console noise**: use `console.warn` for recoverable issues (e.g.,
+  "unknown widget id — skipping"), `console.error` for genuine bugs. Don't
+  invent user-visible error UI unless there's an actual user action that
+  could trigger it.
 
-// AVOID: innerHTML with user data
-element.innerHTML = userInput; // XSS risk
-```
+## 9. Accessibility baseline
 
-These architectural rules ensure consistent, maintainable, and reliable component development across the entire extension.
+- All interactive elements must be reachable by keyboard. Dialogs trap
+  focus via shadcn-svelte / bits-ui — use those primitives.
+- Buttons are `<button type="button">` unless they submit a form.
+- Icons-only buttons need an `aria-label`.
+- Color is not the only carrier of information (use text + color for
+  errors, not color alone).
+
+## 10. What components should not do
+
+- ❌ Use `innerHTML` with user-controlled data (XSS risk). Use Svelte
+  templating, which escapes by default.
+- ❌ Touch the DOM outside their own subtree via `document.querySelector`.
+  If a component needs to coordinate with another, go through a store.
+- ❌ Introduce new global variables. The three stores (`gridStore`,
+  `uiStore`, `settingsStore`) are the only legitimate globals.
+- ❌ Mutate props. Props are inputs; use `updateSettings` or call a store
+  mutator instead.
+- ❌ Make network requests. Clean Browsing is local-first — no external
+  services, no telemetry, no fonts loaded from a CDN. If a feature really
+  needs network, it's a discussion before a PR.
+
+---
+
+If a rule here conflicts with what you see in the codebase, the codebase
+wins and this doc needs updating — file a PR.

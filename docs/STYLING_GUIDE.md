@@ -1,319 +1,265 @@
 # Styling Guide
 
-This document outlines the styling conventions, design system, and CSS patterns used throughout the NewTab PlusProMaxUltra extension.
+How styling works in Clean Browsing: Tailwind v4, shadcn-svelte, a small
+set of design-token CSS variables, and light/dark theming via `mode-watcher`.
 
-## Design System
+This doc describes the **current Svelte 5 codebase**. A prior version of
+this file documented the legacy vanilla-JS glassmorphism system, preserved
+at the `legacy-final` git tag.
 
-### Color Palette
+## 1. Tailwind v4, no config file
 
-#### Brand Colors
-The official brand palette, sampled from the logo (`public/icons/logo.png`). Use these anywhere an on-brand accent is appropriate — widget highlights, illustrations, status chips, marketing surfaces, etc.
+Tailwind v4 is loaded once via `src/app.css`:
 
-- **Brand Orange**: `#eda95d`
-- **Brand Green**: `#95c69d`
-- **Brand Blue**: `#8dafdb`
-- **Brand Lilac**: `#cdbfd2`
-
-#### Primary Background
 ```css
-/* Main gradient background */
-background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%);
+@import "tailwindcss";
 ```
 
-#### Accent Colors
-- **Purple Accent**: `rgba(120, 119, 198, 0.15)` - Used for glows and highlights
-- **Pink Accent**: `rgba(255, 119, 198, 0.1)` - Secondary glow effects  
-- **Teal Accent**: `rgba(120, 255, 198, 0.08)` - Tertiary glow effects
-- **Interactive Teal**: `rgba(120, 255, 198, 0.2)` - Used for drag previews and active states
+The `@tailwindcss/vite` plugin in `vite.config.ts` wires it into the build.
+There is **no `tailwind.config.js`**, **no PostCSS config**, and **no content
+globs** — Tailwind v4 scans source files automatically.
 
-#### Text Colors
-- **Primary Text**: `#ffffff` - Main text color
-- **Secondary Text**: `#e8e8e8` - Body text and secondary elements
+Consequence: to expose a new color as a utility class, you must declare it
+in the `@theme inline { ... }` block in `src/app.css` so Tailwind knows
+about it at scan time. Silently referencing `bg-something` without a token
+compiles to nothing.
 
-#### Widget Surface Colors
-- **Base Surface**: `rgba(255, 255, 255, 0.05)` - Widget background base
-- **Border**: `rgba(255, 255, 255, 0.1)` - Standard border color
-- **Hover Border**: `rgba(255, 255, 255, 0.2)` - Interactive border color
+## 2. Design tokens live in `src/app.css`
 
-## Typography
+All design tokens — colors, surfaces, UI chrome, widget chrome — are CSS
+custom properties defined at `:root` and overridden under `.dark`.
 
-### Font Stack
+Three families:
+
+### Brand palette (both modes)
+
 ```css
-font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+--brand-orange: #eda95d;
+--brand-green:  #95c69d;
+--brand-blue:   #8dafdb;
+--brand-lilac:  #cdbfd2;
 ```
 
-### Font Weights
-- **Ultra Light**: `font-weight: 200` - Used for clock and date widgets
-- **Normal**: `font-weight: 400` - Standard text weight
+Sampled from the logo (`public/icons/logo.png`). Use these for on-brand
+accents — highlights, illustrations, status chips, focus rings.
 
-### Text Effects
+### shadcn-svelte HSL tokens
+
 ```css
-/* Standard text shadow for widget content */
-text-shadow: 
-  0 2px 8px rgba(0, 0, 0, 0.8),
-  0 1px 0 rgba(255, 255, 255, 0.3);
+--background, --foreground,
+--card, --card-foreground,
+--popover, --popover-foreground,
+--primary, --primary-foreground,
+--secondary, --secondary-foreground,
+--muted, --muted-foreground,
+--accent, --accent-foreground,
+--destructive, --destructive-foreground,
+--border, --input, --ring,
+--radius
 ```
 
-## Glassmorphism System
+Stored as space-separated HSL components (`222.2 84% 4.9%`) so they can
+be consumed with alpha via `hsl(var(--foreground) / 0.5)`. The `@theme inline`
+block at the top of `app.css` wraps these into Tailwind color utilities:
+`bg-background`, `border-border`, `text-foreground`, etc.
 
-### Widget Glassmorphism
+### UI and widget variables
+
+This is the project-specific layer. Naming convention: **`--ui-*`**,
+**`--shell-*`**, **`--surface-*`**, **`--widget-*`**. Never use `--chrome-*`
+— "chrome" reads as the browser (this is a Firefox extension).
+
+Most commonly used:
+
 ```css
-/* Standard widget glass effect */
-background: rgba(255, 255, 255, 0.05);
-backdrop-filter: blur(20px) saturate(1.2);
-border: 1px solid rgba(255, 255, 255, 0.1);
+--ui-page-bg         /* whole-page background gradient */
+--ui-page-fg         /* default page foreground */
+--ui-fg              /* body text */
+--ui-muted-fg        /* secondary text */
+--ui-subtle-fg       /* tertiary / hint text */
+--ui-panel-bg        /* dialog / settings panel backgrounds */
+--ui-panel-border
+--ui-btn-bg
+--ui-btn-bg-hover
+--ui-btn-fg
+--ui-btn-fg-strong
+--ui-btn-border
+--ui-input-bg
+--ui-subtle-bg
+--ui-subtle-bg-hover
+--ui-inset-bg
+--ui-deep-bg
+--ui-border-soft
+--ui-accent          /* usually --brand-blue */
+--ui-accent-hover
+--ui-accent-fg
+--ui-accent-soft-bg
+--ui-accent-soft-border
+--ui-accent-soft-fg
+--ui-focus           /* focus ring color */
+--ui-success         /* --brand-green in dark */
+--ui-warning         /* --brand-orange in dark */
+--ui-error
+--ui-danger-bg / --ui-danger-bg-hover / --ui-danger-border / --ui-danger-fg
+--ui-badge-bg / --ui-badge-fg / --ui-badge-border
 ```
 
-### Button Glassmorphism
+Widget visual chrome is a separate family, set **per-instance** on
+`.grid-item-inner` by `GridItem.svelte` (not statically in CSS):
+
 ```css
-/* Action button glass effect */
-background: rgba(255, 255, 255, 0.08);
-backdrop-filter: blur(20px) saturate(1.2);
-border: 1px solid rgba(255, 255, 255, 0.15);
+--widget-bg
+--widget-border-color
+--widget-border-width
+--widget-border-style
+--widget-border-radius
+--widget-backdrop-blur
+--widget-box-shadow
+--widget-text
+--widget-accent
+--widget-opacity
 ```
 
-### Overlay Glassmorphism
-```css
-/* Widget overlay gradient */
-background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.02) 100%);
+These are merged from the global widget defaults + per-instance overrides.
+**Widgets should read these variables, not declare their own values.**
+
+## 3. Light / dark mode
+
+Two theme states, managed by `mode-watcher`:
+
+- **Light** — defined at `:root` in `src/app.css`
+- **Dark** — defined under `.dark`, toggled by adding the `dark` class to
+  `<html>`
+
+Every `--ui-*` and most shadcn tokens are redefined under `.dark`. Widget
+tokens follow via `--widget-*` defaults in the global widget appearance
+store.
+
+When you add a new `--ui-*` variable, **always add both light and dark
+values** in `src/app.css`. Single-mode tokens break theme switching.
+
+## 4. Widget card shell
+
+Every widget component renders:
+
+```svelte
+<div class="widget-card …">
+  <div class="widget-inner" style="top: …; bottom: …; left: …; right: …">
+    <!-- widget content -->
+  </div>
+</div>
 ```
 
-## Border Radius System
+The `.widget-card` / `.widget-inner` rules in `src/app.css` handle:
 
-### Responsive Radius Pattern
-```css
-/* Widget borders - scales with container size */
-border-radius: clamp(8px, 4cqw, 16px);
+- Background / border / radius / blur / shadow / opacity via the `--widget-*`
+  variables.
+- `overflow: hidden` on the card so content is clipped to the (dynamic)
+  border radius.
+- A dashed outline on `.widget-inner::before` in edit mode so users can
+  see what the padding sliders are doing.
 
-/* Button borders - fixed size */
-border-radius: 14px;
+Widgets should not override `.widget-card`'s background, border, border-radius,
+box-shadow, or opacity. They should set their own **inner layout** (flex,
+grid, text sizing) on `.widget-inner` or child elements.
+
+## 5. Utilities first, `<style>` blocks second
+
+Order of preference:
+
+1. **Tailwind utility classes** on the element.
+2. **Scoped `<style>` block** inside the Svelte component, for:
+   - Container queries (`container-type`, `@container`)
+   - Keyframe animations
+   - Pseudo-elements that don't compose well with utilities
+   - Widget-internal layout that depends on `--widget-*` variables
+3. **Globals in `src/app.css`** only for rules that must cross component
+   boundaries (e.g., `.widget-card` + `.widget-inner`, `.dark` token overrides).
+
+Avoid `!important`. If a utility isn't taking effect, the issue is usually
+specificity from a `<style>` block — restructure the selector rather than
+forcing the override.
+
+## 6. Naming conventions
+
+### CSS variables
+
+- **`--brand-*`** — fixed brand palette, same in both themes
+- **`--ui-*`** — app shell / UI chrome (buttons, panels, text, borders)
+- **`--shell-*` / `--surface-*`** — reserved for related layers; use instead
+  of "chrome" when you need a different word
+- **`--widget-*`** — per-instance widget visual chrome (set dynamically by
+  `GridItem.svelte`, not in `app.css`)
+- **shadcn tokens** — bare names (`--background`, `--foreground`, etc.) as
+  required by the shadcn-svelte templates
+
+### Component classes
+
+- Scope with Svelte's `<style>` block — no BEM, no global widget classes.
+- When you need a class that escapes component scope, use `:global(...)`.
+
+### Utility composition
+
+For repeated class sets, use `tailwind-variants` or `clsx` + `tailwind-merge`
+(already dependencies):
+
+```ts
+import { tv } from "tailwind-variants";
+
+const button = tv({
+  base: "rounded px-3 py-1",
+  variants: {
+    intent: {
+      primary: "bg-primary text-primary-foreground",
+      muted: "bg-muted text-muted-foreground",
+    },
+  },
+});
 ```
 
-### Resize Handle Borders
-```css
-/* Corner handle - matches widget radius */
-border-radius: 0 0 clamp(8px, 4cqw, 16px) 0;
+Don't build your own variant helper — `tailwind-variants` is the project
+standard.
+
+## 7. Icons
+
+All icons come from **`lucide-svelte`**. Import the component directly:
+
+```svelte
+<script lang="ts">
+  import { Settings, Plus, X } from "lucide-svelte";
+</script>
+
+<button><Settings class="h-4 w-4" /></button>
 ```
 
-## Box Shadow System
+Size with Tailwind utilities. No SVG sprite sheet, no custom icon system.
 
-### Standard Widget Shadows
-```css
-/* Default widget shadow */
-box-shadow: 
-  0 8px 32px rgba(0, 0, 0, 0.2),
-  0 2px 8px rgba(0, 0, 0, 0.1),
-  inset 0 1px 0 rgba(255, 255, 255, 0.1);
-```
+## 8. Accessibility and focus
 
-### Hover State Shadows
-```css
-/* Widget hover shadow */
-box-shadow: 
-  0 16px 48px rgba(0, 0, 0, 0.3),
-  0 4px 16px rgba(0, 0, 0, 0.15),
-  inset 0 1px 0 rgba(255, 255, 255, 0.15),
-  0 0 0 1px rgba(120, 119, 198, 0.3);
-```
+- Focus ring uses `--ui-focus` (defaults to `--brand-blue`). All interactive
+  elements must have a visible focus state — shadcn-svelte primitives handle
+  this for you; custom buttons should use `focus-visible:ring-2 focus-visible:ring-[color:var(--ui-focus)]`
+  or a similar utility.
+- Text contrast: body text uses `--ui-fg`; secondary text uses `--ui-muted-fg`.
+  Avoid stacking opacity on top of already-muted colors — it tanks contrast.
+- Never remove focus outlines without providing a replacement.
 
-### Button Shadows
-```css
-/* Action button shadow */
-box-shadow: 
-  0 4px 16px rgba(0, 0, 0, 0.15),
-  inset 0 1px 0 rgba(255, 255, 255, 0.1);
-```
+## 9. Animation
 
-## Animation System
+- **Timing**: prefer short, snappy transitions for UI (150–250 ms) and
+  slightly longer for widget layout changes (300–400 ms).
+- **Easing**: Tailwind defaults (`ease-out`, `ease-in-out`) are fine. For
+  custom curves, define them inline with `transition-timing-function`.
+- **Hardware acceleration**: animate `transform` and `opacity`, not `top`
+  or `width`.
+- **Reduced motion**: respect `prefers-reduced-motion` for any decorative
+  animation (jiggle, pulse). Use a `<style>` block with
+  `@media (prefers-reduced-motion: reduce)` to disable it.
 
-### Timing Functions
-```css
-/* Standard easing for smooth interactions */
-transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+## 10. Never say "chrome"
 
-/* Quick interactions */
-transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-
-/* Immediate feedback */
-transition: transform 0.1s;
-```
-
-### Transform Patterns
-```css
-/* Hover lift effect */
-transform: translateY(-4px) scale(1.02);
-
-/* Button hover effect */
-transform: scale(1.05) translateY(-2px);
-
-/* Active press effect */
-transform: scale(0.95) translateY(-1px);
-```
-
-### Keyframe Animations
-```css
-/* Jiggle effect for edit mode */
-@keyframes jiggle {
-  0%, 100% { transform: rotate(-0.5deg) scale(1); }
-  50% { transform: rotate(0.5deg) scale(1.01); }
-}
-
-/* Grid pulse effect */
-@keyframes grid-pulse {
-  0%, 100% { opacity: 0.6; }
-  50% { opacity: 0.8; }
-}
-
-/* Drag preview pulse */
-@keyframes pulse-preview {
-  0%, 100% { 
-    opacity: 0.6; 
-    transform: scale(0.98);
-  }
-  50% { 
-    opacity: 0.8; 
-    transform: scale(1);
-  }
-}
-```
-
-## Container Query System
-
-### Widget Responsive Sizing
-```css
-/* Enable container queries for widgets */
-container-type: size;
-
-/* Responsive padding based on widget size */
-padding: clamp(0.25rem, 1.5cqw, 1.5rem);
-
-/* Responsive resize handles */
-width: clamp(12px, 5cqw, 20px);
-height: clamp(12px, 5cqw, 20px);
-```
-
-## Grid System
-
-### Main Grid Layout
-```css
-/* Fixed 40x24 grid system */
-#widget-grid {
-  display: grid;
-  grid-template-columns: repeat(40, 1fr);
-  grid-template-rows: repeat(24, 1fr);
-  gap: 0.5rem;
-}
-```
-
-### Widget Grid Positioning
-```css
-/* Widgets position using grid-area via JavaScript */
-/* Example: grid-column: 1 / 5; grid-row: 1 / 3; */
-```
-
-### Jiggle Mode Grid Overlay
-```css
-/* Visual grid lines in edit mode */
-background-image: 
-  linear-gradient(to right, rgba(255, 255, 255, 0.6) 1px, transparent 1px),
-  linear-gradient(to bottom, rgba(255, 255, 255, 0.6) 1px, transparent 1px);
-background-size: 
-  2.5% 4.166%,  /* 40 columns */
-  2.5% 4.166%;  /* 24 rows */
-```
-
-## Z-Index Layers
-
-### Layer Stack
-```css
-/* Background layer */
-z-index: -1;  /* Body background gradients */
-
-/* Base layer */
-z-index: 0;   /* Grid overlay, widget overlays */
-
-/* Content layer */
-z-index: 1;   /* Widgets, widget content */
-
-/* Interactive layer */
-z-index: 10;  /* Widget resize handles */
-z-index: 15;  /* Resize handle interactive areas */
-
-/* Interface layer */
-z-index: 100; /* Drag previews, action buttons, panels */
-z-index: 1000; /* Modal panels and overlays */
-```
-
-## State Classes
-
-### Widget States
-- `.widget` - Base widget styling
-- `.widget:hover` - Hover interaction state
-- `.widget.dragging` - Active drag state
-- `.widget.resizing` - Active resize state
-- `.widget.drop-target` - Valid drop target
-
-### Grid States
-- `#widget-grid` - Normal grid state
-- `#widget-grid.jiggle-mode` - Edit mode with visual enhancements
-
-### Panel States
-- `.hidden` - Hide panels and modals
-- `.slide-in` - Panel animation state
-
-## Widget-Specific Patterns
-
-### Clock & Date Widgets
-```css
-.clock-widget, .date-widget {
-  font-weight: 200;
-  letter-spacing: -0.02em;
-  text-align: center;
-  line-height: 1.1;
-  /* Font size set dynamically by JavaScript */
-}
-```
-
-### Calculator Widget
-```css
-/* Uses calc-specific classes with color modifiers */
-.calc-btn.colored { /* Dynamic color classes */ }
-.round-buttons .calc-btn { border-radius: 50%; }
-.rounded-buttons .calc-btn { border-radius: 8px; }
-```
-
-## Interactive Elements
-
-### Resize Handles
-- `.resize-handle` - Base resize handle styling
-- `.resize-handle-se` - Southeast corner handle
-- `.resize-handle-s` - South edge handle  
-- `.resize-handle-e` - East edge handle
-
-### Drag Elements
-- `.drag-preview-indicator` - Visual feedback for drag operations
-- Animation with pulsing effect and teal accent color
-
-## Naming Conventions
-
-### CSS Class Patterns
-- **Widget base**: `.{widget-name}-widget` (e.g., `.clock-widget`)
-- **Component parts**: `.{component}-{part}` (e.g., `.calc-display`)
-- **State modifiers**: `.{state}-{type}` (e.g., `.jiggle-mode`)
-- **Interactive elements**: `.{action}-{element}` (e.g., `.resize-handle`)
-
-### CSS Custom Properties
-- **Grid dimensions**: `--cols`, `--rows` (set via JavaScript)
-- **Dynamic values**: Use `clamp()` and container queries instead of custom properties
-
-## Responsive Design
-
-### Breakpoint Strategy
-- Use `clamp()` functions for fluid scaling
-- Container queries for widget-internal responsiveness
-- Fixed grid system with responsive widget sizing
-
-### Mobile Considerations
-- Touch-friendly resize handle sizing: `clamp(12px, 5cqw, 20px)`
-- Readable text with sufficient contrast and shadows
-- Hover effects that work with touch interaction patterns
+Historical note that matters: Clean Browsing is a **Firefox extension**.
+When we discuss styling, "chrome" always reads as the browser itself, not
+window chrome. Use `--ui-*`, `--shell-*`, `--surface-*`, `--widget-*`
+prefixes instead. This rule is enforced by convention (and by the memory
+your future self is loading before each session).
