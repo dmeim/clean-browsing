@@ -5,9 +5,18 @@ Guidance for Claude Code (claude.ai/code) when working in this repository.
 ## Project Overview
 
 Clean Browsing is a **Firefox Manifest V2 extension** that replaces the new tab
-page with a grid of draggable, resizable widgets. Everything is local-first —
-no accounts, no network calls, no telemetry. Layout and settings live in
-`browser.storage.local`.
+page with a grid of draggable, resizable widgets. It is local-first by default —
+no accounts, no telemetry, and no network calls in the baseline experience.
+Layout and settings live in `browser.storage.local`.
+
+**Network policy:** widgets whose core function requires network (Weather
+fetching a forecast, a ping monitor hitting a URL, an embed loading its
+source, etc.) are allowed to make network calls, as long as those calls are
+opt-in, disclosed clearly in the widget settings dialog, scoped to the host
+permissions the widget actually needs, and documented in
+`docs/PRIVACY_POLICY.md`. Non-widget components — toolbar, dialogs,
+stores, styling — stay strictly offline. No CDN fonts, no remote icons,
+no telemetry, no analytics.
 
 This is a **Firefox extension**, not a Chrome extension. When discussing
 styling, never use the word "chrome" to mean window chrome / UI shell —

@@ -238,9 +238,17 @@ grid store — don't wire pointer events inside the widget.
   `uiStore`, `settingsStore`) are the only legitimate globals.
 - ❌ Mutate props. Props are inputs; use `updateSettings` or call a store
   mutator instead.
-- ❌ Make network requests. Clean Browsing is local-first — no external
-  services, no telemetry, no fonts loaded from a CDN. If a feature really
-  needs network, it's a discussion before a PR.
+- ❌ Make network requests for cosmetic or incidental reasons. Clean
+  Browsing is local-first by default: no telemetry, no fonts from a CDN,
+  no analytics, no runtime icon fetching. The exception is widgets whose
+  **core function requires network** (Weather fetching a forecast, a ping
+  monitor hitting a URL, an embed loading its source). Those are allowed,
+  but the rules are strict: opt-in via widget settings, disclosed clearly
+  in the settings dialog and the privacy policy, scoped to the host
+  permissions the widget actually needs, and never firing network calls
+  on page load before the user has configured the widget. If a non-widget
+  component wants to make a network call, that's still a discussion
+  before a PR.
 
 ---
 

@@ -229,8 +229,11 @@ If you're about to add a new piece of UI, ask:
    edit mode.
 3. **Is there already a shadcn-svelte primitive for it?** Use that before
    writing a custom component.
-4. **Does it respect the "no network" rule?** No fonts from a CDN, no
-   telemetry, no fetching icons at runtime.
+4. **Does it respect the network policy?** No fonts from a CDN, no
+   telemetry, no fetching icons at runtime. Widget-specific network
+   calls are allowed when the widget's core function requires them
+   (Weather, ping monitors, embeds) — those must be opt-in and
+   disclosed in the widget settings dialog.
 5. **Does it have a light and a dark treatment?** If you're hardcoding a
    color, stop and find (or add) a CSS variable.
 

@@ -1,133 +1,147 @@
 # Privacy Policy
 
-**Effective Date**: January 2026  
-**Extension**: Clean-Browsing  
-**Version**: 0.5.0+
+**Effective date:** 2026-04-15
+**Extension:** Clean Browsing
+**Applies to:** v1.1.0 and later
 
 ---
 
 ## Summary
 
-Clean-Browsing is a privacy-first browser extension. **We do not collect, store, or transmit any personal data.** All your settings and preferences remain entirely on your device.
+Clean Browsing is a local-first Firefox extension that replaces your new tab page with a grid of draggable, resizable widgets. **It does not collect, transmit, or share any personal data.** Your layout, settings, and any content you put into widgets stay on your device, inside Firefox's own storage, and never reach any server operated by the extension's authors.
+
+There is no account system, no login, no telemetry, no analytics, and no crash reporting.
 
 ---
 
-## Data Collection
+## What the extension stores
 
-### What We Do NOT Collect
+Everything is stored locally via Firefox's `browser.storage.local` API and, for images, the browser's IndexedDB. Nothing in this list ever leaves your device under Clean Browsing's own control.
 
-- ❌ Browsing history
-- ❌ Search queries
-- ❌ Personal information
-- ❌ Usage analytics or telemetry
-- ❌ IP addresses
-- ❌ Device identifiers
-- ❌ Cookies or tracking data
+| Data                        | Purpose                                          | Where it lives                                          |
+| --------------------------- | ------------------------------------------------ | ------------------------------------------------------- |
+| Grid layout (widget positions, sizes, instances) | Remember your dashboard between sessions        | `browser.storage.local` → `clean-browsing:layout:v2`    |
+| Global appearance settings  | Background, theme, widget chrome defaults        | `browser.storage.local` (settings store)                |
+| Per-widget settings         | Each widget's configuration (e.g. clock format, search engine, note contents) | Embedded inside the grid layout blob |
+| Image library               | Images you upload for the Picture widget or background | Firefox IndexedDB (via the extension's own database)   |
+| Sidebar bookmarks / shortcuts | If you add any                                  | `browser.storage.local`                                 |
 
-### What We Store Locally
-
-The following data is stored **only on your device** using Firefox's built-in storage API:
-
-| Data Type              | Purpose                               | Location      |
-| ---------------------- | ------------------------------------- | ------------- |
-| Widget settings        | Remember your dashboard layout        | Local storage |
-| Appearance preferences | Maintain your theme and style choices | Local storage |
-| Sidepanel bookmarks    | Quick access to your favorite sites   | Local storage |
-| Grid positions         | Save widget placement on dashboard    | Local storage |
-
-This data **never leaves your browser** and is not accessible to us or any third party.
+You can inspect everything Clean Browsing has stored at any time via Firefox's `about:debugging` → **Inspect** on the extension → **Storage** tab.
 
 ---
 
-## Permissions Explained
+## What the extension collects
 
-Clean-Browsing requires certain browser permissions to function. Here's what each permission does:
+Nothing. Explicitly:
 
-| Permission   | What It Does                   | Why We Need It                           |
-| ------------ | ------------------------------ | ---------------------------------------- |
-| `storage`    | Save your preferences locally  | Remember settings between sessions       |
-| `tabs`       | Access current tab information | Enable sidepanel on websites             |
-| `activeTab`  | Interact with current page     | Inject sidepanel when you click the icon |
-| `webRequest` | See network request headers    | Enable iframe embedding for sidepanel    |
-| `<all_urls>` | Access any website             | Let you embed any site in sidepanel      |
+- No browsing history.
+- No URLs you visit outside the new tab page.
+- No search queries.
+- No keystrokes.
+- No IP addresses.
+- No device identifiers or fingerprints.
+- No usage analytics, session replays, or error telemetry.
+- No cookies.
+- No remote logging of any kind.
 
-**Important**: While these permissions sound broad, we only use them when you explicitly interact with the extension. We do not monitor, record, or transmit any browsing activity.
-
----
-
-## Third-Party Services
-
-### No External Connections
-
-Clean-Browsing makes **no connections to external servers** except:
-
-1. Websites you explicitly load in the sidepanel (your choice)
-2. Search engines when you use the search widget (your choice)
-
-We do not use:
-
-- Analytics services (no Google Analytics, Mixpanel, etc.)
-- Crash reporting services
-- Advertising networks
-- Data brokers
+There is no "phone home" code anywhere in the extension. The source is open and auditable at the project's GitHub repository.
 
 ---
 
-## Data Export & Deletion
+## Permissions
 
-### Export Your Data
+Clean Browsing currently declares only these Firefox extension permissions (see `public/manifest.json`):
 
-You can export your settings at any time:
+| Permission           | Why it's requested                                                                       |
+| -------------------- | ---------------------------------------------------------------------------------------- |
+| `storage`            | Save your grid layout, settings, and widget content locally.                             |
+| `unlimitedStorage`   | Lift the default per-extension storage quota so the image library can hold more than a few pictures. |
 
-1. Open the settings modal
-2. Click "Export Configuration"
-3. Save the JSON file
+Clean Browsing also declares `chrome_url_overrides.newtab` so that opening a new tab loads the extension's own page instead of Firefox's default. This is how the extension takes effect — it does not give the extension access to any other browser state.
 
-This file contains only your preferences—no personal or browsing data.
-
-### Delete Your Data
-
-To completely remove all Clean-Browsing data:
-
-1. Uninstall the extension, OR
-2. Clear extension data in Firefox settings:
-   - `about:addons` → Clean-Browsing → Remove
+The extension does **not** currently request `tabs`, `activeTab`, `history`, `bookmarks`, `webRequest`, `cookies`, `<all_urls>`, host permissions, or any other permission beyond the two above. If a future release adds a new permission, it will be called out in the release notes and this policy will be updated.
 
 ---
 
-## Children's Privacy
+## Network activity
 
-Clean-Browsing does not knowingly collect information from children under 13. The extension requires no account or personal information to use.
+### Baseline (out of the box)
+
+A freshly installed Clean Browsing with the default layout makes **zero network requests**. Opening a new tab, adding, moving, or resizing widgets, changing themes, editing settings, importing or exporting your layout, uploading images — none of these generate any outbound traffic. You can verify this with Firefox's Network tab in DevTools on the new tab page.
+
+### Widgets that can make network requests
+
+Clean Browsing allows individual widgets to make network requests **only when the widget's core function requires it**. A weather widget must reach a weather API; a ping-monitor widget must reach the host it's monitoring; an embed widget must load its source from YouTube, Spotify, etc. In every such case, the following rules apply:
+
+1. **Opt-in.** A freshly-added widget makes no network requests until *you* configure it (enter a URL, pick a location, paste an embed snippet).
+2. **Disclosed.** The widget's settings dialog tells you, in plain language, which host(s) will be contacted and roughly how often.
+3. **Scoped.** Host permissions in the manifest are added only when a specific widget needs them, one host at a time. There is no `<all_urls>` wildcard.
+4. **Logged here.** Every network-using widget that ships is listed in the table below, with the exact hosts it contacts.
+
+### Network-using widgets currently shipping
+
+None. As of v1.1.0, every widget that ships (Clock, Date, Search, Calculator, Picture) runs fully offline.
+
+The Search widget is a special case worth spelling out: when you submit a query, it opens the search engine's results page in a new tab. That is a normal browser navigation you initiated by pressing Enter — the extension itself does not send your query anywhere. Once the results page is open, whatever network activity happens there is between you and your chosen search engine, governed by *their* privacy policy, not this one.
+
+### Network-using widgets in design
+
+The following widgets are planned and would introduce network requests if they ship (see `docs/widgets/wip-*.md` for full design notes). None of them are shipping yet. Each would be added to the table above, with its hosts, on the release that lands it.
+
+- **Weather** — would contact a weather provider (Open-Meteo is the leading candidate) for forecasts.
+- **Ping Monitor** — would contact URLs you configure to check whether they're reachable.
+- **Mini-Sites** — would embed URLs you configure inside an iframe.
+- **Embeds** — would render embed snippets you paste, loading resources from the source platforms (YouTube, Spotify, Twitter/X, etc.).
 
 ---
 
-## Changes to This Policy
+## Exporting and deleting your data
 
-If we make changes to this privacy policy, we will:
+### Export
 
-1. Update the "Effective Date" above
-2. Include changes in release notes
-3. Maintain previous versions in our repository
+You can export your full layout and settings from the global **Settings** dialog using **Export Configuration**. This produces a JSON file containing only your Clean Browsing preferences — nothing else.
+
+### Delete
+
+To remove everything Clean Browsing has stored on your device:
+
+1. **Uninstall the extension** via `about:addons` → Clean Browsing → **Remove**. Firefox deletes the extension's `storage.local` and IndexedDB data along with it.
+2. Or, to wipe the data without uninstalling: open the extension's new tab page, open the **Settings** dialog, and use the reset option there (when available), or clear the extension's storage manually via `about:debugging`.
+
+---
+
+## Children's privacy
+
+Clean Browsing does not collect any personal information from anyone, including children. No account is required to use the extension.
+
+---
+
+## Open source
+
+Clean Browsing is open source. You can read every line of code that makes up the extension at the project repository. If anything in this policy appears to contradict the code, the code is the source of truth — please open an issue.
+
+---
+
+## Changes to this policy
+
+When this policy changes:
+
+1. The **Effective date** at the top of this file is updated.
+2. The change is noted in the release notes for the version that introduces it.
+3. The previous version of this file remains visible in git history.
 
 ---
 
 ## Contact
 
-For privacy-related questions:
-
-- Open an issue: [GitHub Issues](../../../issues)
-- Review our code: The extension is open source
+Questions about privacy, or a finding that this policy is out of date with the code: please open an issue on the project's GitHub repository.
 
 ---
 
-## Your Rights
+## Your rights
 
-Since we don't collect personal data, traditional data rights (access, deletion, portability) don't apply. However, you always have:
+Because Clean Browsing doesn't collect personal data, the traditional data-subject rights (access, rectification, deletion, portability, objection) don't have anything to act on. What you do have is:
 
-- **Full control** over your local data via export/import
-- **Complete transparency** via our open-source codebase
-- **Easy removal** by uninstalling the extension
-
----
-
-_This privacy policy applies to Clean-Browsing version 0.5.0 and later._
+- **Full local control.** Export, import, or wipe your data at any time.
+- **Complete code transparency.** Every behavior is verifiable in source.
+- **Clean uninstall.** Removing the extension leaves nothing behind on any server, because nothing was ever sent to one.

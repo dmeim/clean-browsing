@@ -21,7 +21,7 @@ A clear description of what you'd like to see. If it's a new widget, include:
 Any other approaches you thought about.
 
 **Local-first check**
-Clean Browsing is strictly local-first — no network calls, no accounts, no telemetry. Does this feature need network access, and if so, is there a user-opt-in path that keeps the default experience offline?
+Clean Browsing is local-first by default — no accounts, no telemetry, and no network calls in the baseline experience. Widget-specific network calls are allowed when the widget's core function requires them (e.g. Weather fetching a forecast), as long as they're opt-in, disclosed in the widget settings dialog, and keep the default experience offline. Does this feature need network access, and if so, what's the opt-in path?
 
 **Additional context**
 Screenshots, mockups, links, anything else that helps.

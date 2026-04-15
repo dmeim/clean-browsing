@@ -147,8 +147,12 @@ Check existing issues first to avoid duplicates.
 
 Feature requests are welcome. Describe the _use case_ first — what are you
 trying to accomplish? Then the proposed solution. Keep in mind the project's
-local-first principle: features that require network calls, accounts, or
-external services are unlikely to land.
+local-first principle: the default experience is offline, with no accounts
+or telemetry. **Widgets whose core function requires network** (a weather
+forecast, an embed, a health check) are allowed as long as the network
+activity is opt-in, disclosed, and scoped to what the widget needs.
+Features that would add network calls to the baseline (analytics,
+remote-hosted assets, accounts, background sync) are unlikely to land.
 
 See [`docs/ROADMAP.md`](docs/ROADMAP.md) for features that are already on the
 radar.
