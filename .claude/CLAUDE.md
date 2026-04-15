@@ -68,11 +68,38 @@ npm install                    # deps
 npm run dev                    # vite build --watch + web-ext run (live Firefox reload)
 npm run build                  # production build → dist/
 npm run check                  # svelte-check (TS + Svelte diagnostics)
+npm run lint                   # eslint src
+npm run format                 # prettier --write over src, repo root, and docs
+npm run format:check           # prettier --check (what CI runs)
 ```
 
 Note on `npm run check`: there are two **pre-existing** `bits-ui` namespace
 errors in `src/lib/components/ui/button/index.ts` that do not affect builds.
 If you see exactly those two errors, they are not regressions from your change.
+
+## Before committing
+
+CI runs `lint → format:check → check → build → package` and **fails the
+whole workflow on any prettier diff**, including in markdown files under
+`docs/`. Writing or editing any of these without running prettier will
+break CI:
+
+- `src/**/*.{ts,js,svelte,css,html}`
+- `*.{ts,js,json,md}` (repo root)
+- `docs/**/*.md`
+
+Before `git commit` (and definitely before `git push`), run:
+
+```bash
+npm run format                 # auto-fix prettier diffs
+npm run lint                   # eslint src
+npm run check                  # svelte-check (TS + Svelte diagnostics)
+```
+
+`npm run format` is the one that's most often forgotten, because prettier
+silently accepts markdown files that "look fine" but differ on table
+alignment, trailing whitespace, or heading spacing. Always run it after
+any markdown edit — don't wait for CI to catch it.
 
 ## Architectural Conventions
 
