@@ -1,6 +1,6 @@
 # Clean-Browsing
 
-[![Version](https://img.shields.io/badge/version-0.0.1--next-blue)](https://github.com/dmeim/clean-browsing/releases)
+[![Version](https://img.shields.io/badge/version-1.2.0-blue)](https://github.com/dmeim/clean-browsing/releases)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Firefox Extension](https://img.shields.io/badge/platform-Firefox%20Extension-orange)](https://github.com/dmeim/clean-browsing)
 [![Stack](https://img.shields.io/badge/stack-Svelte%205%20%C2%B7%20Vite%20%C2%B7%20TS%20%C2%B7%20Tailwind%20v4-ff3e00)](src/)
@@ -18,13 +18,14 @@
 
 ## 🧩 Shipped Widgets
 
-| Widget            | Description                                    | Default size |
-| ----------------- | ---------------------------------------------- | ------------ |
-| 🕒 **Clock**      | Locale-aware time, 12/24h, seconds, AM/PM      | 4×2          |
-| 📅 **Date**       | Day.js formatted date with customizable format | 4×2          |
-| 🔍 **Search**     | Multi-engine search bar                        | 6×2          |
-| 🧮 **Calculator** | Keyboard-friendly calculator                   | 4×5          |
-| 🖼️ **Picture**    | User-supplied image tile                       | 4×4          |
+| Widget            | Description                                                 | Default size |
+| ----------------- | ----------------------------------------------------------- | ------------ |
+| 🕒 **Clock**      | Locale-aware time, 12/24h, seconds, AM/PM                   | 4×2          |
+| 📅 **Date**       | Day.js formatted date with customizable format              | 4×2          |
+| 🔍 **Search**     | Multi-engine search bar                                     | 8×2          |
+| 🧮 **Calculator** | Keyboard-friendly calculator                                | 4×6          |
+| 🖼️ **Picture**    | User-supplied image tile                                    | 4×4          |
+| 🌤️ **Weather**    | Current conditions + forecast from Open-Meteo (opt-in HTTP) | 6×4          |
 
 Each widget lives in its own folder under [`src/lib/widgets/<name>/`](src/lib/widgets) as a `{Widget}.svelte` + `{Widget}Settings.svelte` + `definition.ts` trio, registered through a central registry.
 
@@ -112,7 +113,7 @@ See [`docs/README.md`](docs/README.md) for the deeper walkthrough.
 
 ## 📊 Status
 
-- **Shipped**: 24×16 widget grid with drag/resize, edit mode, persistent layout, clock/date/search/calculator/picture widgets, per-widget settings dialogs, light/dark mode, global widget appearance defaults, JSON settings export, ZIP image library export
+- **Shipped**: 24×16 widget grid with drag/resize, edit mode, persistent layout, clock/date/search/calculator/picture/weather widgets, per-widget settings dialogs, light/dark mode, global widget appearance defaults, JSON settings export, ZIP image library export
 - **Coming next**: see [docs/ROADMAP.md](docs/ROADMAP.md) — notes widget, per-instance appearance overrides, full layout import/export, additional widgets
 
 ## 🤝 Contributing

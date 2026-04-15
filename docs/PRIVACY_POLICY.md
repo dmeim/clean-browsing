@@ -2,7 +2,7 @@
 
 **Effective date:** 2026-04-15
 **Extension:** Clean Browsing
-**Applies to:** v1.1.0 and later
+**Applies to:** v1.2.0 and later
 
 ---
 
@@ -52,14 +52,17 @@ There is no "phone home" code anywhere in the extension. The source is open and 
 
 Clean Browsing currently declares only these Firefox extension permissions (see `public/manifest.json`):
 
-| Permission         | Why it's requested                                                                                   |
-| ------------------ | ---------------------------------------------------------------------------------------------------- |
-| `storage`          | Save your grid layout, settings, and widget content locally.                                         |
-| `unlimitedStorage` | Lift the default per-extension storage quota so the image library can hold more than a few pictures. |
+| Permission                               | Why it's requested                                                                                                                                  |
+| ---------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `storage`                                | Save your grid layout, settings, and widget content locally.                                                                                        |
+| `unlimitedStorage`                       | Lift the default per-extension storage quota so the image library can hold more than a few pictures.                                                |
+| `geolocation`                            | Used by the Weather widget **only when** you click "Use my location" in its settings. Never accessed automatically.                                 |
+| `https://api.open-meteo.com/*`           | Used by the Weather widget to fetch the forecast for your configured location. Only contacted after you finish configuring the widget.              |
+| `https://geocoding-api.open-meteo.com/*` | Used by the Weather widget to look up a city's coordinates when you search for a location in its settings. Only contacted when you submit a search. |
 
 Clean Browsing also declares `chrome_url_overrides.newtab` so that opening a new tab loads the extension's own page instead of Firefox's default. This is how the extension takes effect — it does not give the extension access to any other browser state.
 
-The extension does **not** currently request `tabs`, `activeTab`, `history`, `bookmarks`, `webRequest`, `cookies`, `<all_urls>`, host permissions, or any other permission beyond the two above. If a future release adds a new permission, it will be called out in the release notes and this policy will be updated.
+The extension does **not** request `tabs`, `activeTab`, `history`, `bookmarks`, `webRequest`, `cookies`, or `<all_urls>`. The host permissions above are scoped to the two specific Open-Meteo endpoints the Weather widget uses; no other host can be contacted. If a future release adds a new permission, it will be called out in the release notes and this policy will be updated.
 
 ---
 
@@ -80,7 +83,11 @@ Clean Browsing allows individual widgets to make network requests **only when th
 
 ### Network-using widgets currently shipping
 
-None. As of v1.1.0, every widget that ships (Clock, Date, Search, Calculator, Picture) runs fully offline.
+| Widget      | Hosts contacted                                      | When                                                                                                                |
+| ----------- | ---------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| **Weather** | `api.open-meteo.com`, `geocoding-api.open-meteo.com` | Forecast: only after you pick a location, then on the refresh interval you choose. Geocoding: only when you search. |
+
+The Weather widget is the **only** source of outbound HTTP requests in v1.2.0. It will not fire any request until you have configured a location in its settings. A Weather widget that has been added but never configured produces zero network traffic. Coordinates and forecast data are stored only in `browser.storage.local` and are never shared with anyone other than Open-Meteo.
 
 The Search widget is a special case worth spelling out: when you submit a query, it opens the search engine's results page in a new tab. That is a normal browser navigation you initiated by pressing Enter — the extension itself does not send your query anywhere. Once the results page is open, whatever network activity happens there is between you and your chosen search engine, governed by _their_ privacy policy, not this one.
 
@@ -88,7 +95,6 @@ The Search widget is a special case worth spelling out: when you submit a query,
 
 The following widgets are planned and would introduce network requests if they ship (see `docs/widgets/wip-*.md` for full design notes). None of them are shipping yet. Each would be added to the table above, with its hosts, on the release that lands it.
 
-- **Weather** — would contact a weather provider (Open-Meteo is the leading candidate) for forecasts.
 - **Ping Monitor** — would contact URLs you configure to check whether they're reachable.
 - **Mini-Sites** — would embed URLs you configure inside an iframe.
 - **Embeds** — would render embed snippets you paste, loading resources from the source platforms (YouTube, Spotify, Twitter/X, etc.).
