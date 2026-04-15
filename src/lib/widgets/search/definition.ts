@@ -57,7 +57,6 @@ export const searchDefinition: WidgetDefinition<SearchSettings> = {
   component: Search,
   settingsComponent: SearchSettingsForm,
   defaultSize: { w: 8, h: 2 },
-  minSize: { w: 5, h: 2 },
   defaultSettings: {
     engine: "google",
     customUrl: ENGINE_URLS.google,

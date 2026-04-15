@@ -21,7 +21,6 @@ export const clockDefinition: WidgetDefinition<ClockSettings> = {
   component: Clock,
   settingsComponent: ClockSettingsForm,
   defaultSize: { w: 4, h: 2 },
-  minSize: { w: 3, h: 2 },
   defaultSettings: {
     format24h: false,
     showSeconds: true,

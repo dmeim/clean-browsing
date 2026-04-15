@@ -23,7 +23,6 @@ export const pictureDefinition: WidgetDefinition<PictureSettings> = {
   component: Picture,
   settingsComponent: PictureSettingsForm,
   defaultSize: { w: 4, h: 4 },
-  minSize: { w: 2, h: 2 },
   defaultSettings: {
     imageId: "",
     imageDataUrl: "",

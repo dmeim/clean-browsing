@@ -174,8 +174,9 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 2rem;
-    height: 2rem;
+    height: 100%;
+    aspect-ratio: 1;
+    max-height: 2rem;
     border-radius: 9999px;
     background: rgb(59 130 246);
     color: white;
@@ -183,6 +184,11 @@
     cursor: pointer;
     flex-shrink: 0;
     transition: background 120ms ease;
+  }
+
+  .submit svg {
+    width: 60%;
+    height: 60%;
   }
 
   .submit:hover {

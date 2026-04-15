@@ -30,7 +30,6 @@ export const calculatorDefinition: WidgetDefinition<CalculatorSettings> = {
   component: Calculator,
   settingsComponent: CalculatorSettingsForm,
   defaultSize: { w: 4, h: 6 },
-  minSize: { w: 3, h: 5 },
   defaultSettings: {
     keyboardSupport: true,
     roundButtons: true,

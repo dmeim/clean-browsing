@@ -7,10 +7,11 @@
   import { gridStore } from "$lib/grid/store.svelte.js";
   import ConfigurationSettings from "./settings/ConfigurationSettings.svelte";
   import AppearanceSettings from "./settings/AppearanceSettings.svelte";
+  import GridSettings from "./settings/GridSettings.svelte";
   import WidgetsSettings from "./settings/WidgetsSettings.svelte";
   import StorageSettings from "./settings/StorageSettings.svelte";
 
-  type TabId = "configuration" | "appearance" | "widgets" | "storage";
+  type TabId = "configuration" | "appearance" | "grid" | "widgets" | "storage";
 
   const TABS: { id: TabId; label: string; icon: string }[] = [
     {
@@ -22,6 +23,11 @@
       id: "appearance",
       label: "Appearance",
       icon: "M12 3a9 9 0 1 0 9 9c0-1.66-3-2-3-4s2.34-1 2-3c-.37-2.2-4-5-8-5z M8 14a1 1 0 1 0 0-2 1 1 0 0 0 0 2z M12 9a1 1 0 1 0 0-2 1 1 0 0 0 0 2z M16 14a1 1 0 1 0 0-2 1 1 0 0 0 0 2z",
+    },
+    {
+      id: "grid",
+      label: "Grid",
+      icon: "M3 3h6v6H3zM10 3h6v6h-6zM17 3h4v6h-4zM3 10h6v6H3zM10 10h6v6h-6zM17 10h4v6h-4zM3 17h6v4H3zM10 17h6v4h-6zM17 17h4v4h-4z",
     },
     {
       id: "widgets",
@@ -114,6 +120,8 @@
           <ConfigurationSettings />
         {:else if active === "appearance"}
           <AppearanceSettings />
+        {:else if active === "grid"}
+          <GridSettings />
         {:else if active === "widgets"}
           <WidgetsSettings />
         {:else if active === "storage"}

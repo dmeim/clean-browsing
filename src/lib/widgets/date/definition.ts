@@ -16,7 +16,6 @@ export const dateDefinition: WidgetDefinition<DateSettings> = {
   component: DateWidget,
   settingsComponent: DateSettingsForm,
   defaultSize: { w: 4, h: 2 },
-  minSize: { w: 3, h: 1 },
   defaultSettings: {
     format: "YYYY-MM-DD",
     paddingV: 0,

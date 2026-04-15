@@ -6,6 +6,8 @@ import { type OverridePath, unsetAtPath } from "$lib/widgets/style/path.js";
 const STORAGE_KEY = "clean-browsing:layout:v2";
 const DEFAULT_COLS = 24;
 const DEFAULT_ROWS = 16;
+const DENSE_COLS = 48;
+const DENSE_ROWS = 32;
 
 type BrowserLike = {
   storage?: {
@@ -244,6 +246,49 @@ function createStore() {
     void persist();
   }
 
+  function setDenseGrid(enabled: boolean): void {
+    const isDense = layout.cols >= DENSE_COLS;
+    if (enabled === isDense) return;
+
+    if (enabled) {
+      layout.cols = DENSE_COLS;
+      layout.rows = DENSE_ROWS;
+      for (const inst of layout.instances) {
+        inst.x *= 2;
+        inst.y *= 2;
+        inst.w *= 2;
+        inst.h *= 2;
+      }
+    } else {
+      layout.cols = DEFAULT_COLS;
+      layout.rows = DEFAULT_ROWS;
+      const halved = layout.instances.map((inst) => ({
+        inst,
+        x: Math.floor(inst.x / 2),
+        y: Math.floor(inst.y / 2),
+        w: Math.max(1, Math.ceil(inst.w / 2)),
+        h: Math.max(1, Math.ceil(inst.h / 2)),
+      }));
+      layout.instances = [];
+      for (const item of halved) {
+        const w = Math.min(DEFAULT_COLS, item.w);
+        const h = Math.min(DEFAULT_ROWS, item.h);
+        const x = Math.max(0, Math.min(DEFAULT_COLS - w, item.x));
+        const y = Math.max(0, Math.min(DEFAULT_ROWS - h, item.y));
+        Object.assign(item.inst, { x, y, w, h });
+        layout.instances.push(item.inst);
+        if (!canPlace(item.inst.instanceId, x, y, w, h)) {
+          const slot = findFreeSlot(w, h);
+          if (slot) {
+            item.inst.x = slot.x;
+            item.inst.y = slot.y;
+          }
+        }
+      }
+    }
+    void persist();
+  }
+
   function replaceLayout(next: GridLayout): void {
     layout = {
       cols: next.cols ?? DEFAULT_COLS,
@@ -260,6 +305,9 @@ function createStore() {
     get loaded() {
       return loaded;
     },
+    get isDense() {
+      return layout.cols >= DENSE_COLS;
+    },
     load,
     addWidget,
     addWidgetAuto,
@@ -274,6 +322,7 @@ function createStore() {
     findFreeSlot,
     resetLayout,
     replaceLayout,
+    setDenseGrid,
     beginEdit,
     commitEdit,
     cancelEdit,
