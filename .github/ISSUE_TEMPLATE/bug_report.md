@@ -1,32 +1,32 @@
 ---
 name: Bug report
-about: Create a report to help us improve
-title: '[BUG] '
-labels: 'bug'
-assignees: ''
-
+about: Report something that's broken or behaving unexpectedly
+title: "[BUG] "
+labels: bug
+assignees: ""
 ---
 
 **Describe the bug**
-A clear and concise description of what the bug is.
+A clear and concise description of what's wrong.
 
-**To Reproduce**
-Steps to reproduce the behavior:
+**Steps to reproduce**
 1. Go to '...'
-2. Click on '....'
-3. Scroll down to '....'
-4. See error
+2. Click on '...'
+3. See error
 
 **Expected behavior**
-A clear and concise description of what you expected to happen.
+What you expected to happen.
 
-**Screenshots**
-If applicable, add screenshots to help explain your problem.
+**Actual behavior**
+What actually happened.
 
-**Browser Environment:**
- - OS: [e.g. Windows, macOS, Linux]
- - Browser: [e.g. Chrome version 119]
- - Extension version: [e.g. v0.4.0]
+**Screenshots / console output**
+If applicable, attach screenshots, or open the browser DevTools console (Shift+F9 on the new tab) and paste any errors here.
+
+**Environment**
+- Firefox version (or fork): e.g. Firefox 124, Zen 1.0.2
+- OS: e.g. macOS 14.4, Windows 11, Ubuntu 24.04
+- Clean Browsing version: from `about:addons`, or the `version` field in `public/manifest.json` if running from source
 
 **Additional context**
-Add any other context about the problem here.
+Anything else that might help — was the extension freshly loaded? Were you in edit mode? Did you recently import a layout?

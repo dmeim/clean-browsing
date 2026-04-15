@@ -1,26 +1,29 @@
 ---
 name: Feature request
-about: Suggest an idea for this project
-title: '[FEATURE] '
-labels: 'enhancement'
-assignees: ''
-
+about: Suggest an idea for Clean Browsing
+title: "[FEATURE] "
+labels: enhancement
+assignees: ""
 ---
 
-**Is your feature request related to a problem? Please describe.**
-A clear and concise description of what the problem is. Ex. I'm always frustrated when [...]
+**What's the use case?**
+Describe the problem you're trying to solve or the behavior you'd like. Lead with the "why" — what are you trying to accomplish?
 
-**Describe the solution you'd like**
-A clear and concise description of what you want to happen.
+**Proposed solution**
+A clear description of what you'd like to see. If it's a new widget, include:
 
-**Describe alternatives you've considered**
-A clear and concise description of any alternative solutions or features you've considered.
+- Widget name
+- Default grid size (in cells — the grid is 24 × 16)
+- Key functionality
+- Main settings / configuration options
 
-**Widget Request (if applicable)**
-- Widget name:
-- Desired size (grid units):
-- Key functionality:
-- Configuration options:
+**Alternatives considered**
+Any other approaches you thought about.
+
+**Local-first check**
+Clean Browsing is strictly local-first — no network calls, no accounts, no telemetry. Does this feature need network access, and if so, is there a user-opt-in path that keeps the default experience offline?
 
 **Additional context**
-Add any other context or screenshots about the feature request here.
+Screenshots, mockups, links, anything else that helps.
+
+See [`docs/ROADMAP.md`](../../docs/ROADMAP.md) before filing — your idea may already be on the list.

@@ -1,0 +1,68 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  verify:
+    name: Lint · Check · Build · Package
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Format check
+        run: npm run format:check
+
+      - name: Type and Svelte check
+        run: npm run check
+
+      - name: Build
+        run: npm run build
+
+      - name: Verify manifest and package version match
+        run: |
+          node -e "
+            const pkg = require('./package.json');
+            const manifest = require('./dist/manifest.json');
+            if (manifest.manifest_version !== 2) {
+              throw new Error('Expected manifest_version 2, got ' + manifest.manifest_version);
+            }
+            if (!manifest.version) {
+              throw new Error('dist/manifest.json is missing version');
+            }
+            if (manifest.version !== pkg.version) {
+              throw new Error(
+                'Version mismatch: package.json=' + pkg.version +
+                ' vs manifest=' + manifest.version
+              );
+            }
+            console.log('Manifest OK: name=\"' + manifest.name + '\" version=' + manifest.version);
+          "
+
+      - name: Package extension
+        run: npm run package
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: clean-browsing-${{ github.sha }}
+          path: web-ext-artifacts/*.zip
+          if-no-files-found: error
+          retention-days: 14

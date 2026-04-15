@@ -1,0 +1,98 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Build, sign, and publish GitHub release
+    runs-on: ubuntu-latest
+    env:
+      WEB_EXT_API_KEY: ${{ secrets.WEB_EXT_API_KEY }}
+      WEB_EXT_API_SECRET: ${{ secrets.WEB_EXT_API_SECRET }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Derive version from tag
+        id: version
+        run: |
+          TAG_VERSION="${GITHUB_REF_NAME#v}"
+          echo "tag_version=$TAG_VERSION" >> "$GITHUB_OUTPUT"
+          echo "Releasing version: $TAG_VERSION (from tag $GITHUB_REF_NAME)"
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Format check
+        run: npm run format:check
+
+      - name: Type and Svelte check
+        run: npm run check
+
+      - name: Build
+        run: npm run build
+
+      - name: Assert tag matches package.json and manifest.json
+        env:
+          TAG_VERSION: ${{ steps.version.outputs.tag_version }}
+        run: |
+          node -e "
+            const pkg = require('./package.json');
+            const manifest = require('./dist/manifest.json');
+            const tag = process.env.TAG_VERSION;
+            if (pkg.version !== tag) {
+              throw new Error('package.json version ' + pkg.version + ' does not match tag ' + tag);
+            }
+            if (manifest.version !== tag) {
+              throw new Error('manifest version ' + manifest.version + ' does not match tag ' + tag);
+            }
+            console.log('All three versions match: ' + tag);
+          "
+
+      - name: Package extension (.zip)
+        run: npm run package
+
+      - name: Sign extension (.xpi, if signing secrets are set)
+        id: sign
+        if: ${{ env.WEB_EXT_API_KEY != '' && env.WEB_EXT_API_SECRET != '' }}
+        run: npm run sign
+        continue-on-error: true
+
+      - name: Locate release notes file
+        id: notes
+        env:
+          TAG_VERSION: ${{ steps.version.outputs.tag_version }}
+        run: |
+          NOTES_PATH="release-notes/v${TAG_VERSION}.md"
+          if [ ! -f "$NOTES_PATH" ]; then
+            echo "::error::Missing $NOTES_PATH — every release tag needs a matching release-notes file."
+            exit 1
+          fi
+          echo "path=$NOTES_PATH" >> "$GITHUB_OUTPUT"
+
+      - name: Create GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: Clean Browsing ${{ steps.version.outputs.tag_version }}
+          body_path: ${{ steps.notes.outputs.path }}
+          files: |
+            web-ext-artifacts/*.zip
+            web-ext-artifacts/*.xpi
+          fail_on_unmatched_files: false
