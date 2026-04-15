@@ -4,7 +4,7 @@ export function imageLayerCss(
   url: string,
   fit: ImageFit,
   positionX: number,
-  positionY: number
+  positionY: number,
 ): string {
   const size =
     fit === "cover"

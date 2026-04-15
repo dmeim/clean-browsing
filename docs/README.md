@@ -8,17 +8,17 @@ Clean Browsing is a Firefox (MV2) new-tab extension: a persistent grid of dragga
 
 ## 🧱 Stack
 
-| Layer          | Choice                                         |
-| -------------- | ---------------------------------------------- |
-| Framework      | Svelte 5 with runes (`$state`, `$derived`, `$props`) |
-| Bundler        | Vite 6 (`@sveltejs/vite-plugin-svelte`)        |
-| Language       | TypeScript 5                                   |
+| Layer          | Choice                                                   |
+| -------------- | -------------------------------------------------------- |
+| Framework      | Svelte 5 with runes (`$state`, `$derived`, `$props`)     |
+| Bundler        | Vite 6 (`@sveltejs/vite-plugin-svelte`)                  |
+| Language       | TypeScript 5                                             |
 | Styling        | Tailwind CSS v4 (`@tailwindcss/vite`, no PostCSS config) |
-| Components     | shadcn-svelte on top of `bits-ui` + `tailwind-variants` |
-| Icons          | `lucide-svelte`                                |
-| Dates          | `dayjs`                                        |
-| Extension tool | `web-ext` (Firefox reload loop)                |
-| Target         | Manifest V2 Firefox extension                  |
+| Components     | shadcn-svelte on top of `bits-ui` + `tailwind-variants`  |
+| Icons          | `lucide-svelte`                                          |
+| Dates          | `dayjs`                                                  |
+| Extension tool | `web-ext` (Firefox reload loop)                          |
+| Target         | Manifest V2 Firefox extension                            |
 
 ---
 
@@ -107,7 +107,10 @@ type GridLayout = { cols: number; rows: number; instances: WidgetInstance[] };
 type WidgetInstance = {
   instanceId: string;
   widgetId: string;
-  x: number; y: number; w: number; h: number;
+  x: number;
+  y: number;
+  w: number;
+  h: number;
   settings: unknown;
 };
 ```
@@ -164,6 +167,7 @@ Each widget's `definition.ts` calls `registerWidget(def)` at module load. `src/l
 
 1. **Create the folder**: `src/lib/widgets/<name>/`
 2. **Widget component** — `<Name>.svelte`:
+
    ```svelte
    <script lang="ts">
      import type { WidgetProps } from "$lib/widgets/types.js";
@@ -173,15 +177,19 @@ Each widget's `definition.ts` calls `registerWidget(def)` at module load. `src/l
 
    <div class="h-full w-full">...</div>
    ```
+
 3. **Settings form** — `<Name>Settings.svelte`, same `$props()` shape, edits a local copy and calls `updateSettings(next)` on change.
 4. **Definition** — `definition.ts`:
+
    ```ts
    import type { WidgetDefinition } from "$lib/widgets/types.js";
    import { registerWidget } from "$lib/widgets/registry.js";
    import MyWidget from "./MyWidget.svelte";
    import MyWidgetSettings from "./MyWidgetSettings.svelte";
 
-   export type MySettings = { /* ... */ };
+   export type MySettings = {
+     /* ... */
+   };
 
    export const myWidgetDefinition: WidgetDefinition<MySettings> = {
      id: "my-widget",
@@ -190,11 +198,14 @@ Each widget's `definition.ts` calls `registerWidget(def)` at module load. `src/l
      settingsComponent: MyWidgetSettings,
      defaultSize: { w: 4, h: 2 },
      minSize: { w: 2, h: 1 },
-     defaultSettings: { /* ... */ },
+     defaultSettings: {
+       /* ... */
+     },
    };
 
    registerWidget(myWidgetDefinition);
    ```
+
 5. **Register at startup** — add `import "./<name>/definition.js";` to `src/lib/widgets/index.ts`.
 6. **Run `npm run dev`** and add the widget via the toolbar.
 
@@ -232,17 +243,17 @@ Runs `svelte-check --tsconfig ./tsconfig.json`. Note: there are currently two pr
 
 ## 🗺️ Roadmap (port status)
 
-| Area                              | Status          |
-| --------------------------------- | --------------- |
-| Grid, drag, resize, edit mode     | ✅ Ported       |
+| Area                               | Status          |
+| ---------------------------------- | --------------- |
+| Grid, drag, resize, edit mode      | ✅ Ported       |
 | Clock / Date / Search / Calc / Pic | ✅ Ported       |
-| Per-widget settings dialogs       | ✅ Ported       |
-| Persistent layout                 | ✅ Ported       |
-| Global appearance overrides       | ⏳ Not yet      |
-| Layout import/export              | ⏳ Not yet      |
-| Sidepanel feature                 | ⏳ Not yet      |
-| Notes widget                      | ⏳ Not yet      |
-| Remove legacy `extension/` tree   | ⏳ After parity |
+| Per-widget settings dialogs        | ✅ Ported       |
+| Persistent layout                  | ✅ Ported       |
+| Global appearance overrides        | ⏳ Not yet      |
+| Layout import/export               | ⏳ Not yet      |
+| Sidepanel feature                  | ⏳ Not yet      |
+| Notes widget                       | ⏳ Not yet      |
+| Remove legacy `extension/` tree    | ⏳ After parity |
 
 ---
 

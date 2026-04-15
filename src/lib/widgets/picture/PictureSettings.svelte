@@ -258,7 +258,9 @@
     background: rgb(2 6 23);
     cursor: pointer;
     overflow: hidden;
-    transition: border-color 120ms ease, transform 120ms ease;
+    transition:
+      border-color 120ms ease,
+      transform 120ms ease;
   }
   .lib-item img {
     width: 100%;

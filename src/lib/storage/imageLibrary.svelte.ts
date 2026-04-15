@@ -66,7 +66,9 @@ async function loadRaw(): Promise<StoredImage[]> {
       const legacyLs = readLocalStorageArray();
       if (legacyLs) {
         await browser!.storage!.local!.set({ [STORAGE_KEY]: legacyLs });
-        try { localStorage.removeItem(STORAGE_KEY); } catch {}
+        try {
+          localStorage.removeItem(STORAGE_KEY);
+        } catch {}
         return legacyLs;
       }
       return Array.isArray(value) ? (value as StoredImage[]) : [];

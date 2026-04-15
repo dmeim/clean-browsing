@@ -191,7 +191,8 @@
   width: 100%;
   height: 100%;
   background: var(--widget-bg, transparent);
-  border: var(--widget-border-width, 0) var(--widget-border-style, solid) var(--widget-border-color, transparent);
+  border: var(--widget-border-width, 0) var(--widget-border-style, solid)
+    var(--widget-border-color, transparent);
   border-radius: var(--widget-border-radius, 0);
   backdrop-filter: blur(var(--widget-backdrop-blur, 0));
   -webkit-backdrop-filter: blur(var(--widget-backdrop-blur, 0));

@@ -6,10 +6,7 @@
   import { widgetScaler } from "./widgetScaler.js";
   import { settingsStore } from "$lib/settings/store.svelte.js";
   import { imageLibrary } from "$lib/storage/imageLibrary.svelte.js";
-  import {
-    resolveWidgetStyle,
-    widgetStyleToInlineStyle,
-  } from "$lib/widgets/style/resolve.js";
+  import { resolveWidgetStyle, widgetStyleToInlineStyle } from "$lib/widgets/style/resolve.js";
 
   type Props = { instance: WidgetInstance };
   let { instance }: Props = $props();
@@ -30,8 +27,7 @@
   const dispH = $derived(previewH ?? instance.h);
 
   const style = $derived(
-    `grid-column: ${dispX + 1} / span ${dispW}; ` +
-    `grid-row: ${dispY + 1} / span ${dispH};`
+    `grid-column: ${dispX + 1} / span ${dispW}; ` + `grid-row: ${dispY + 1} / span ${dispH};`,
   );
 
   type Metrics = {
@@ -177,11 +173,23 @@
     const minH = def?.minSize?.h ?? 1;
     const maxW = def?.maxSize?.w ?? gridStore.layout.cols;
     const maxH = def?.maxSize?.h ?? gridStore.layout.rows;
-    const clampedW = Math.max(minW, Math.min(maxW, Math.min(gridStore.layout.cols - instance.x, resizeCtx.startW + cellDW)));
-    const clampedH = Math.max(minH, Math.min(maxH, Math.min(gridStore.layout.rows - instance.y, resizeCtx.startH + cellDH)));
+    const clampedW = Math.max(
+      minW,
+      Math.min(maxW, Math.min(gridStore.layout.cols - instance.x, resizeCtx.startW + cellDW)),
+    );
+    const clampedH = Math.max(
+      minH,
+      Math.min(maxH, Math.min(gridStore.layout.rows - instance.y, resizeCtx.startH + cellDH)),
+    );
     previewW = clampedW;
     previewH = clampedH;
-    const valid = gridStore.canPlace(instance.instanceId, instance.x, instance.y, clampedW, clampedH);
+    const valid = gridStore.canPlace(
+      instance.instanceId,
+      instance.x,
+      instance.y,
+      clampedW,
+      clampedH,
+    );
     previewValid = valid;
     if (valid) {
       resizeCtx.lastValidW = clampedW;
@@ -231,10 +239,10 @@
   const hasSettings = $derived(!!def?.settingsComponent);
 
   const resolvedStyle = $derived(
-    resolveWidgetStyle(settingsStore.settings.widgetDefaults, instance.styleOverrides)
+    resolveWidgetStyle(settingsStore.settings.widgetDefaults, instance.styleOverrides),
   );
   const widgetStyleVars = $derived(
-    widgetStyleToInlineStyle(resolvedStyle, (id) => imageLibrary.get(id)?.dataUrl ?? null)
+    widgetStyleToInlineStyle(resolvedStyle, (id) => imageLibrary.get(id)?.dataUrl ?? null),
   );
 </script>
 
@@ -291,8 +299,20 @@
         onpointerdown={handleControlPointerDown}
         onclick={handleOpenSettings}
       >
-        <svg viewBox="0 0 24 24" width="12" height="12" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z" />
+        <svg
+          viewBox="0 0 24 24"
+          width="12"
+          height="12"
+          aria-hidden="true"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path
+            d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"
+          />
           <circle cx="12" cy="12" r="3" />
         </svg>
       </button>
@@ -339,13 +359,21 @@
   .grid-item.invalid {
     outline: 2px solid rgb(239 68 68 / 0.9);
     outline-offset: 2px;
-    box-shadow: 0 0 0 4px rgb(239 68 68 / 0.25), 0 10px 40px rgb(0 0 0 / 0.45);
+    box-shadow:
+      0 0 0 4px rgb(239 68 68 / 0.25),
+      0 10px 40px rgb(0 0 0 / 0.45);
   }
 
   @keyframes jiggle {
-    0%   { transform: rotate(-0.6deg); }
-    50%  { transform: rotate(0.6deg); }
-    100% { transform: rotate(-0.6deg); }
+    0% {
+      transform: rotate(-0.6deg);
+    }
+    50% {
+      transform: rotate(0.6deg);
+    }
+    100% {
+      transform: rotate(-0.6deg);
+    }
   }
 
   .grid-item.jiggle {

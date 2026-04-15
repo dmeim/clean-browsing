@@ -155,8 +155,7 @@ Key points:
   import type { WidgetSettingsProps } from "$lib/widgets/types.js";
   import type { CounterSettings } from "./definition.js";
 
-  let { settings, updateSettings }: WidgetSettingsProps<CounterSettings> =
-    $props();
+  let { settings, updateSettings }: WidgetSettingsProps<CounterSettings> = $props();
 
   function patch(partial: Partial<CounterSettings>) {
     updateSettings({ ...settings, ...partial });
@@ -309,10 +308,7 @@ If your widget exposes `paddingV` / `paddingH` settings, apply them as
 inline styles on `.widget-inner`:
 
 ```svelte
-<div
-  class="widget-inner"
-  style="top: {padV}px; bottom: {padV}px; left: {padH}px; right: {padH}px;"
->
+<div class="widget-inner" style="top: {padV}px; bottom: {padV}px; left: {padH}px; right: {padH}px;">
   …
 </div>
 ```
@@ -353,7 +349,7 @@ Did you add the `import "./<id>/definition.js";` line to
 Two widgets share the same `id`. Pick a unique one.
 
 **Settings don't persist.**
-Make sure you call `updateSettings(next)` with a *new* object, not a mutation
+Make sure you call `updateSettings(next)` with a _new_ object, not a mutation
 of `settings`. The grid store persists on every call; if you're mutating in
 place, Svelte won't see the change.
 

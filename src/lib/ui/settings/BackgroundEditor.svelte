@@ -73,7 +73,7 @@
     if (value.gradient.stops.length > 2) value.gradient.stops.splice(index, 1);
   }
 
-  function applyPreset(preset: typeof PRESETS[number]) {
+  function applyPreset(preset: (typeof PRESETS)[number]) {
     value.type = "gradient";
     value.gradient.angle = preset.angle;
     value.gradient.stops = [...preset.stops];
@@ -130,9 +130,7 @@
     value.image.opacity = next.opacity;
   }
 
-  const imagePreviewUrl = $derived(
-    selectedImage?.dataUrl ?? value.image.dataUrl ?? null
-  );
+  const imagePreviewUrl = $derived(selectedImage?.dataUrl ?? value.image.dataUrl ?? null);
 
   const urlAdjustmentValue = $derived<ImageAdjustmentValue>({
     fit: value.url.fit,
@@ -153,7 +151,7 @@
 <div class="bg-editor">
   <div class="group-title">Background type</div>
   <div class="type-row">
-    {#each types as t}
+    {#each types as t (t)}
       <button
         class="toggle-btn"
         class:active={value.type === t}
@@ -181,7 +179,9 @@
             oninput={(e) => setGradientStop(i, (e.currentTarget as HTMLInputElement).value)}
           />
           {#if value.gradient.stops.length > 2}
-            <button class="icon-btn" type="button" title="Remove stop" onclick={() => removeStop(i)}>×</button>
+            <button class="icon-btn" type="button" title="Remove stop" onclick={() => removeStop(i)}
+              >×</button
+            >
           {/if}
         </div>
       {/each}
@@ -192,18 +192,13 @@
 
     <label class="slider-label">
       <span>Angle: {value.gradient.angle}°</span>
-      <input
-        type="range"
-        min="0"
-        max="360"
-        bind:value={value.gradient.angle}
-      />
+      <input type="range" min="0" max="360" bind:value={value.gradient.angle} />
     </label>
 
     {#if !hidePresets}
       <div class="group-title">Presets</div>
       <div class="presets">
-        {#each PRESETS as preset}
+        {#each PRESETS as preset (preset.name)}
           <button
             class="preset"
             type="button"
@@ -234,17 +229,13 @@
       <button class="btn" type="button" onclick={() => (showPicker = !showPicker)}>
         {showPicker ? "Hide library" : "Pick from library"}
       </button>
-      <button class="btn btn-primary" type="button" onclick={() => fileInput?.click()}>Upload new</button>
+      <button class="btn btn-primary" type="button" onclick={() => fileInput?.click()}
+        >Upload new</button
+      >
       {#if selectedImage || value.image.dataUrl}
         <button class="btn" type="button" onclick={clearImage}>Remove</button>
       {/if}
-      <input
-        bind:this={fileInput}
-        type="file"
-        accept="image/*"
-        onchange={onImageUpload}
-        hidden
-      />
+      <input bind:this={fileInput} type="file" accept="image/*" onchange={onImageUpload} hidden />
     </div>
     {#if uploadError}
       <p class="status err">{uploadError}</p>
@@ -492,7 +483,9 @@
     background: var(--ui-deep-bg);
     cursor: pointer;
     overflow: hidden;
-    transition: border-color 120ms ease, transform 120ms ease;
+    transition:
+      border-color 120ms ease,
+      transform 120ms ease;
   }
   .lib-item img {
     width: 100%;

@@ -1,7 +1,4 @@
-import type {
-  BackgroundSettings,
-  WidgetDefaults,
-} from "$lib/settings/types.js";
+import type { WidgetDefaults } from "$lib/settings/types.js";
 import { imageLayerCss } from "$lib/settings/backgroundCss.js";
 import type { WidgetStyleOverrides } from "$lib/widgets/types.js";
 
@@ -27,7 +24,7 @@ export function deepMerge<T>(base: T, patch: unknown): T {
 
 export function resolveWidgetStyle(
   defaults: WidgetDefaults,
-  overrides?: WidgetStyleOverrides
+  overrides?: WidgetStyleOverrides,
 ): WidgetDefaults {
   if (!overrides) return defaults;
   return deepMerge(defaults, overrides);
@@ -41,7 +38,11 @@ function hexToRgb(hex: string): { r: number; g: number; b: number } | null {
   const m = /^#?([0-9a-f]{3}|[0-9a-f]{6})$/i.exec(hex.trim());
   if (!m) return null;
   let s = m[1];
-  if (s.length === 3) s = s.split("").map((c) => c + c).join("");
+  if (s.length === 3)
+    s = s
+      .split("")
+      .map((c) => c + c)
+      .join("");
   const num = parseInt(s, 16);
   return {
     r: (num >> 16) & 0xff,
@@ -59,7 +60,7 @@ function rgba(hex: string, alpha01: number): string {
 
 export function widgetBackgroundCss(
   style: WidgetDefaults,
-  resolveImage: ImageResolver = () => null
+  resolveImage: ImageResolver = () => null,
 ): string {
   const bg = style.background;
   const alpha = clamp(style.backgroundOpacity, 0, 100) / 100;
@@ -123,7 +124,7 @@ function shadowCss(style: WidgetDefaults): string {
 
 export function styleToCssVars(
   style: WidgetDefaults,
-  resolveImage: ImageResolver = () => null
+  resolveImage: ImageResolver = () => null,
 ): Record<string, string> {
   return {
     "--widget-text": style.textColor,
@@ -148,7 +149,7 @@ export function cssVarsToInlineStyle(vars: Record<string, string>): string {
 // Re-export for callers that prefer a single entry point.
 export function widgetStyleToInlineStyle(
   style: WidgetDefaults,
-  resolveImage?: ImageResolver
+  resolveImage?: ImageResolver,
 ): string {
   return cssVarsToInlineStyle(styleToCssVars(style, resolveImage));
 }

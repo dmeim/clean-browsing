@@ -1,8 +1,4 @@
-import {
-  DEFAULT_WIDGET_DEFAULTS,
-  type WidgetDefaults,
-  type WidgetStylePreset,
-} from "./types.js";
+import { DEFAULT_WIDGET_DEFAULTS, type WidgetDefaults, type WidgetStylePreset } from "./types.js";
 
 type PresetPatch = Omit<Partial<WidgetDefaults>, "background" | "border" | "glow" | "shadow"> & {
   background?: Partial<WidgetDefaults["background"]>;

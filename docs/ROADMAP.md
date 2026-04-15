@@ -45,16 +45,16 @@ cleanly or fail loudly.
 Widgets that could be built next. Each would be a new folder under
 `src/lib/widgets/`. Rough difficulty / risk callouts.
 
-| Widget | Notes |
-|---|---|
-| **Weather** | Needs geolocation + a weather API. Conflicts with the local-first principle unless we carefully scope it to an opt-in provider call. Not shipping until the privacy story is airtight. |
-| **To-Do** | Straightforward: a list store per-instance. Notifications API is optional. |
-| **Timer** | Countdown timer. No external deps. Native `Notification` API for "timer done." |
-| **Stopwatch** | Precision timer with lap records. No external deps. |
-| **Pomodoro** | Specialized timer — build on top of a generic Timer widget rather than duplicating logic. |
-| **World Clock** | Multiple timezones. Likely a variant of the Clock widget rather than a new one. |
-| **RSS reader** | Needs a CORS-safe fetch path. Local-first-ish if the user supplies their own feed URLs. |
-| **Top sites / bookmarks** | Requires the `topSites` or `bookmarks` permission — opt-in via the extension permission model. |
+| Widget                    | Notes                                                                                                                                                                                  |
+| ------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Weather**               | Needs geolocation + a weather API. Conflicts with the local-first principle unless we carefully scope it to an opt-in provider call. Not shipping until the privacy story is airtight. |
+| **To-Do**                 | Straightforward: a list store per-instance. Notifications API is optional.                                                                                                             |
+| **Timer**                 | Countdown timer. No external deps. Native `Notification` API for "timer done."                                                                                                         |
+| **Stopwatch**             | Precision timer with lap records. No external deps.                                                                                                                                    |
+| **Pomodoro**              | Specialized timer — build on top of a generic Timer widget rather than duplicating logic.                                                                                              |
+| **World Clock**           | Multiple timezones. Likely a variant of the Clock widget rather than a new one.                                                                                                        |
+| **RSS reader**            | Needs a CORS-safe fetch path. Local-first-ish if the user supplies their own feed URLs.                                                                                                |
+| **Top sites / bookmarks** | Requires the `topSites` or `bookmarks` permission — opt-in via the extension permission model.                                                                                         |
 
 ## 🛠️ Platform work
 

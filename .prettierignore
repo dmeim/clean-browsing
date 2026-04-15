@@ -1,0 +1,7 @@
+dist/
+node_modules/
+web-ext-artifacts/
+.firefox-dev-profile/
+public/
+package-lock.json
+*.min.js

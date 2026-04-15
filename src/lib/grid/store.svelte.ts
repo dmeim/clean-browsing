@@ -1,14 +1,7 @@
-import type {
-  GridLayout,
-  WidgetInstance,
-  WidgetStyleOverrides,
-} from "$lib/widgets/types.js";
+import type { GridLayout, WidgetInstance, WidgetStyleOverrides } from "$lib/widgets/types.js";
 import { getWidget } from "$lib/widgets/registry.js";
 import { deepMerge } from "$lib/widgets/style/resolve.js";
-import {
-  type OverridePath,
-  unsetAtPath,
-} from "$lib/widgets/style/path.js";
+import { type OverridePath, unsetAtPath } from "$lib/widgets/style/path.js";
 
 const STORAGE_KEY = "clean-browsing:layout:v2";
 const DEFAULT_COLS = 24;
@@ -157,10 +150,7 @@ function createStore() {
     void persist();
   }
 
-  function updateInstanceStyleOverrides(
-    instanceId: string,
-    patch: WidgetStyleOverrides
-  ): void {
+  function updateInstanceStyleOverrides(instanceId: string, patch: WidgetStyleOverrides): void {
     const inst = layout.instances.find((i) => i.instanceId === instanceId);
     if (!inst) return;
     const current = (inst.styleOverrides ?? {}) as WidgetStyleOverrides;
@@ -185,23 +175,12 @@ function createStore() {
 
   function rectsOverlap(
     a: { x: number; y: number; w: number; h: number },
-    b: { x: number; y: number; w: number; h: number }
+    b: { x: number; y: number; w: number; h: number },
   ): boolean {
-    return (
-      a.x < b.x + b.w &&
-      a.x + a.w > b.x &&
-      a.y < b.y + b.h &&
-      a.y + a.h > b.y
-    );
+    return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
   }
 
-  function canPlace(
-    instanceId: string,
-    x: number,
-    y: number,
-    w: number,
-    h: number
-  ): boolean {
+  function canPlace(instanceId: string, x: number, y: number, w: number, h: number): boolean {
     if (w <= 0 || h <= 0) return false;
     if (x < 0 || y < 0) return false;
     if (x + w > layout.cols || y + h > layout.rows) return false;

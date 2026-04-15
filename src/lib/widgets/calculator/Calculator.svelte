@@ -1,10 +1,6 @@
 <script lang="ts">
   import type { WidgetProps } from "$lib/widgets/types.js";
-  import {
-    type CalculatorSettings,
-    type CalcHistoryEntry,
-    MAX_HISTORY,
-  } from "./definition.js";
+  import { type CalculatorSettings, type CalcHistoryEntry, MAX_HISTORY } from "./definition.js";
   import { widgetScaler } from "$lib/grid/widgetScaler.js";
 
   let { settings, updateSettings }: WidgetProps<CalculatorSettings> = $props();
@@ -157,95 +153,124 @@
 </script>
 
 <div class="widget-card calc">
-<!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
-<!-- svelte-ignore a11y_no_noninteractive_tabindex -->
-<div
-  class="widget-inner calc-inner"
-  class:round={settings.roundButtons}
-  tabindex={settings.keyboardSupport ? 0 : -1}
-  role="application"
-  onkeydown={handleKeyDown}
-  use:widgetScaler
-  style="top: {padV}px; bottom: {padV}px; left: {padH}px; right: {padH}px;"
->
-  <div class="display">
-    <div class="display-text">{currentInput}</div>
-    {#if canShowHistoryToggle}
-      <button
-        type="button"
-        class="history-toggle"
-        class:active={historyOpen}
-        aria-label="Toggle history"
-        aria-pressed={historyOpen}
-        onclick={() => (historyOpen = !historyOpen)}
-      >
-        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <path d="M3 12a9 9 0 1 0 3-6.7" />
-          <path d="M3 3v6h6" />
-          <path d="M12 7v5l3 2" />
-        </svg>
-      </button>
-    {/if}
-  </div>
-
-  {#if historyOpen && historyEnabled}
-    <div class="history">
-      <div class="history-header">
-        <span class="history-title">History</span>
+  <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
+  <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
+  <div
+    class="widget-inner calc-inner"
+    class:round={settings.roundButtons}
+    tabindex={settings.keyboardSupport ? 0 : -1}
+    role="application"
+    onkeydown={handleKeyDown}
+    use:widgetScaler
+    style="top: {padV}px; bottom: {padV}px; left: {padH}px; right: {padH}px;"
+  >
+    <div class="display">
+      <div class="display-text">{currentInput}</div>
+      {#if canShowHistoryToggle}
         <button
           type="button"
-          class="history-clear"
-          disabled={history.length === 0}
-          onclick={clearHistory}
+          class="history-toggle"
+          class:active={historyOpen}
+          aria-label="Toggle history"
+          aria-pressed={historyOpen}
+          onclick={() => (historyOpen = !historyOpen)}
         >
-          Clear
+          <svg
+            viewBox="0 0 24 24"
+            width="14"
+            height="14"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M3 12a9 9 0 1 0 3-6.7" />
+            <path d="M3 3v6h6" />
+            <path d="M12 7v5l3 2" />
+          </svg>
         </button>
-      </div>
-      <div class="history-list">
-        {#if history.length === 0}
-          <div class="history-empty">No calculations yet</div>
-        {:else}
-          {#each history as entry (entry.timestamp)}
-            <button
-              type="button"
-              class="history-entry"
-              onclick={() => loadFromHistory(entry)}
-              title="Load result"
-            >
-              <span class="history-expression">{entry.expression}</span>
-              <span class="history-result">= {entry.result}</span>
-            </button>
-          {/each}
-        {/if}
-      </div>
+      {/if}
     </div>
-  {:else}
-    <div class="buttons">
-      <button class="btn clear" class:colored={settings.colorClear} onclick={pressClear}>C</button>
-      <button class="btn clear" class:colored={settings.colorClear} onclick={pressBackspace}>⌫</button>
-      <button class="btn op" class:colored={settings.colorOperators} onclick={() => pressOperator("/")}>÷</button>
-      <button class="btn op" class:colored={settings.colorOperators} onclick={() => pressOperator("*")}>×</button>
 
-      <button class="btn num" onclick={() => pressNumber("7")}>7</button>
-      <button class="btn num" onclick={() => pressNumber("8")}>8</button>
-      <button class="btn num" onclick={() => pressNumber("9")}>9</button>
-      <button class="btn op" class:colored={settings.colorOperators} onclick={() => pressOperator("-")}>−</button>
+    {#if historyOpen && historyEnabled}
+      <div class="history">
+        <div class="history-header">
+          <span class="history-title">History</span>
+          <button
+            type="button"
+            class="history-clear"
+            disabled={history.length === 0}
+            onclick={clearHistory}
+          >
+            Clear
+          </button>
+        </div>
+        <div class="history-list">
+          {#if history.length === 0}
+            <div class="history-empty">No calculations yet</div>
+          {:else}
+            {#each history as entry (entry.timestamp)}
+              <button
+                type="button"
+                class="history-entry"
+                onclick={() => loadFromHistory(entry)}
+                title="Load result"
+              >
+                <span class="history-expression">{entry.expression}</span>
+                <span class="history-result">= {entry.result}</span>
+              </button>
+            {/each}
+          {/if}
+        </div>
+      </div>
+    {:else}
+      <div class="buttons">
+        <button class="btn clear" class:colored={settings.colorClear} onclick={pressClear}>C</button
+        >
+        <button class="btn clear" class:colored={settings.colorClear} onclick={pressBackspace}
+          >⌫</button
+        >
+        <button
+          class="btn op"
+          class:colored={settings.colorOperators}
+          onclick={() => pressOperator("/")}>÷</button
+        >
+        <button
+          class="btn op"
+          class:colored={settings.colorOperators}
+          onclick={() => pressOperator("*")}>×</button
+        >
 
-      <button class="btn num" onclick={() => pressNumber("4")}>4</button>
-      <button class="btn num" onclick={() => pressNumber("5")}>5</button>
-      <button class="btn num" onclick={() => pressNumber("6")}>6</button>
-      <button class="btn op" class:colored={settings.colorOperators} onclick={() => pressOperator("+")}>+</button>
+        <button class="btn num" onclick={() => pressNumber("7")}>7</button>
+        <button class="btn num" onclick={() => pressNumber("8")}>8</button>
+        <button class="btn num" onclick={() => pressNumber("9")}>9</button>
+        <button
+          class="btn op"
+          class:colored={settings.colorOperators}
+          onclick={() => pressOperator("-")}>−</button
+        >
 
-      <button class="btn num" onclick={() => pressNumber("1")}>1</button>
-      <button class="btn num" onclick={() => pressNumber("2")}>2</button>
-      <button class="btn num" onclick={() => pressNumber("3")}>3</button>
-      <button class="btn eq" class:colored={settings.colorEquals} onclick={pressEquals}>=</button>
+        <button class="btn num" onclick={() => pressNumber("4")}>4</button>
+        <button class="btn num" onclick={() => pressNumber("5")}>5</button>
+        <button class="btn num" onclick={() => pressNumber("6")}>6</button>
+        <button
+          class="btn op"
+          class:colored={settings.colorOperators}
+          onclick={() => pressOperator("+")}>+</button
+        >
 
-      <button class="btn num zero" onclick={() => pressNumber("0")}>0</button>
-      <button class="btn num" onclick={() => pressNumber(".")}>.</button>
-    </div>
-  {/if}
-</div>
+        <button class="btn num" onclick={() => pressNumber("1")}>1</button>
+        <button class="btn num" onclick={() => pressNumber("2")}>2</button>
+        <button class="btn num" onclick={() => pressNumber("3")}>3</button>
+        <button class="btn eq" class:colored={settings.colorEquals} onclick={pressEquals}>=</button>
+
+        <button class="btn num zero" onclick={() => pressNumber("0")}>0</button>
+        <button class="btn num" onclick={() => pressNumber(".")}>.</button>
+      </div>
+    {/if}
+  </div>
 </div>
 
 <style>
@@ -332,7 +357,9 @@
     border: 1px solid rgb(51 65 85);
     border-radius: 0.4rem;
     cursor: pointer;
-    transition: background 100ms ease, transform 60ms ease;
+    transition:
+      background 100ms ease,
+      transform 60ms ease;
     display: flex;
     align-items: center;
     justify-content: center;

@@ -82,10 +82,11 @@ function isFlatWidgetDefaults(value: unknown): value is FlatWidgetDefaults {
   if (!value || typeof value !== "object") return false;
   const v = value as Record<string, unknown>;
   return (
-    typeof v.borderRadius === "number" ||
-    typeof v.borderColor === "string" ||
-    typeof v.backgroundColor === "string"
-  ) && !("border" in v);
+    (typeof v.borderRadius === "number" ||
+      typeof v.borderColor === "string" ||
+      typeof v.backgroundColor === "string") &&
+    !("border" in v)
+  );
 }
 
 function migrateWidgetDefaults(raw: unknown): WidgetDefaults {
@@ -108,7 +109,7 @@ function migrateWidgetDefaults(raw: unknown): WidgetDefaults {
 
 function mergeWidgetDefaults(
   base: WidgetDefaults,
-  patch: Partial<WidgetDefaults> | undefined
+  patch: Partial<WidgetDefaults> | undefined,
 ): WidgetDefaults {
   if (!patch) return base;
   return {
@@ -144,7 +145,12 @@ function mergeWithDefaults(partial: unknown): GlobalSettings {
   const p = partial as Partial<GlobalSettings> & { widgetDefaults?: unknown };
   const userPresets = Array.isArray(p.widgetPresets)
     ? p.widgetPresets.filter((pr): pr is WidgetStylePreset => {
-        return !!pr && typeof pr === "object" && typeof (pr as WidgetStylePreset).id === "string" && !!((pr as WidgetStylePreset).style);
+        return (
+          !!pr &&
+          typeof pr === "object" &&
+          typeof (pr as WidgetStylePreset).id === "string" &&
+          !!(pr as WidgetStylePreset).style
+        );
       })
     : [];
   return {
@@ -173,7 +179,7 @@ function mergeWithDefaults(partial: unknown): GlobalSettings {
 
 export function buildBackgroundCss(
   bg: BackgroundSettings,
-  resolveImage: (id: string | null | undefined) => string | null = () => null
+  resolveImage: (id: string | null | undefined) => string | null = () => null,
 ): string {
   switch (bg.type) {
     case "solid":
@@ -273,10 +279,7 @@ function createStore() {
   }
 
   function replaceWidgetDefaults(next: WidgetDefaults) {
-    settings.widgetDefaults = mergeWidgetDefaults(
-      structuredClone(DEFAULT_WIDGET_DEFAULTS),
-      next
-    );
+    settings.widgetDefaults = mergeWidgetDefaults(structuredClone(DEFAULT_WIDGET_DEFAULTS), next);
     void persist();
   }
 
@@ -300,7 +303,7 @@ function createStore() {
   function applyPresetToDefaults(preset: WidgetStylePreset) {
     settings.widgetDefaults = mergeWidgetDefaults(
       structuredClone(DEFAULT_WIDGET_DEFAULTS),
-      preset.style
+      preset.style,
     );
     void persist();
   }

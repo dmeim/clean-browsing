@@ -18,13 +18,13 @@
 
 ## 🧩 Shipped Widgets
 
-| Widget          | Description                                    | Default size |
-| --------------- | ---------------------------------------------- | ------------ |
-| 🕒 **Clock**     | Locale-aware time, 12/24h, seconds, AM/PM      | 4×2          |
-| 📅 **Date**      | Day.js formatted date with customizable format | 4×2          |
-| 🔍 **Search**    | Multi-engine search bar                        | 6×2          |
-| 🧮 **Calculator**| Keyboard-friendly calculator                   | 4×5          |
-| 🖼️ **Picture**   | User-supplied image tile                       | 4×4          |
+| Widget            | Description                                    | Default size |
+| ----------------- | ---------------------------------------------- | ------------ |
+| 🕒 **Clock**      | Locale-aware time, 12/24h, seconds, AM/PM      | 4×2          |
+| 📅 **Date**       | Day.js formatted date with customizable format | 4×2          |
+| 🔍 **Search**     | Multi-engine search bar                        | 6×2          |
+| 🧮 **Calculator** | Keyboard-friendly calculator                   | 4×5          |
+| 🖼️ **Picture**    | User-supplied image tile                       | 4×4          |
 
 Each widget lives in its own folder under [`src/lib/widgets/<name>/`](src/lib/widgets) as a `{Widget}.svelte` + `{Widget}Settings.svelte` + `definition.ts` trio, registered through a central registry.
 

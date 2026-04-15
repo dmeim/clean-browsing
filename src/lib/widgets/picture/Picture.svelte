@@ -6,14 +6,14 @@
   let { settings }: WidgetProps<PictureSettings> = $props();
 
   const resolvedDataUrl = $derived(
-    imageLibrary.get(settings.imageId)?.dataUrl ?? settings.imageDataUrl ?? ""
+    imageLibrary.get(settings.imageId)?.dataUrl ?? settings.imageDataUrl ?? "",
   );
   const hasImage = $derived(!!resolvedDataUrl);
 
   const imgStyle = $derived(
     `object-fit: ${settings.fit}; ` +
-    `object-position: ${settings.positionX}% ${settings.positionY}%; ` +
-    `opacity: ${settings.opacity / 100};`
+      `object-position: ${settings.positionX}% ${settings.positionY}%; ` +
+      `opacity: ${settings.opacity / 100};`,
   );
 
   const innerStyle = $derived(`inset: ${settings.padding}px;`);
@@ -26,7 +26,16 @@
     {:else}
       <div class="placeholder">
         <div class="placeholder-icon" aria-hidden="true">
-          <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <svg
+            viewBox="0 0 24 24"
+            width="28"
+            height="28"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.8"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
             <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
             <circle cx="9" cy="9" r="2" />
             <path d="m21 15-5-5L5 21" />

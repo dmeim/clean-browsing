@@ -8,14 +8,14 @@ Clean-Browsing is a privacy-first Firefox extension that enhances browsing with 
 
 ### Required Permissions
 
-| Permission | Purpose | Scope |
-|------------|---------|-------|
-| `storage` | Save user preferences, widget configurations, and sidepanel settings | Local browser storage only |
-| `tabs` | Access tab information for sidepanel injection and new tab override | Required for core functionality |
-| `activeTab` | Inject sidepanel into the currently active tab when user clicks extension icon | User-initiated only |
-| `webRequest` | Intercept HTTP response headers for iframe embedding | See Header Modification section |
-| `webRequestBlocking` | Synchronously modify headers before browser processes them | Required for iframe compatibility |
-| `<all_urls>` | Enable sidepanel embedding on any website the user chooses | User-controlled per-session |
+| Permission           | Purpose                                                                        | Scope                             |
+| -------------------- | ------------------------------------------------------------------------------ | --------------------------------- |
+| `storage`            | Save user preferences, widget configurations, and sidepanel settings           | Local browser storage only        |
+| `tabs`               | Access tab information for sidepanel injection and new tab override            | Required for core functionality   |
+| `activeTab`          | Inject sidepanel into the currently active tab when user clicks extension icon | User-initiated only               |
+| `webRequest`         | Intercept HTTP response headers for iframe embedding                           | See Header Modification section   |
+| `webRequestBlocking` | Synchronously modify headers before browser processes them                     | Required for iframe compatibility |
+| `<all_urls>`         | Enable sidepanel embedding on any website the user chooses                     | User-controlled per-session       |
 
 ### Why `<all_urls>` is Necessary
 
@@ -31,14 +31,14 @@ The universal sidepanel feature allows users to embed any website. Since users c
 
 When a user loads a website in the sidepanel, we remove the following response headers **for that specific origin only**:
 
-| Header | Why Removed |
-|--------|-------------|
-| `X-Frame-Options` | Allows iframe embedding (sites use this to prevent embedding) |
-| `Content-Security-Policy` | Removes `frame-ancestors` directive that blocks embedding |
-| `X-Content-Security-Policy` | Legacy CSP header |
-| `Permissions-Policy` | May restrict iframe functionality |
-| `Cross-Origin-Opener-Policy` | Can break cross-origin iframe communication |
-| `Cross-Origin-Embedder-Policy` | Can block iframe loading |
+| Header                         | Why Removed                                                   |
+| ------------------------------ | ------------------------------------------------------------- |
+| `X-Frame-Options`              | Allows iframe embedding (sites use this to prevent embedding) |
+| `Content-Security-Policy`      | Removes `frame-ancestors` directive that blocks embedding     |
+| `X-Content-Security-Policy`    | Legacy CSP header                                             |
+| `Permissions-Policy`           | May restrict iframe functionality                             |
+| `Cross-Origin-Opener-Policy`   | Can break cross-origin iframe communication                   |
+| `Cross-Origin-Embedder-Policy` | Can block iframe loading                                      |
 
 ### Security Boundaries
 
@@ -104,13 +104,12 @@ We aim to acknowledge reports within 48 hours and provide a fix timeline within 
 
 ## Audit Trail
 
-| Version | Security Changes |
-|---------|-----------------|
-| v0.5.0 | Firefox-first architecture, unified header modification pipeline |
-| v0.4.0 | Professional rebrand, no security changes |
-| v0.3.0 | Initial sidepanel with per-tab origin scoping |
+| Version | Security Changes                                                 |
+| ------- | ---------------------------------------------------------------- |
+| v0.5.0  | Firefox-first architecture, unified header modification pipeline |
+| v0.4.0  | Professional rebrand, no security changes                        |
+| v0.3.0  | Initial sidepanel with per-tab origin scoping                    |
 
 ---
 
-*Last updated: January 2026*
-
+_Last updated: January 2026_

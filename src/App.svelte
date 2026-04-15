@@ -15,8 +15,8 @@
   const resolvedBackground = $derived(
     buildBackgroundCss(
       settingsStore.settings.background,
-      (id) => imageLibrary.get(id)?.dataUrl ?? null
-    )
+      (id) => imageLibrary.get(id)?.dataUrl ?? null,
+    ),
   );
 
   const backgroundOpacity = $derived.by(() => {

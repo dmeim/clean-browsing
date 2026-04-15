@@ -24,18 +24,10 @@
     opacityMin?: number;
   };
 
-  let {
-    value,
-    onChange,
-    showPadding = false,
-    previewUrl = null,
-    opacityMin = 0,
-  }: Props = $props();
+  let { value, onChange, showPadding = false, previewUrl = null, opacityMin = 0 }: Props = $props();
 
   const previewCss = $derived(
-    previewUrl
-      ? imageLayerCss(previewUrl, value.fit, value.positionX, value.positionY)
-      : ""
+    previewUrl ? imageLayerCss(previewUrl, value.fit, value.positionX, value.positionY) : "",
   );
 
   function patch(part: Partial<ImageAdjustmentValue>) {
@@ -213,12 +205,18 @@
       linear-gradient(45deg, transparent 75%, var(--ui-subtle-bg) 75%),
       linear-gradient(-45deg, transparent 75%, var(--ui-subtle-bg) 75%);
     background-size: 12px 12px;
-    background-position: 0 0, 0 6px, 6px -6px, -6px 0;
+    background-position:
+      0 0,
+      0 6px,
+      6px -6px,
+      -6px 0;
     background-color: var(--ui-deep-bg);
   }
   .preview-image {
     width: 100%;
     height: 100%;
-    transition: background 120ms ease, opacity 120ms ease;
+    transition:
+      background 120ms ease,
+      opacity 120ms ease;
   }
 </style>

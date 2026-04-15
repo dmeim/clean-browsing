@@ -1,10 +1,6 @@
 <script lang="ts">
   import type { WidgetProps } from "$lib/widgets/types.js";
-  import {
-    type SearchSettings,
-    ENGINE_NAMES,
-    getEngineLogo,
-  } from "./definition.js";
+  import { type SearchSettings, ENGINE_NAMES, getEngineLogo } from "./definition.js";
   import { widgetScaler } from "$lib/grid/widgetScaler.js";
 
   let { settings }: WidgetProps<SearchSettings> = $props();
@@ -92,7 +88,17 @@
         spellcheck="false"
       />
       <button type="submit" class="submit" aria-label="Search">
-        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <svg
+          viewBox="0 0 24 24"
+          width="16"
+          height="16"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2.2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+        >
           <circle cx="11" cy="11" r="7" />
           <path d="m20 20-3.5-3.5" />
         </svg>
@@ -140,7 +146,9 @@
     min-width: 0;
     height: 70%;
     max-height: 2.5rem;
-    transition: border-color 120ms ease, box-shadow 120ms ease;
+    transition:
+      border-color 120ms ease,
+      box-shadow 120ms ease;
   }
 
   .input-wrap:focus-within {

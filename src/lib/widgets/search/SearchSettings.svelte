@@ -52,12 +52,7 @@
 <div class="form">
   <div class="section">
     <label for="search-engine" class="label">Search engine</label>
-    <select
-      id="search-engine"
-      class="select"
-      value={settings.engine}
-      onchange={handleEngineChange}
-    >
+    <select id="search-engine" class="select" value={settings.engine} onchange={handleEngineChange}>
       <option value="google">Google</option>
       <option value="bing">Bing</option>
       <option value="duckduckgo">DuckDuckGo</option>
@@ -100,12 +95,7 @@
 
   <div class="section">
     <label for="search-target" class="label">Open search in</label>
-    <select
-      id="search-target"
-      class="select"
-      value={settings.target}
-      onchange={handleTargetChange}
-    >
+    <select id="search-target" class="select" value={settings.target} onchange={handleTargetChange}>
       <option value="newTab">New tab</option>
       <option value="currentTab">Current tab</option>
       <option value="newWindow">New window</option>
@@ -115,17 +105,15 @@
 
   <label class="row">
     <span class="label inline">Clear input after search</span>
-    <input
-      type="checkbox"
-      checked={settings.clearAfterSearch}
-      onchange={handleClearChange}
-    />
+    <input type="checkbox" checked={settings.clearAfterSearch} onchange={handleClearChange} />
   </label>
 
   <div class="section">
     <div class="label-row">
       <span class="label inline">Vertical padding</span>
-      <span class="value">{settings.paddingV ?? (settings as { padding?: number }).padding ?? 8}px</span>
+      <span class="value"
+        >{settings.paddingV ?? (settings as { padding?: number }).padding ?? 8}px</span
+      >
     </div>
     <input
       type="range"
@@ -140,7 +128,9 @@
   <div class="section">
     <div class="label-row">
       <span class="label inline">Horizontal padding</span>
-      <span class="value">{settings.paddingH ?? (settings as { padding?: number }).padding ?? 12}px</span>
+      <span class="value"
+        >{settings.paddingH ?? (settings as { padding?: number }).padding ?? 12}px</span
+      >
     </div>
     <input
       type="range"

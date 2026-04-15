@@ -79,6 +79,7 @@
   function countImageRefs(settings: GlobalSettings, layout: GridLayout): number {
     // Lightweight duplicate of collectReferencedImageIds so the status line can
     // show a count without importing the walker explicitly here.
+    // eslint-disable-next-line svelte/prefer-svelte-reactivity
     const ids = new Set<string>();
     const add = (id: string | null | undefined) => {
       if (typeof id === "string" && id.length > 0) ids.add(id);
@@ -189,8 +190,8 @@
   </div>
 
   <p class="hint">
-    JSON exports include settings and layout only. ZIP exports bundle every referenced image
-    so picture widgets and image backgrounds restore exactly.
+    JSON exports include settings and layout only. ZIP exports bundle every referenced image so
+    picture widgets and image backgrounds restore exactly.
   </p>
 
   {#if status.kind !== "none"}
@@ -246,7 +247,9 @@
     color: var(--ui-fg);
     font-size: 0.8125rem;
     cursor: pointer;
-    transition: background 120ms ease, border-color 120ms ease;
+    transition:
+      background 120ms ease,
+      border-color 120ms ease;
   }
   .btn:hover {
     background: var(--ui-subtle-bg-hover);

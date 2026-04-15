@@ -35,9 +35,9 @@ Three families:
 
 ```css
 --brand-orange: #eda95d;
---brand-green:  #95c69d;
---brand-blue:   #8dafdb;
---brand-lilac:  #cdbfd2;
+--brand-green: #95c69d;
+--brand-blue: #8dafdb;
+--brand-lilac: #cdbfd2;
 ```
 
 Sampled from the logo (`public/icons/logo.png`). Use these for on-brand

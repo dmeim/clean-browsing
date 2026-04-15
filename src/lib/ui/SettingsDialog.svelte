@@ -81,7 +81,7 @@
 
 <Dialog.Root open={uiStore.settingsOpen} onOpenChange={handleOpenChange}>
   <Dialog.Content
-    class="!max-w-4xl !w-[calc(100vw-2rem)] !p-0 !gap-0 bg-background border-border text-foreground overflow-hidden flex flex-col !max-h-[min(90vh,760px)] !h-[min(90vh,760px)]"
+    class="bg-background border-border text-foreground flex !h-[min(90vh,760px)] !max-h-[min(90vh,760px)] !w-[calc(100vw-2rem)] !max-w-4xl flex-col !gap-0 overflow-hidden !p-0"
   >
     <div class="header">
       <Dialog.Title class="title">Settings</Dialog.Title>
@@ -92,13 +92,16 @@
 
     <div class="layout">
       <nav class="tablist" aria-label="Settings sections">
-        {#each TABS as tab}
-          <button
-            class="tab"
-            class:active={active === tab.id}
-            onclick={() => (active = tab.id)}
-          >
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        {#each TABS as tab (tab.id)}
+          <button class="tab" class:active={active === tab.id} onclick={() => (active = tab.id)}>
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.8"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
               <path d={tab.icon} />
             </svg>
             <span>{tab.label}</span>
@@ -210,7 +213,9 @@
     color: var(--ui-fg);
     font-size: 0.8125rem;
     cursor: pointer;
-    transition: background 120ms ease, border-color 120ms ease;
+    transition:
+      background 120ms ease,
+      border-color 120ms ease;
   }
   .btn:hover {
     background: var(--ui-subtle-bg-hover);

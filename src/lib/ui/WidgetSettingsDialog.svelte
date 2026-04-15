@@ -5,10 +5,7 @@
   import { imageLibrary } from "$lib/storage/imageLibrary.svelte.js";
   import { getWidget } from "$lib/widgets/registry.js";
   import { settingsStore } from "$lib/settings/store.svelte.js";
-  import {
-    diffAgainst,
-    resolveWidgetStyle,
-  } from "$lib/widgets/style/resolve.js";
+  import { diffAgainst, resolveWidgetStyle } from "$lib/widgets/style/resolve.js";
   import type { WidgetDefaults, WidgetStylePreset } from "$lib/settings/types.js";
   import type { WidgetStyleOverrides } from "$lib/widgets/types.js";
   import WidgetAppearanceEditor from "./settings/WidgetAppearanceEditor.svelte";
@@ -18,10 +15,8 @@
 
   const instance = $derived(
     uiStore.widgetSettingsInstanceId
-      ? gridStore.layout.instances.find(
-          (i) => i.instanceId === uiStore.widgetSettingsInstanceId
-        )
-      : undefined
+      ? gridStore.layout.instances.find((i) => i.instanceId === uiStore.widgetSettingsInstanceId)
+      : undefined,
   );
 
   const def = $derived(instance ? getWidget(instance.widgetId) : undefined);
@@ -46,7 +41,7 @@
         // happens whenever the instance has no styleOverrides yet).
         const resolved = resolveWidgetStyle(
           settingsStore.settings.widgetDefaults,
-          instance.styleOverrides
+          instance.styleOverrides,
         );
         workingStyle = $state.snapshot(resolved) as WidgetDefaults;
       }
@@ -62,9 +57,7 @@
     // Track every nested field by snapshotting.
     const snap = $state.snapshot(workingStyle) as WidgetDefaults;
     untrack(() => {
-      const baseSnap = $state.snapshot(
-        settingsStore.settings.widgetDefaults
-      ) as WidgetDefaults;
+      const baseSnap = $state.snapshot(settingsStore.settings.widgetDefaults) as WidgetDefaults;
       const diff = diffAgainst(baseSnap, snap) as WidgetStyleOverrides | undefined;
       const currentOverrides = instance.styleOverrides;
       const nextJson = JSON.stringify(diff ?? null);
@@ -109,21 +102,21 @@
 
   function resetOverrides() {
     if (!instance) return;
-    workingStyle = $state.snapshot(
-      settingsStore.settings.widgetDefaults
-    ) as WidgetDefaults;
+    workingStyle = $state.snapshot(settingsStore.settings.widgetDefaults) as WidgetDefaults;
   }
 
   function applyPreset(preset: WidgetStylePreset) {
     workingStyle = $state.snapshot(preset.style) as WidgetDefaults;
   }
 
-  const hasOverrides = $derived(!!instance?.styleOverrides && Object.keys(instance.styleOverrides).length > 0);
+  const hasOverrides = $derived(
+    !!instance?.styleOverrides && Object.keys(instance.styleOverrides).length > 0,
+  );
 </script>
 
 <Dialog.Root open={isOpen} onOpenChange={handleOpenChange}>
   <Dialog.Content
-    class="bg-background border-border text-foreground !p-0 !gap-0 flex flex-col !max-h-[min(90vh,680px)]"
+    class="bg-background border-border text-foreground flex !max-h-[min(90vh,680px)] flex-col !gap-0 !p-0"
   >
     <div class="header">
       <Dialog.Title class="title">

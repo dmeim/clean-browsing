@@ -94,7 +94,7 @@ The clock widget (`src/lib/widgets/clock/`) is the canonical reference.
   because `tsconfig.json` uses `module: "NodeNext"`.
 - **`$lib` alias** for every cross-folder import.
 - **No comments explaining what the code does** — name things well instead.
-  Comments should explain *why* something non-obvious is happening (a hidden
+  Comments should explain _why_ something non-obvious is happening (a hidden
   constraint, a workaround, a subtle invariant).
 
 ## Pull Request Process
@@ -117,7 +117,7 @@ The clock widget (`src/lib/widgets/clock/`) is the canonical reference.
 
 ### PR Checklist
 
-- [ ] Clear title describing the *user-facing* effect of the change
+- [ ] Clear title describing the _user-facing_ effect of the change
 - [ ] Description explains the "why," not just the "what"
 - [ ] Screenshots or recordings for any UI change
 - [ ] Testing notes: how you verified it works in Firefox
@@ -145,7 +145,7 @@ Check existing issues first to avoid duplicates.
 
 ## Feature Requests
 
-Feature requests are welcome. Describe the *use case* first — what are you
+Feature requests are welcome. Describe the _use case_ first — what are you
 trying to accomplish? Then the proposed solution. Keep in mind the project's
 local-first principle: features that require network calls, accounts, or
 external services are unlikely to land.

@@ -78,9 +78,7 @@
     for (const img of unused) imageLibrary.remove(img.id);
   }
 
-  const totalBytes = $derived(
-    imageLibrary.images.reduce((sum, img) => sum + img.bytes, 0)
-  );
+  const totalBytes = $derived(imageLibrary.images.reduce((sum, img) => sum + img.bytes, 0));
 </script>
 
 <section class="panel">
@@ -99,11 +97,7 @@
       <div class="summary-value">{formatBytes(totalBytes)}</div>
     </div>
     <div class="summary-actions">
-      <button
-        class="btn"
-        disabled={imageLibrary.images.length === 0}
-        onclick={clearUnused}
-      >
+      <button class="btn" disabled={imageLibrary.images.length === 0} onclick={clearUnused}>
         Clear unused
       </button>
     </div>

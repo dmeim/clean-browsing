@@ -42,7 +42,7 @@
   const blurHint = $derived(
     value.backdropBlur > 0 && !isBackgroundTranslucent(value)
       ? "Backdrop blur is only visible when the background is translucent."
-      : null
+      : null,
   );
 </script>
 
@@ -131,7 +131,7 @@
         <label class="field">
           <span>Style</span>
           <select class="select" bind:value={value.border.style}>
-            {#each BORDER_STYLES as s}
+            {#each BORDER_STYLES as s (s)}
               <option value={s}>{s}</option>
             {/each}
           </select>
@@ -212,7 +212,8 @@
         {/if}
         <label class="slider-label">
           <span
-            >Widget opacity: {value.opacity}% <span class="subtle">(fades the whole tile including contents)</span></span
+            >Widget opacity: {value.opacity}%
+            <span class="subtle">(fades the whole tile including contents)</span></span
           >
           <input type="range" min="0" max="100" bind:value={value.opacity} />
         </label>

@@ -52,12 +52,7 @@
   <div class="chips">
     {#each presets as preset (preset.id)}
       <div class="chip-wrap" class:user={!preset.builtin}>
-        <button
-          type="button"
-          class="chip-main"
-          onclick={() => onApply(preset)}
-          title={preset.name}
-        >
+        <button type="button" class="chip-main" onclick={() => onApply(preset)} title={preset.name}>
           <span class="swatch" style="background: {swatchFor(preset)};"></span>
           <span class="name">{preset.name}</span>
         </button>
@@ -66,8 +61,8 @@
             type="button"
             class="trash"
             aria-label="Delete preset"
-            onclick={(e) => handleDelete(preset.id, e)}
-          >×</button>
+            onclick={(e) => handleDelete(preset.id, e)}>×</button
+          >
         {/if}
       </div>
     {/each}

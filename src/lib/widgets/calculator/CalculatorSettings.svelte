@@ -116,14 +116,10 @@
   {#if normalized.historyEnabled}
     <div class="history-info">
       <span class="history-count">
-        {historyCount} {historyCount === 1 ? "entry" : "entries"} stored
+        {historyCount}
+        {historyCount === 1 ? "entry" : "entries"} stored
       </span>
-      <button
-        type="button"
-        class="btn-danger"
-        disabled={historyCount === 0}
-        onclick={clearHistory}
-      >
+      <button type="button" class="btn-danger" disabled={historyCount === 0} onclick={clearHistory}>
         Clear history
       </button>
     </div>

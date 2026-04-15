@@ -78,7 +78,7 @@ export function bytesToDataUrl(bytes: Uint8Array, mime: string): string {
   for (let i = 0; i < bytes.length; i += chunk) {
     binary += String.fromCharCode.apply(
       null,
-      Array.from(bytes.subarray(i, Math.min(i + chunk, bytes.length)))
+      Array.from(bytes.subarray(i, Math.min(i + chunk, bytes.length))),
     );
   }
   return `data:${mime};base64,${btoa(binary)}`;
@@ -87,7 +87,7 @@ export function bytesToDataUrl(bytes: Uint8Array, mime: string): string {
 /** Walk settings + layout and return every image ID actually referenced. */
 export function collectReferencedImageIds(
   settings: GlobalSettings,
-  layout: GridLayout
+  layout: GridLayout,
 ): Set<string> {
   const ids = new Set<string>();
   const add = (id: string | null | undefined) => {
@@ -133,7 +133,7 @@ async function fflateUnzip(input: Uint8Array): Promise<Unzipped> {
 export async function buildZipExport(
   settings: GlobalSettings,
   layout: GridLayout,
-  allImages: readonly StoredImage[]
+  allImages: readonly StoredImage[],
 ): Promise<Uint8Array> {
   const referenced = collectReferencedImageIds(settings, layout);
   const byId = new Map(allImages.map((img) => [img.id, img]));
@@ -259,7 +259,7 @@ export async function parseZipImport(bytes: Uint8Array): Promise<ParsedImport> {
     }
     if (missing.length > 0) {
       warnings.push(
-        `${missing.length} image reference(s) could not be restored: ${missing.join(", ")}`
+        `${missing.length} image reference(s) could not be restored: ${missing.join(", ")}`,
       );
     }
   }
@@ -275,7 +275,7 @@ export async function parseZipImport(bytes: Uint8Array): Promise<ParsedImport> {
 export function downloadBlob(
   data: string | Uint8Array | ArrayBuffer,
   mime: string,
-  filename: string
+  filename: string,
 ): void {
   // Explicitly convert Uint8Array -> ArrayBuffer to avoid
   // SharedArrayBuffer-related typing friction with BlobPart.

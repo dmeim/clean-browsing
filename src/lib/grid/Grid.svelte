@@ -10,7 +10,7 @@
 
   const gridStyle = $derived(
     `grid-template-columns: repeat(${gridStore.layout.cols}, 1fr); ` +
-    `grid-template-rows: repeat(${gridStore.layout.rows}, 1fr);`
+      `grid-template-rows: repeat(${gridStore.layout.rows}, 1fr);`,
   );
 
   const cellCount = $derived(gridStore.layout.cols * gridStore.layout.rows);

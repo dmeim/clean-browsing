@@ -13,7 +13,10 @@
 <section class="panel">
   <header>
     <h3>Widgets</h3>
-    <p>Global appearance defaults applied to every widget. Override individual widgets from their own settings.</p>
+    <p>
+      Global appearance defaults applied to every widget. Override individual widgets from their own
+      settings.
+    </p>
   </header>
 
   <WidgetPresetBar onApply={applyPreset} />

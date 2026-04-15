@@ -1,8 +1,8 @@
 {
   "manifest_version": 2,
-  "name": "Clean Browsing (next)",
-  "version": "0.0.5",
-  "description": "A customizable new tab page — rebuilt with Svelte 5, Tailwind v4, and shadcn-svelte.",
+  "name": "Clean Browsing",
+  "version": "1.0.0",
+  "description": "A customizable, local-first new tab page for Firefox — a grid of draggable, resizable widgets.",
   "permissions": ["storage", "unlimitedStorage"],
   "browser_specific_settings": {
     "gecko": {

@@ -33,8 +33,7 @@
       effective = new Date(effective.getTime() - 3_600_000);
     }
 
-    const locale =
-      localePref && localePref !== "auto" ? localePref : navigator.language;
+    const locale = localePref && localePref !== "auto" ? localePref : navigator.language;
 
     const opts: Intl.DateTimeFormatOptions = {
       hour: "numeric",

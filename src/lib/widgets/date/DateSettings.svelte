@@ -97,7 +97,9 @@
   <div class="section">
     <div class="label-row">
       <span class="label">Vertical padding</span>
-      <span class="value">{settings.paddingV ?? (settings as { padding?: number }).padding ?? 0}px</span>
+      <span class="value"
+        >{settings.paddingV ?? (settings as { padding?: number }).padding ?? 0}px</span
+      >
     </div>
     <input
       type="range"
@@ -105,14 +107,20 @@
       max="80"
       step="1"
       value={settings.paddingV ?? (settings as { padding?: number }).padding ?? 0}
-      oninput={(e) => updateSettings({ ...settings, paddingV: Number((e.currentTarget as HTMLInputElement).value) })}
+      oninput={(e) =>
+        updateSettings({
+          ...settings,
+          paddingV: Number((e.currentTarget as HTMLInputElement).value),
+        })}
     />
   </div>
 
   <div class="section">
     <div class="label-row">
       <span class="label">Horizontal padding</span>
-      <span class="value">{settings.paddingH ?? (settings as { padding?: number }).padding ?? 0}px</span>
+      <span class="value"
+        >{settings.paddingH ?? (settings as { padding?: number }).padding ?? 0}px</span
+      >
     </div>
     <input
       type="range"
@@ -120,7 +128,11 @@
       max="80"
       step="1"
       value={settings.paddingH ?? (settings as { padding?: number }).padding ?? 0}
-      oninput={(e) => updateSettings({ ...settings, paddingH: Number((e.currentTarget as HTMLInputElement).value) })}
+      oninput={(e) =>
+        updateSettings({
+          ...settings,
+          paddingH: Number((e.currentTarget as HTMLInputElement).value),
+        })}
     />
   </div>
 
@@ -249,7 +261,9 @@
     border: 1px solid rgb(51 65 85);
     border-radius: 0.4rem;
     cursor: pointer;
-    transition: background 120ms ease, border-color 120ms ease;
+    transition:
+      background 120ms ease,
+      border-color 120ms ease;
     text-align: left;
   }
 

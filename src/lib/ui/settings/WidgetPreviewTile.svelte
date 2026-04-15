@@ -11,7 +11,7 @@
   let { style, label = "Preview" }: Props = $props();
 
   const vars = $derived(
-    widgetStyleToInlineStyle(style, (id) => imageLibrary.get(id)?.dataUrl ?? null)
+    widgetStyleToInlineStyle(style, (id) => imageLibrary.get(id)?.dataUrl ?? null),
   );
 </script>
 

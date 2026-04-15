@@ -36,7 +36,7 @@ In edit mode:
 - Resize handles become active on the south, east, and southeast edges.
 - Per-widget settings and delete affordances become available.
 - Exiting edit mode closes any open Add Widget / per-widget Settings dialog
-  (`uiStore.exitEditMode()`), but does *not* close the global Settings
+  (`uiStore.exitEditMode()`), but does _not_ close the global Settings
   dialog — that's independent.
 
 The edit mode toggle is the gating input for every "structural" operation.

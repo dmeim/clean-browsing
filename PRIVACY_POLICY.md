@@ -28,12 +28,12 @@ Clean-Browsing is a privacy-first browser extension. **We do not collect, store,
 
 The following data is stored **only on your device** using Firefox's built-in storage API:
 
-| Data Type | Purpose | Location |
-|-----------|---------|----------|
-| Widget settings | Remember your dashboard layout | Local storage |
+| Data Type              | Purpose                               | Location      |
+| ---------------------- | ------------------------------------- | ------------- |
+| Widget settings        | Remember your dashboard layout        | Local storage |
 | Appearance preferences | Maintain your theme and style choices | Local storage |
-| Sidepanel bookmarks | Quick access to your favorite sites | Local storage |
-| Grid positions | Save widget placement on dashboard | Local storage |
+| Sidepanel bookmarks    | Quick access to your favorite sites   | Local storage |
+| Grid positions         | Save widget placement on dashboard    | Local storage |
 
 This data **never leaves your browser** and is not accessible to us or any third party.
 
@@ -43,13 +43,13 @@ This data **never leaves your browser** and is not accessible to us or any third
 
 Clean-Browsing requires certain browser permissions to function. Here's what each permission does:
 
-| Permission | What It Does | Why We Need It |
-|------------|--------------|----------------|
-| `storage` | Save your preferences locally | Remember settings between sessions |
-| `tabs` | Access current tab information | Enable sidepanel on websites |
-| `activeTab` | Interact with current page | Inject sidepanel when you click the icon |
-| `webRequest` | See network request headers | Enable iframe embedding for sidepanel |
-| `<all_urls>` | Access any website | Let you embed any site in sidepanel |
+| Permission   | What It Does                   | Why We Need It                           |
+| ------------ | ------------------------------ | ---------------------------------------- |
+| `storage`    | Save your preferences locally  | Remember settings between sessions       |
+| `tabs`       | Access current tab information | Enable sidepanel on websites             |
+| `activeTab`  | Interact with current page     | Inject sidepanel when you click the icon |
+| `webRequest` | See network request headers    | Enable iframe embedding for sidepanel    |
+| `<all_urls>` | Access any website             | Let you embed any site in sidepanel      |
 
 **Important**: While these permissions sound broad, we only use them when you explicitly interact with the extension. We do not monitor, record, or transmit any browsing activity.
 
@@ -65,6 +65,7 @@ Clean-Browsing makes **no connections to external servers** except:
 2. Search engines when you use the search widget (your choice)
 
 We do not use:
+
 - Analytics services (no Google Analytics, Mixpanel, etc.)
 - Crash reporting services
 - Advertising networks
@@ -77,6 +78,7 @@ We do not use:
 ### Export Your Data
 
 You can export your settings at any time:
+
 1. Open the settings modal
 2. Click "Export Configuration"
 3. Save the JSON file
@@ -86,6 +88,7 @@ This file contains only your preferences—no personal or browsing data.
 ### Delete Your Data
 
 To completely remove all Clean-Browsing data:
+
 1. Uninstall the extension, OR
 2. Clear extension data in Firefox settings:
    - `about:addons` → Clean-Browsing → Remove
@@ -101,6 +104,7 @@ Clean-Browsing does not knowingly collect information from children under 13. Th
 ## Changes to This Policy
 
 If we make changes to this privacy policy, we will:
+
 1. Update the "Effective Date" above
 2. Include changes in release notes
 3. Maintain previous versions in our repository
@@ -110,6 +114,7 @@ If we make changes to this privacy policy, we will:
 ## Contact
 
 For privacy-related questions:
+
 - Open an issue: [GitHub Issues](../../issues)
 - Review our code: The extension is open source
 
@@ -125,5 +130,4 @@ Since we don't collect personal data, traditional data rights (access, deletion,
 
 ---
 
-*This privacy policy applies to Clean-Browsing version 0.5.0 and later.*
-
+_This privacy policy applies to Clean-Browsing version 0.5.0 and later._

@@ -1,7 +1,7 @@
 # Component Rules
 
 Architectural conventions for components and stores in Clean Browsing. These
-are rules for how things are *organized*, not how they're styled — see
+are rules for how things are _organized_, not how they're styled — see
 [`STYLING_GUIDE.md`](STYLING_GUIDE.md) for Tailwind/CSS conventions.
 
 ## 1. Stores are runes, never `svelte/store`
@@ -124,7 +124,9 @@ looks them up by `widgetId`.
 
 ```ts
 // src/lib/widgets/<id>/definition.ts
-export const myDefinition: WidgetDefinition<MySettings> = { /* ... */ };
+export const myDefinition: WidgetDefinition<MySettings> = {
+  /* ... */
+};
 registerWidget(myDefinition);
 ```
 
@@ -210,7 +212,7 @@ grid store — don't wire pointer events inside the widget.
   errors and logs them; follow that pattern.
 - **Inside trusted internal code**, don't add defensive checks for states
   that can't happen. If `getWidget(id)` returns `undefined` in a place where
-  the caller *just* got the id out of the registry, wrapping it in
+  the caller _just_ got the id out of the registry, wrapping it in
   `if (!def) return` is dead code.
 - **Console noise**: use `console.warn` for recoverable issues (e.g.,
   "unknown widget id — skipping"), `console.error` for genuine bugs. Don't

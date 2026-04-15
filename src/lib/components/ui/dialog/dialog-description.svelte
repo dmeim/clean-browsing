@@ -5,6 +5,6 @@
 </script>
 
 <DialogPrimitive.Description
-  class={cn("text-sm text-muted-foreground", className)}
+  class={cn("text-muted-foreground text-sm", className)}
   {...restProps}
 />

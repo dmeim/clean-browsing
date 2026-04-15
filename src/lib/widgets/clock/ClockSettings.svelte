@@ -87,7 +87,9 @@
       value={normalized.locale === "auto" ? "" : normalized.locale}
       onchange={handleLocaleInput}
     />
-    <span class="hint">e.g. <code>en-US</code>, <code>de-DE</code>, <code>ja-JP</code>. Blank = browser default.</span>
+    <span class="hint"
+      >e.g. <code>en-US</code>, <code>de-DE</code>, <code>ja-JP</code>. Blank = browser default.</span
+    >
   </div>
 
   <div class="row stack">
