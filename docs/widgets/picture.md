@@ -19,14 +19,14 @@ To remove the image, open settings and click **Clear**. This only detaches it fr
 
 ## Settings
 
-| Setting         | Type                                          | Default  | What it does                                                                                                                                                                      |
-| --------------- | --------------------------------------------- | -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Image**       | library picker / upload                       | empty    | The image shown by the widget. Upload a new file (5 MB limit) or pick any image already in the shared library. The preview in the dialog shows the current selection.             |
-| **Fit**         | `cover`, `contain`, `fill`, `none`, `scale-down` | `cover`  | How the image fills the widget frame. `cover` crops to fill, `contain` letterboxes to fit, `fill` stretches, `none` uses the image's natural size, `scale-down` shrinks if needed. |
-| **Position X**  | 0–100 %                                       | `50`     | Horizontal focal point when `fit` is `cover` or `contain`. `0` = align to left edge, `100` = align to right edge.                                                                 |
-| **Position Y**  | 0–100 %                                       | `50`     | Vertical focal point when `fit` is `cover` or `contain`. `0` = align to top, `100` = align to bottom.                                                                             |
-| **Opacity**     | 10–100 %                                      | `100`    | Image opacity. Useful for softening a photo so other widgets sitting behind it still read clearly.                                                                                 |
-| **Padding**     | 0–30 px                                       | `0`      | Inner padding between the image and the widget frame. Creates a matted-photo look without changing the widget size.                                                                |
+| Setting        | Type                                             | Default | What it does                                                                                                                                                                       |
+| -------------- | ------------------------------------------------ | ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Image**      | library picker / upload                          | empty   | The image shown by the widget. Upload a new file (5 MB limit) or pick any image already in the shared library. The preview in the dialog shows the current selection.              |
+| **Fit**        | `cover`, `contain`, `fill`, `none`, `scale-down` | `cover` | How the image fills the widget frame. `cover` crops to fill, `contain` letterboxes to fit, `fill` stretches, `none` uses the image's natural size, `scale-down` shrinks if needed. |
+| **Position X** | 0–100 %                                          | `50`    | Horizontal focal point when `fit` is `cover` or `contain`. `0` = align to left edge, `100` = align to right edge.                                                                  |
+| **Position Y** | 0–100 %                                          | `50`    | Vertical focal point when `fit` is `cover` or `contain`. `0` = align to top, `100` = align to bottom.                                                                              |
+| **Opacity**    | 10–100 %                                         | `100`   | Image opacity. Useful for softening a photo so other widgets sitting behind it still read clearly.                                                                                 |
+| **Padding**    | 0–30 px                                          | `0`     | Inner padding between the image and the widget frame. Creates a matted-photo look without changing the widget size.                                                                |
 
 ## About the image library
 

@@ -14,15 +14,15 @@ The default engine is Google, opening results in a new tab. All of that is confi
 
 ## Settings
 
-| Setting                | Type      | Default                               | What it does                                                                                                                  |
-| ---------------------- | --------- | ------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
-| **Engine**             | dropdown  | `Google`                              | Pick one of the built-in engines (Google, Bing, DuckDuckGo, Yahoo) or `Custom` to provide your own URL.                        |
-| **Custom URL**         | text      | `https://www.google.com/search?q=%s` | URL template for `Custom` engine. `%s` or `%q` is replaced with the URL-encoded query. Used verbatim if `Custom` is selected. |
-| **Custom image URL**   | text      | empty                                 | Optional logo shown next to the input. Falls back to the built-in engine logo if left blank. Required for `Custom` engines.    |
-| **Open results in**    | dropdown  | `New tab`                             | Where the results page opens. Options: new tab, current tab, new window, private (incognito) window.                           |
-| **Clear after search** | toggle    | `off`                                 | When on, the input empties itself after you submit, so the widget is ready for the next query.                                 |
-| **Vertical padding**   | 0–80 px   | `8`                                   | Space between the input row and the top/bottom of the widget.                                                                  |
-| **Horizontal padding** | 0–80 px   | `12`                                  | Space between the input row and the left/right of the widget.                                                                  |
+| Setting                | Type     | Default                              | What it does                                                                                                                  |
+| ---------------------- | -------- | ------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------- |
+| **Engine**             | dropdown | `Google`                             | Pick one of the built-in engines (Google, Bing, DuckDuckGo, Yahoo) or `Custom` to provide your own URL.                       |
+| **Custom URL**         | text     | `https://www.google.com/search?q=%s` | URL template for `Custom` engine. `%s` or `%q` is replaced with the URL-encoded query. Used verbatim if `Custom` is selected. |
+| **Custom image URL**   | text     | empty                                | Optional logo shown next to the input. Falls back to the built-in engine logo if left blank. Required for `Custom` engines.   |
+| **Open results in**    | dropdown | `New tab`                            | Where the results page opens. Options: new tab, current tab, new window, private (incognito) window.                          |
+| **Clear after search** | toggle   | `off`                                | When on, the input empties itself after you submit, so the widget is ready for the next query.                                |
+| **Vertical padding**   | 0–80 px  | `8`                                  | Space between the input row and the top/bottom of the widget.                                                                 |
+| **Horizontal padding** | 0–80 px  | `12`                                 | Space between the input row and the left/right of the widget.                                                                 |
 
 ### About the URL template
 

@@ -44,17 +44,17 @@ Following the Svelte 5 / TypeScript conventions in the rest of the codebase (see
 ```ts
 // src/lib/widgets/notes/definition.ts
 export type NotesSettings = {
-  content: string;           // the note body (plain text or sanitized HTML)
+  content: string; // the note body (plain text or sanitized HTML)
   format: "plain" | "markdown" | "rich"; // rendering mode
   fontFamily: "sans" | "serif" | "mono";
-  fontSize: number;          // base px, scales with widgetScaler
-  autoSaveMs: number;        // debounce interval (default 500)
-  maxCharacters: number;     // 0 = unlimited
+  fontSize: number; // base px, scales with widgetScaler
+  autoSaveMs: number; // debounce interval (default 500)
+  maxCharacters: number; // 0 = unlimited
   wordWrap: boolean;
-  showCounter: boolean;      // char/word counter overlay
-  lastSavedAt: number;       // epoch ms, written by the widget itself
-  paddingV: number;          // px, top+bottom inset (matches other widgets)
-  paddingH: number;          // px, left+right inset
+  showCounter: boolean; // char/word counter overlay
+  lastSavedAt: number; // epoch ms, written by the widget itself
+  paddingV: number; // px, top+bottom inset (matches other widgets)
+  paddingH: number; // px, left+right inset
 };
 ```
 
@@ -62,18 +62,18 @@ Positioning (`x`, `y`, `w`, `h`) is **not** part of widget settings — the grid
 
 ## Settings form outline
 
-| Setting            | Control           | Default   | Notes                                                           |
-| ------------------ | ----------------- | --------- | --------------------------------------------------------------- |
-| **Font family**    | select            | `sans`    | Three options mapping to tokens in `src/app.css`.               |
-| **Font size**      | range 12–24 px    | `14`      | Feeds into `widgetScaler` as the base size.                     |
-| **Format**         | segmented select  | `plain`   | Plain / Markdown preview / Rich (if/when enabled).              |
-| **Auto-save**      | select            | `500 ms`  | Options: `250`, `500`, `1000`, `manual`.                        |
-| **Max characters** | number            | `0`       | `0` = unlimited. Shows a soft warning when approaching the cap. |
-| **Word wrap**      | toggle            | `on`      | Standard `white-space` handling.                                |
-| **Show counter**   | toggle            | `on`      | Small char/word overlay in the bottom-right corner.             |
-| **Export**         | button            | —         | Triggers a `.txt` download of the current note.                 |
-| **Vertical padding** | range 0–80 px   | `8`       | Matches the padding convention used by clock/date/search.       |
-| **Horizontal padding** | range 0–80 px | `12`      | Same.                                                           |
+| Setting                | Control          | Default  | Notes                                                           |
+| ---------------------- | ---------------- | -------- | --------------------------------------------------------------- |
+| **Font family**        | select           | `sans`   | Three options mapping to tokens in `src/app.css`.               |
+| **Font size**          | range 12–24 px   | `14`     | Feeds into `widgetScaler` as the base size.                     |
+| **Format**             | segmented select | `plain`  | Plain / Markdown preview / Rich (if/when enabled).              |
+| **Auto-save**          | select           | `500 ms` | Options: `250`, `500`, `1000`, `manual`.                        |
+| **Max characters**     | number           | `0`      | `0` = unlimited. Shows a soft warning when approaching the cap. |
+| **Word wrap**          | toggle           | `on`     | Standard `white-space` handling.                                |
+| **Show counter**       | toggle           | `on`     | Small char/word overlay in the bottom-right corner.             |
+| **Export**             | button           | —        | Triggers a `.txt` download of the current note.                 |
+| **Vertical padding**   | range 0–80 px    | `8`      | Matches the padding convention used by clock/date/search.       |
+| **Horizontal padding** | range 0–80 px    | `12`     | Same.                                                           |
 
 ## Implementation notes
 

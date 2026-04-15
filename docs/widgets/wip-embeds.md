@@ -24,7 +24,7 @@ Everything below assumes the "separate widget" path.
 
 ## Hard constraints
 
-- **Third-party network calls are inherent.** Embeds load JS and assets from the source platform (`www.youtube.com`, `platform.twitter.com`, etc.) — that's what an embed *is*. This is allowed under Clean Browsing's network policy for widgets whose core function requires network (see [`docs/widgets/README.md`](./README.md)). The widget must still disclose clearly in the settings dialog that adding a YouTube / Twitter / Spotify / etc. embed will make the new-tab page load resources from that platform.
+- **Third-party network calls are inherent.** Embeds load JS and assets from the source platform (`www.youtube.com`, `platform.twitter.com`, etc.) — that's what an embed _is_. This is allowed under Clean Browsing's network policy for widgets whose core function requires network (see [`docs/widgets/README.md`](./README.md)). The widget must still disclose clearly in the settings dialog that adding a YouTube / Twitter / Spotify / etc. embed will make the new-tab page load resources from that platform.
 - **Sanitization is non-negotiable.** The widget accepts HTML from the user's clipboard. That HTML will be rendered inside the new-tab page's `moz-extension://...` origin, which has broader privileges than a regular web page. Every embed code must pass through `DOMPurify` (or equivalent) before it hits the DOM.
 - **Iframe sandbox must always be set.** Even for trusted sources. Defaults lean strict; a "permissive" mode exists only as an opt-in escape hatch for snippets that genuinely need more.
 
@@ -73,12 +73,12 @@ export type EmbedSecurity = "strict" | "moderate" | "permissive";
 export type EmbedAspectRatio = "16:9" | "4:3" | "1:1" | "auto";
 
 export type EmbedSettings = {
-  rawCode: string;                // the user-pasted HTML
-  sanitizedCode: string;          // cached result of running DOMPurify on rawCode
-  platform: EmbedPlatform;        // auto-detected, user can override
+  rawCode: string; // the user-pasted HTML
+  sanitizedCode: string; // cached result of running DOMPurify on rawCode
+  platform: EmbedPlatform; // auto-detected, user can override
   security: EmbedSecurity;
   aspectRatio: EmbedAspectRatio;
-  refreshIntervalMin: number;     // 0 = no auto-refresh
+  refreshIntervalMin: number; // 0 = no auto-refresh
   lastSanitizedAt: number;
   paddingV: number;
   paddingH: number;
@@ -89,24 +89,24 @@ Storing the sanitized output means we don't have to re-run `DOMPurify` on every 
 
 ## Settings form outline
 
-| Setting                | Control                                              | Default    | Notes                                                                    |
-| ---------------------- | ---------------------------------------------------- | ---------- | ------------------------------------------------------------------------ |
-| **Embed code**         | large textarea + "Paste from clipboard" button       | empty      | On blur, sanitize and update `sanitizedCode`.                            |
-| **Platform**           | select (auto-detected, can override)                 | auto       | Determines defaults for security + aspect ratio.                         |
-| **Security level**     | segmented: strict / moderate / permissive            | `moderate` | Maps to an `iframe sandbox` attribute set (see below).                   |
-| **Aspect ratio**       | segmented: 16:9 / 4:3 / 1:1 / auto                   | `16:9`     |                                                                          |
-| **Auto-refresh**       | select: Off / 5 / 15 / 30 / 60 min                   | `Off`      | For embeds with live content (e.g. Twitter timeline).                    |
-| **Live preview**       | rendered iframe inside the settings dialog           | —          | Uses the current sanitized code + security/aspect-ratio settings.        |
-| **Vertical padding**   | range 0–80 px                                        | `0`        |                                                                          |
-| **Horizontal padding** | range 0–80 px                                        | `0`        |                                                                          |
+| Setting                | Control                                        | Default    | Notes                                                             |
+| ---------------------- | ---------------------------------------------- | ---------- | ----------------------------------------------------------------- |
+| **Embed code**         | large textarea + "Paste from clipboard" button | empty      | On blur, sanitize and update `sanitizedCode`.                     |
+| **Platform**           | select (auto-detected, can override)           | auto       | Determines defaults for security + aspect ratio.                  |
+| **Security level**     | segmented: strict / moderate / permissive      | `moderate` | Maps to an `iframe sandbox` attribute set (see below).            |
+| **Aspect ratio**       | segmented: 16:9 / 4:3 / 1:1 / auto             | `16:9`     |                                                                   |
+| **Auto-refresh**       | select: Off / 5 / 15 / 30 / 60 min             | `Off`      | For embeds with live content (e.g. Twitter timeline).             |
+| **Live preview**       | rendered iframe inside the settings dialog     | —          | Uses the current sanitized code + security/aspect-ratio settings. |
+| **Vertical padding**   | range 0–80 px                                  | `0`        |                                                                   |
+| **Horizontal padding** | range 0–80 px                                  | `0`        |                                                                   |
 
 ## Security sandbox levels
 
 ```ts
 // src/lib/widgets/embed/platforms.ts
 export const SANDBOX_BY_SECURITY: Record<EmbedSecurity, string> = {
-  strict:     "allow-scripts",
-  moderate:   "allow-scripts allow-same-origin",
+  strict: "allow-scripts",
+  moderate: "allow-scripts allow-same-origin",
   permissive: "allow-scripts allow-same-origin allow-popups allow-forms",
 };
 ```
@@ -126,8 +126,17 @@ import DOMPurify from "dompurify";
 const config = {
   ALLOWED_TAGS: ["iframe", "blockquote", "script", "a", "p", "div", "span"],
   ALLOWED_ATTR: [
-    "src", "width", "height", "frameborder", "allow", "allowfullscreen",
-    "class", "data-*", "href", "target", "rel",
+    "src",
+    "width",
+    "height",
+    "frameborder",
+    "allow",
+    "allowfullscreen",
+    "class",
+    "data-*",
+    "href",
+    "target",
+    "rel",
   ],
   ADD_URI_SAFE_ATTR: ["data-src"],
   // Scripts are allowed but only with a src attribute — no inline JS.

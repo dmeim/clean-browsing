@@ -16,9 +16,10 @@ A service-availability monitor: ping a URL or LAN host on a schedule and show an
 
 1. **CORS.** Browsers enforce the same-origin policy for `fetch`. Most public websites don't send `Access-Control-Allow-Origin: *`, so a cross-origin `fetch("https://example.com")` from the extension's new-tab page will fail with an error even if the site is perfectly healthy. Two workarounds, each with trade-offs:
    - **Host permissions in the manifest.** Adding a site to `permissions` gives the extension full CORS-bypass access to that host. Accurate, but it means the user has to edit `manifest.json` (no way to add host permissions at runtime in MV2) or we declare a wildcard `"<all_urls>"`, which is a blunt instrument and will trip up Firefox's Add-ons review.
-   - **`fetch(url, { mode: "no-cors" })`.** Returns an opaque response — no status code readable, no body, but it *does* succeed or fail based on the network round trip. Good enough to distinguish "the server answered" from "it didn't," which is 80% of what users want from a ping monitor.
+   - **`fetch(url, { mode: "no-cors" })`.** Returns an opaque response — no status code readable, no body, but it _does_ succeed or fail based on the network round trip. Good enough to distinguish "the server answered" from "it didn't," which is 80% of what users want from a ping monitor.
 
    **Lean preference: no-cors mode for v1.** Status categories collapse from `UP / WARNING / DOWN` based on HTTP code to `REACHABLE / UNREACHABLE / SLOW` based on whether the round trip succeeded and how long it took. Honest, correct, and works without per-site host permissions.
+
 2. **LAN hosts.** `http://192.168.1.10` works fine in no-cors mode. Users on IPv6-only networks may need explicit IPv6 literals.
 3. **"Real" ping (ICMP).** Browsers can't send ICMP packets. This widget is an HTTP health check, not a true ping. The widget name should probably reflect that — consider `HTTP Monitor` or `Uptime` — but `ping-monitor` is what the legacy docs called it, so v1 keeps the name and is explicit about the HTTP-only mechanism in its description.
 
@@ -58,18 +59,18 @@ export type PingStatus = "reachable" | "slow" | "unreachable" | "unknown";
 export type PingIntervalSec = 30 | 60 | 300 | 900 | 1800 | 3600;
 
 export type PingSample = {
-  at: number;                 // epoch ms
+  at: number; // epoch ms
   status: PingStatus;
-  durationMs: number | null;  // null if the request threw
+  durationMs: number | null; // null if the request threw
 };
 
 export type PingMonitorSettings = {
   targetUrl: string;
   intervalSec: PingIntervalSec;
-  timeoutMs: number;          // default 5000
-  slowThresholdMs: number;    // default 1500 — above this we mark SLOW
+  timeoutMs: number; // default 5000
+  slowThresholdMs: number; // default 1500 — above this we mark SLOW
   notificationsOnTransition: boolean;
-  history: PingSample[];      // rolling buffer, capped
+  history: PingSample[]; // rolling buffer, capped
   paddingV: number;
   paddingH: number;
 };
@@ -79,16 +80,16 @@ export const MAX_HISTORY = 200;
 
 ## Settings form outline
 
-| Setting                | Control                                       | Default   | Notes                                                           |
-| ---------------------- | --------------------------------------------- | --------- | --------------------------------------------------------------- |
-| **Target URL**         | text input with validation                    | empty     | Accept `http`/`https`; reject `javascript:` and anything weird.|
-| **Check interval**     | select: 30s / 1 / 5 / 15 / 30 / 60 min        | `5 min`   | Shorter intervals put pressure on the target — warn users.     |
-| **Timeout**            | range 1–30 s                                  | `5 s`     | Above timeout, the sample is `unreachable`.                    |
-| **Slow threshold**     | range 100–5000 ms                             | `1500 ms` | Round trip above this flips status from `reachable` to `slow`. |
-| **Notify on changes**  | toggle                                        | `off`     | Opt-in; prompts for notification permission on first toggle.   |
-| **Clear history**      | danger button                                 | —         | Resets the history array.                                      |
-| **Vertical padding**   | range 0–80 px                                 | `8`       |                                                                 |
-| **Horizontal padding** | range 0–80 px                                 | `8`       |                                                                 |
+| Setting                | Control                                | Default   | Notes                                                           |
+| ---------------------- | -------------------------------------- | --------- | --------------------------------------------------------------- |
+| **Target URL**         | text input with validation             | empty     | Accept `http`/`https`; reject `javascript:` and anything weird. |
+| **Check interval**     | select: 30s / 1 / 5 / 15 / 30 / 60 min | `5 min`   | Shorter intervals put pressure on the target — warn users.      |
+| **Timeout**            | range 1–30 s                           | `5 s`     | Above timeout, the sample is `unreachable`.                     |
+| **Slow threshold**     | range 100–5000 ms                      | `1500 ms` | Round trip above this flips status from `reachable` to `slow`.  |
+| **Notify on changes**  | toggle                                 | `off`     | Opt-in; prompts for notification permission on first toggle.    |
+| **Clear history**      | danger button                          | —         | Resets the history array.                                       |
+| **Vertical padding**   | range 0–80 px                          | `8`       |                                                                 |
+| **Horizontal padding** | range 0–80 px                          | `8`       |                                                                 |
 
 A clear "This widget will send HTTP requests to the URL you configure, on an interval" notice should appear at the top of the settings form — matching Weather's disclosure style.
 

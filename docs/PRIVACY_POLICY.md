@@ -18,13 +18,13 @@ There is no account system, no login, no telemetry, no analytics, and no crash r
 
 Everything is stored locally via Firefox's `browser.storage.local` API and, for images, the browser's IndexedDB. Nothing in this list ever leaves your device under Clean Browsing's own control.
 
-| Data                        | Purpose                                          | Where it lives                                          |
-| --------------------------- | ------------------------------------------------ | ------------------------------------------------------- |
-| Grid layout (widget positions, sizes, instances) | Remember your dashboard between sessions        | `browser.storage.local` → `clean-browsing:layout:v2`    |
-| Global appearance settings  | Background, theme, widget chrome defaults        | `browser.storage.local` (settings store)                |
-| Per-widget settings         | Each widget's configuration (e.g. clock format, search engine, note contents) | Embedded inside the grid layout blob |
-| Image library               | Images you upload for the Picture widget or background | Firefox IndexedDB (via the extension's own database)   |
-| Sidebar bookmarks / shortcuts | If you add any                                  | `browser.storage.local`                                 |
+| Data                                             | Purpose                                                                       | Where it lives                                       |
+| ------------------------------------------------ | ----------------------------------------------------------------------------- | ---------------------------------------------------- |
+| Grid layout (widget positions, sizes, instances) | Remember your dashboard between sessions                                      | `browser.storage.local` → `clean-browsing:layout:v2` |
+| Global appearance settings                       | Background, theme, widget chrome defaults                                     | `browser.storage.local` (settings store)             |
+| Per-widget settings                              | Each widget's configuration (e.g. clock format, search engine, note contents) | Embedded inside the grid layout blob                 |
+| Image library                                    | Images you upload for the Picture widget or background                        | Firefox IndexedDB (via the extension's own database) |
+| Sidebar bookmarks / shortcuts                    | If you add any                                                                | `browser.storage.local`                              |
 
 You can inspect everything Clean Browsing has stored at any time via Firefox's `about:debugging` → **Inspect** on the extension → **Storage** tab.
 
@@ -52,10 +52,10 @@ There is no "phone home" code anywhere in the extension. The source is open and 
 
 Clean Browsing currently declares only these Firefox extension permissions (see `public/manifest.json`):
 
-| Permission           | Why it's requested                                                                       |
-| -------------------- | ---------------------------------------------------------------------------------------- |
-| `storage`            | Save your grid layout, settings, and widget content locally.                             |
-| `unlimitedStorage`   | Lift the default per-extension storage quota so the image library can hold more than a few pictures. |
+| Permission         | Why it's requested                                                                                   |
+| ------------------ | ---------------------------------------------------------------------------------------------------- |
+| `storage`          | Save your grid layout, settings, and widget content locally.                                         |
+| `unlimitedStorage` | Lift the default per-extension storage quota so the image library can hold more than a few pictures. |
 
 Clean Browsing also declares `chrome_url_overrides.newtab` so that opening a new tab loads the extension's own page instead of Firefox's default. This is how the extension takes effect — it does not give the extension access to any other browser state.
 
@@ -73,7 +73,7 @@ A freshly installed Clean Browsing with the default layout makes **zero network 
 
 Clean Browsing allows individual widgets to make network requests **only when the widget's core function requires it**. A weather widget must reach a weather API; a ping-monitor widget must reach the host it's monitoring; an embed widget must load its source from YouTube, Spotify, etc. In every such case, the following rules apply:
 
-1. **Opt-in.** A freshly-added widget makes no network requests until *you* configure it (enter a URL, pick a location, paste an embed snippet).
+1. **Opt-in.** A freshly-added widget makes no network requests until _you_ configure it (enter a URL, pick a location, paste an embed snippet).
 2. **Disclosed.** The widget's settings dialog tells you, in plain language, which host(s) will be contacted and roughly how often.
 3. **Scoped.** Host permissions in the manifest are added only when a specific widget needs them, one host at a time. There is no `<all_urls>` wildcard.
 4. **Logged here.** Every network-using widget that ships is listed in the table below, with the exact hosts it contacts.
@@ -82,7 +82,7 @@ Clean Browsing allows individual widgets to make network requests **only when th
 
 None. As of v1.1.0, every widget that ships (Clock, Date, Search, Calculator, Picture) runs fully offline.
 
-The Search widget is a special case worth spelling out: when you submit a query, it opens the search engine's results page in a new tab. That is a normal browser navigation you initiated by pressing Enter — the extension itself does not send your query anywhere. Once the results page is open, whatever network activity happens there is between you and your chosen search engine, governed by *their* privacy policy, not this one.
+The Search widget is a special case worth spelling out: when you submit a query, it opens the search engine's results page in a new tab. That is a normal browser navigation you initiated by pressing Enter — the extension itself does not send your query anywhere. Once the results page is open, whatever network activity happens there is between you and your chosen search engine, governed by _their_ privacy policy, not this one.
 
 ### Network-using widgets in design
 

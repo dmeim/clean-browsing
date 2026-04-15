@@ -14,7 +14,7 @@ A website-embed widget that renders an external URL inside an iframe on the new-
 
 ## Hard constraints
 
-1. **Most public websites block iframe embedding.** They send `X-Frame-Options: DENY/SAMEORIGIN` or `Content-Security-Policy: frame-ancestors ...`. This is not a bug we can work around — it's the site operator's explicit decision. Google, Twitter, Amazon, GitHub, Gmail, and most major services will *not* embed, full stop.
+1. **Most public websites block iframe embedding.** They send `X-Frame-Options: DENY/SAMEORIGIN` or `Content-Security-Policy: frame-ancestors ...`. This is not a bug we can work around — it's the site operator's explicit decision. Google, Twitter, Amazon, GitHub, Gmail, and most major services will _not_ embed, full stop.
 2. **A screenshot-service fallback would mean sending user-entered URLs to a third party.** The legacy design suggested routing blocked URLs through a screenshot service. That's a broader network exposure than the Mini-Sites widget itself — the user enters a URL expecting it to load in their browser, not to be shipped off to a screenshotting service they didn't pick. **Recommendation: cut the screenshot-service fallback from v1.** If a site blocks iframes, show an "unembeddable" placeholder with an "Open in new tab" button, and be honest about the limitation. A screenshot fallback can be revisited later as a separate, explicitly-configured feature with its own disclosure.
 
 With those two constraints in mind, the useful v1 shape is: **good iframe support + graceful failure**, not "embed anything."
@@ -31,7 +31,7 @@ With those two constraints in mind, the useful v1 shape is: **good iframe suppor
 
 ## Open design questions
 
-1. **Detecting embed failure.** An iframe blocked by `X-Frame-Options` fires `load` with an empty document but doesn't throw. The cleanest detection is a `load` + `setTimeout` race that inspects whether the iframe's `contentWindow.location.href` can be read — if it throws `SecurityError` *and* the document is empty, the frame is blocked. This is heuristic but reliable enough for a user-facing placeholder.
+1. **Detecting embed failure.** An iframe blocked by `X-Frame-Options` fires `load` with an empty document but doesn't throw. The cleanest detection is a `load` + `setTimeout` race that inspects whether the iframe's `contentWindow.location.href` can be read — if it throws `SecurityError` _and_ the document is empty, the frame is blocked. This is heuristic but reliable enough for a user-facing placeholder.
 2. **Host permissions.** To render an iframe in the new-tab page, Firefox does **not** strictly require a host permission — the iframe is a normal web request from the extension's own document. But the extension's CSP may need relaxing. Test early: add one embed widget, point it at an embeddable site, and verify it loads without manifest changes.
 3. **LAN URLs.** `http://192.168.1.10:3000` is a common use case (Home Assistant, Proxmox, Pi-hole). Mixed content will be blocked if the new-tab page is `moz-extension://...` — which is HTTPS-equivalent. Firefox generally allows insecure local IPs from extension contexts; verify during implementation.
 4. **Screenshot service.** Deferred. If we ever add one, it's opt-in with the URL of the service clearly shown, and documented in the privacy policy.
@@ -56,11 +56,11 @@ export type MiniSiteRefresh = 0 | 1 | 5 | 15 | 30; // minutes; 0 = off
 export type MiniSiteSettings = {
   targetUrl: string;
   refreshIntervalMin: MiniSiteRefresh;
-  zoomPercent: number;          // 50–200, step 5
+  zoomPercent: number; // 50–200, step 5
   interaction: MiniSiteInteraction;
-  showNavigation: boolean;      // toolbar with URL + refresh + open-in-new-tab
-  allowScripts: boolean;        // sandbox toggle — see Security notes below
-  lastLoadedAt: number;         // epoch ms
+  showNavigation: boolean; // toolbar with URL + refresh + open-in-new-tab
+  allowScripts: boolean; // sandbox toggle — see Security notes below
+  lastLoadedAt: number; // epoch ms
   paddingV: number;
   paddingH: number;
 };
@@ -68,23 +68,23 @@ export type MiniSiteSettings = {
 
 ## Settings form outline
 
-| Setting              | Control                                  | Default | Notes                                                                    |
-| -------------------- | ---------------------------------------- | ------- | ------------------------------------------------------------------------ |
-| **Target URL**       | text input with validation               | empty   | Accept `http`, `https`, and `moz-extension` schemes; reject `javascript:`.|
-| **Refresh interval** | select: Off / 1 / 5 / 15 / 30 min        | Off     |                                                                          |
-| **Zoom**             | range 50–200%                            | `100`   | Implemented as `transform: scale(zoom/100)` on the iframe.               |
-| **Interaction**      | segmented: Full / View-only              | Full    | View-only sets `pointer-events: none`.                                   |
-| **Show navigation**  | toggle                                   | `on`    | Small toolbar on top of the iframe.                                      |
-| **Allow scripts**    | toggle                                   | `on`    | Controls the `sandbox` attribute on the iframe — see Security.           |
-| **Vertical padding** | range 0–80 px                            | `0`     |                                                                          |
-| **Horizontal padding** | range 0–80 px                          | `0`     |                                                                          |
+| Setting                | Control                           | Default | Notes                                                                      |
+| ---------------------- | --------------------------------- | ------- | -------------------------------------------------------------------------- |
+| **Target URL**         | text input with validation        | empty   | Accept `http`, `https`, and `moz-extension` schemes; reject `javascript:`. |
+| **Refresh interval**   | select: Off / 1 / 5 / 15 / 30 min | Off     |                                                                            |
+| **Zoom**               | range 50–200%                     | `100`   | Implemented as `transform: scale(zoom/100)` on the iframe.                 |
+| **Interaction**        | segmented: Full / View-only       | Full    | View-only sets `pointer-events: none`.                                     |
+| **Show navigation**    | toggle                            | `on`    | Small toolbar on top of the iframe.                                        |
+| **Allow scripts**      | toggle                            | `on`    | Controls the `sandbox` attribute on the iframe — see Security.             |
+| **Vertical padding**   | range 0–80 px                     | `0`     |                                                                            |
+| **Horizontal padding** | range 0–80 px                     | `0`     |                                                                            |
 
 ## Security notes
 
 The iframe should ship with a restrictive `sandbox` by default:
 
 ```html
-<iframe sandbox="allow-scripts allow-same-origin allow-forms allow-popups" ...>
+<iframe sandbox="allow-scripts allow-same-origin allow-forms allow-popups" ...></iframe>
 ```
 
 Turning **Allow scripts** off drops the iframe to `sandbox=""` (fully sandboxed, no scripts, no same-origin, no navigation). Never render an iframe without a `sandbox` attribute — even internal LAN tools should be bounded by it.

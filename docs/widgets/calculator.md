@@ -12,13 +12,13 @@ Add the Calculator from the **Add widget** menu in edit mode. It supports additi
 
 When keyboard support is enabled (the default), clicking anywhere on the widget body gives it focus, and the following keys work:
 
-| Key            | Action             |
-| -------------- | ------------------ |
-| `0`–`9`, `.`   | Enter digit        |
-| `+` `-` `*` `/` | Select operator    |
-| `Enter` or `=` | Evaluate           |
-| `Backspace`    | Delete last digit  |
-| `Escape`       | Clear              |
+| Key             | Action            |
+| --------------- | ----------------- |
+| `0`–`9`, `.`    | Enter digit       |
+| `+` `-` `*` `/` | Select operator   |
+| `Enter` or `=`  | Evaluate          |
+| `Backspace`     | Delete last digit |
+| `Escape`        | Clear             |
 
 Division by zero displays `0` rather than crashing — results that would be `NaN` or `Infinity` display `Error`. Numeric results are rounded to 10 decimal places to keep the display tidy.
 
@@ -34,16 +34,16 @@ History is stored inside the widget's settings, which means:
 
 ## Settings
 
-| Setting               | Type    | Default | What it does                                                                                                           |
-| --------------------- | ------- | ------- | ---------------------------------------------------------------------------------------------------------------------- |
-| **Keyboard support**  | toggle  | `on`    | Enables the keyboard shortcuts listed above. When off, only mouse/touch input works and the widget never traps focus. |
-| **Round buttons**     | toggle  | `on`    | When on, keys are circular. When off, keys are rounded squares. Purely cosmetic.                                       |
-| **Color operators**   | toggle  | `on`    | Tints the `+ − × ÷` keys orange so they stand out from number keys.                                                    |
-| **Color equals**      | toggle  | `on`    | Tints the `=` key green.                                                                                               |
-| **Color clear**       | toggle  | `on`    | Tints the `C` key red.                                                                                                 |
-| **History**           | toggle  | `on`    | Records completed calculations and exposes the history drawer. Capped at 50 entries.                                   |
-| **Vertical padding**  | 0–80 px | `8`     | Space between the keypad and the top/bottom of the widget.                                                             |
-| **Horizontal padding** | 0–80 px | `8`     | Space between the keypad and the left/right of the widget.                                                             |
+| Setting                | Type    | Default | What it does                                                                                                          |
+| ---------------------- | ------- | ------- | --------------------------------------------------------------------------------------------------------------------- |
+| **Keyboard support**   | toggle  | `on`    | Enables the keyboard shortcuts listed above. When off, only mouse/touch input works and the widget never traps focus. |
+| **Round buttons**      | toggle  | `on`    | When on, keys are circular. When off, keys are rounded squares. Purely cosmetic.                                      |
+| **Color operators**    | toggle  | `on`    | Tints the `+ − × ÷` keys orange so they stand out from number keys.                                                   |
+| **Color equals**       | toggle  | `on`    | Tints the `=` key green.                                                                                              |
+| **Color clear**        | toggle  | `on`    | Tints the `C` key red.                                                                                                |
+| **History**            | toggle  | `on`    | Records completed calculations and exposes the history drawer. Capped at 50 entries.                                  |
+| **Vertical padding**   | 0–80 px | `8`     | Space between the keypad and the top/bottom of the widget.                                                            |
+| **Horizontal padding** | 0–80 px | `8`     | Space between the keypad and the left/right of the widget.                                                            |
 
 ## Tips
 

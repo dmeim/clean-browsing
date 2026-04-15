@@ -68,19 +68,19 @@ export type WeatherSettings = {
   forecastDays: 3 | 5 | 7;
   units: "metric" | "imperial";
   refreshIntervalMin: 15 | 30 | 60 | 120;
-  compactMode: boolean;           // current-only vs full layout
-  hasBeenConfigured: boolean;     // gate first fetch behind explicit opt-in
+  compactMode: boolean; // current-only vs full layout
+  hasBeenConfigured: boolean; // gate first fetch behind explicit opt-in
   cachedData: CachedWeather | null;
   paddingV: number;
   paddingH: number;
 };
 
 export type CachedWeather = {
-  fetchedAt: number;              // epoch ms
+  fetchedAt: number; // epoch ms
   source: "open-meteo";
-  current: { tempC: number; conditionCode: number; humidity: number; windKph: number; };
-  hourly: Array<{ time: string; tempC: number; conditionCode: number; }>;
-  daily: Array<{ date: string; minC: number; maxC: number; conditionCode: number; }>;
+  current: { tempC: number; conditionCode: number; humidity: number; windKph: number };
+  hourly: Array<{ time: string; tempC: number; conditionCode: number }>;
+  daily: Array<{ date: string; minC: number; maxC: number; conditionCode: number }>;
 };
 ```
 
@@ -88,16 +88,16 @@ Unit conversion happens at render time based on `settings.units`, so the cache i
 
 ## Settings form outline
 
-| Setting              | Control                                         | Default   | Notes                                                               |
-| -------------------- | ----------------------------------------------- | --------- | ------------------------------------------------------------------- |
-| **Location**         | segmented: Auto-detect / Manual                 | Manual    | Auto-detect prompts for geolocation. Manual has a search box.        |
-| **Manual location**  | search input (city name → Open-Meteo geocoder)  | empty     | Uses Open-Meteo's free geocoding endpoint on submit.                |
-| **Forecast days**    | segmented: 3 / 5 / 7                            | `5`       |                                                                     |
-| **Units**            | segmented: °C·km/h / °F·mph                     | `metric`  |                                                                     |
-| **Refresh interval** | select: 15 / 30 / 60 / 120 min                  | `60`      | Lower = more API hits; Open-Meteo tolerates 60 min well.            |
-| **Compact mode**     | toggle                                          | `off`     | Shows only current conditions, no hourly/daily strip.               |
-| **Vertical padding** | range 0–80 px                                   | `8`       |                                                                     |
-| **Horizontal padding** | range 0–80 px                                 | `12`      |                                                                     |
+| Setting                | Control                                        | Default  | Notes                                                         |
+| ---------------------- | ---------------------------------------------- | -------- | ------------------------------------------------------------- |
+| **Location**           | segmented: Auto-detect / Manual                | Manual   | Auto-detect prompts for geolocation. Manual has a search box. |
+| **Manual location**    | search input (city name → Open-Meteo geocoder) | empty    | Uses Open-Meteo's free geocoding endpoint on submit.          |
+| **Forecast days**      | segmented: 3 / 5 / 7                           | `5`      |                                                               |
+| **Units**              | segmented: °C·km/h / °F·mph                    | `metric` |                                                               |
+| **Refresh interval**   | select: 15 / 30 / 60 / 120 min                 | `60`     | Lower = more API hits; Open-Meteo tolerates 60 min well.      |
+| **Compact mode**       | toggle                                         | `off`    | Shows only current conditions, no hourly/daily strip.         |
+| **Vertical padding**   | range 0–80 px                                  | `8`      |                                                               |
+| **Horizontal padding** | range 0–80 px                                  | `12`     |                                                               |
 
 A clear "This widget will make HTTP requests to open-meteo.com" notice should appear at the top of the settings form the first time the widget is added, matching the project's explicit-consent ethos.
 

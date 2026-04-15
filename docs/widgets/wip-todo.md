@@ -49,14 +49,14 @@ v1 is deliberately small: add/edit/complete/delete tasks, optional due dates, pr
 export type TodoPriority = "none" | "low" | "medium" | "high";
 
 export type TodoItem = {
-  id: string;               // crypto.randomUUID()
+  id: string; // crypto.randomUUID()
   title: string;
   done: boolean;
   priority: TodoPriority;
-  dueAt: number | null;     // epoch ms
+  dueAt: number | null; // epoch ms
   createdAt: number;
   completedAt: number | null;
-  notified: boolean;        // whether we've already fired a notification for this item
+  notified: boolean; // whether we've already fired a notification for this item
 };
 
 export type TodoSort = "manual" | "due" | "priority" | "created";
@@ -76,15 +76,15 @@ export type TodoSettings = {
 
 ## Settings form outline
 
-| Setting                    | Control                                     | Default   | Notes                                                           |
-| -------------------------- | ------------------------------------------- | --------- | --------------------------------------------------------------- |
-| **Default priority**       | select: none / low / medium / high          | `none`    | Applied to newly-added tasks.                                   |
-| **Sort**                   | select: manual / due / priority / created   | `manual`  |                                                                 |
-| **Show completed**         | toggle                                      | `on`      | Off = filter out `done: true` items from the rendered list.    |
-| **Notifications**          | toggle                                      | `off`     | First toggle-on prompts via `Notification.requestPermission`.   |
-| **Clear completed**        | danger button                               | —         | Confirms via `AlertDialog`.                                     |
-| **Vertical padding**       | range 0–80 px                               | `8`       |                                                                 |
-| **Horizontal padding**     | range 0–80 px                               | `12`      |                                                                 |
+| Setting                | Control                                   | Default  | Notes                                                         |
+| ---------------------- | ----------------------------------------- | -------- | ------------------------------------------------------------- |
+| **Default priority**   | select: none / low / medium / high        | `none`   | Applied to newly-added tasks.                                 |
+| **Sort**               | select: manual / due / priority / created | `manual` |                                                               |
+| **Show completed**     | toggle                                    | `on`     | Off = filter out `done: true` items from the rendered list.   |
+| **Notifications**      | toggle                                    | `off`    | First toggle-on prompts via `Notification.requestPermission`. |
+| **Clear completed**    | danger button                             | —        | Confirms via `AlertDialog`.                                   |
+| **Vertical padding**   | range 0–80 px                             | `8`      |                                                               |
+| **Horizontal padding** | range 0–80 px                             | `12`     |                                                               |
 
 ## Implementation notes
 

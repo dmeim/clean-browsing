@@ -47,22 +47,22 @@ export type TimerPreset = {
 };
 
 export type TimerSettings = {
-  defaultDurationMs: number;       // the duration used by Start when no preset is picked
-  notifications: boolean;          // fire a browser notification on expiry
+  defaultDurationMs: number; // the duration used by Start when no preset is picked
+  notifications: boolean; // fire a browser notification on expiry
   sound: "none" | "beep" | "chime"; // "beep" = synthesized, "chime" = bundled (if/when added)
   progressStyle: "ring" | "bar";
-  autoReset: boolean;              // reset to default after expiry
-  presets: TimerPreset[];          // user-configurable quick buttons
+  autoReset: boolean; // reset to default after expiry
+  presets: TimerPreset[]; // user-configurable quick buttons
   paddingV: number;
   paddingH: number;
 };
 
 export const DEFAULT_PRESETS: TimerPreset[] = [
   { label: "Quick break", durationMs: 5 * 60_000 },
-  { label: "Tea",         durationMs: 10 * 60_000 },
-  { label: "Pomodoro",    durationMs: 25 * 60_000 },
-  { label: "Meeting",     durationMs: 30 * 60_000 },
-  { label: "Lunch",       durationMs: 60 * 60_000 },
+  { label: "Tea", durationMs: 10 * 60_000 },
+  { label: "Pomodoro", durationMs: 25 * 60_000 },
+  { label: "Meeting", durationMs: 30 * 60_000 },
+  { label: "Lunch", durationMs: 60 * 60_000 },
 ];
 ```
 
@@ -70,16 +70,16 @@ The widget's **runtime** state (`startedAt`, `pausedAt`, `state: "idle" | "runni
 
 ## Settings form outline
 
-| Setting              | Control                                 | Default   | Notes                                                           |
-| -------------------- | --------------------------------------- | --------- | --------------------------------------------------------------- |
-| **Default duration** | three number inputs (h / m / s)         | `5 min`   | Used when Start is pressed with no preset selected.             |
-| **Notifications**    | toggle                                  | `on`      | First toggle-on prompts the user via `Notification.requestPermission`. |
-| **Alert sound**      | select: none / beep / chime             | `beep`    | Chime only available if bundled assets land.                    |
-| **Progress style**   | segmented: ring / bar                   | `ring`    | Ring uses an SVG stroke-dasharray.                              |
-| **Auto-reset**       | toggle                                  | `off`     | When on, expiry resets back to the default duration.            |
-| **Presets**          | editable list (label + duration)        | 5 defaults | Use the shadcn-svelte `Input` + drag-handle pattern.            |
-| **Vertical padding** | range 0–80 px                           | `8`       |                                                                 |
-| **Horizontal padding** | range 0–80 px                         | `8`       |                                                                 |
+| Setting                | Control                          | Default    | Notes                                                                  |
+| ---------------------- | -------------------------------- | ---------- | ---------------------------------------------------------------------- |
+| **Default duration**   | three number inputs (h / m / s)  | `5 min`    | Used when Start is pressed with no preset selected.                    |
+| **Notifications**      | toggle                           | `on`       | First toggle-on prompts the user via `Notification.requestPermission`. |
+| **Alert sound**        | select: none / beep / chime      | `beep`     | Chime only available if bundled assets land.                           |
+| **Progress style**     | segmented: ring / bar            | `ring`     | Ring uses an SVG stroke-dasharray.                                     |
+| **Auto-reset**         | toggle                           | `off`      | When on, expiry resets back to the default duration.                   |
+| **Presets**            | editable list (label + duration) | 5 defaults | Use the shadcn-svelte `Input` + drag-handle pattern.                   |
+| **Vertical padding**   | range 0–80 px                    | `8`        |                                                                        |
+| **Horizontal padding** | range 0–80 px                    | `8`        |                                                                        |
 
 ## Implementation notes
 

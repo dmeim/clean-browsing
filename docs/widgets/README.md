@@ -6,28 +6,28 @@ For the developer-facing "how do I build a new widget" walkthrough, see [`../WID
 
 ## Shipping widgets
 
-| Widget                       | ID           | Default size | Summary                                                 |
-| ---------------------------- | ------------ | ------------ | ------------------------------------------------------- |
-| [Clock](./clock.md)          | `clock`      | 4 × 2        | Current time with configurable format and locale       |
-| [Date](./date.md)            | `date`       | 4 × 2        | Current date formatted with a Day.js pattern            |
-| [Search](./search.md)        | `search`     | 8 × 2        | Search bar targeting Google, Bing, DuckDuckGo, or custom |
-| [Calculator](./calculator.md) | `calculator` | 4 × 6        | Basic calculator with optional history                  |
-| [Picture](./picture.md)      | `picture`    | 4 × 4        | Custom image from the shared image library              |
+| Widget                        | ID           | Default size | Summary                                                  |
+| ----------------------------- | ------------ | ------------ | -------------------------------------------------------- |
+| [Clock](./clock.md)           | `clock`      | 4 × 2        | Current time with configurable format and locale         |
+| [Date](./date.md)             | `date`       | 4 × 2        | Current date formatted with a Day.js pattern             |
+| [Search](./search.md)         | `search`     | 8 × 2        | Search bar targeting Google, Bing, DuckDuckGo, or custom |
+| [Calculator](./calculator.md) | `calculator` | 4 × 6        | Basic calculator with optional history                   |
+| [Picture](./picture.md)       | `picture`    | 4 × 4        | Custom image from the shared image library               |
 
 ## In development
 
 These are design documents for widgets that are planned or at the brainstorming stage. None of them ship yet, and everything on these pages is provisional — scope, settings, and even whether a given widget lands at all are open questions. Each page flags the open design decisions that need to be resolved before implementation starts.
 
-| Widget                                   | Status     | Notes                                                                             |
-| ---------------------------------------- | ---------- | --------------------------------------------------------------------------------- |
-| [Notes](./wip-notes.md)                  | ⭕ Planned | Sticky-note editor with auto-save. Plain-text v1, rich text deferred.             |
-| [Timer](./wip-timer.md)                  | 💡 Idea    | Countdown timer with presets and browser notifications.                           |
-| [Stopwatch](./wip-stopwatch.md)          | ⭕ Planned | Precision up-timer with lap history and CSV export.                               |
-| [To-Do / Reminder](./wip-todo.md)        | ⭕ Planned | Per-widget task list with due dates, priority, and opt-in notifications.          |
-| [Weather](./wip-weather.md)              | ⭕ Planned | Open-Meteo-based weather. Makes network calls — opt-in and disclosed in settings. |
-| [Mini-Sites](./wip-mini-sites.md)        | ⭕ Planned | Iframe embed of an external URL; gracefully handles unembeddable sites.           |
-| [Embeds](./wip-embeds.md)                | ⭕ Planned | Paste-an-embed-snippet widget (YouTube, Twitter, etc.) with sanitization.         |
-| [Ping Monitor](./wip-ping-monitor.md)    | ⭕ Planned | HTTP health check with sparkline. Makes network calls by design.                  |
+| Widget                                | Status     | Notes                                                                             |
+| ------------------------------------- | ---------- | --------------------------------------------------------------------------------- |
+| [Notes](./wip-notes.md)               | ⭕ Planned | Sticky-note editor with auto-save. Plain-text v1, rich text deferred.             |
+| [Timer](./wip-timer.md)               | 💡 Idea    | Countdown timer with presets and browser notifications.                           |
+| [Stopwatch](./wip-stopwatch.md)       | ⭕ Planned | Precision up-timer with lap history and CSV export.                               |
+| [To-Do / Reminder](./wip-todo.md)     | ⭕ Planned | Per-widget task list with due dates, priority, and opt-in notifications.          |
+| [Weather](./wip-weather.md)           | ⭕ Planned | Open-Meteo-based weather. Makes network calls — opt-in and disclosed in settings. |
+| [Mini-Sites](./wip-mini-sites.md)     | ⭕ Planned | Iframe embed of an external URL; gracefully handles unembeddable sites.           |
+| [Embeds](./wip-embeds.md)             | ⭕ Planned | Paste-an-embed-snippet widget (YouTube, Twitter, etc.) with sanitization.         |
+| [Ping Monitor](./wip-ping-monitor.md) | ⭕ Planned | HTTP health check with sparkline. Makes network calls by design.                  |
 
 ### Widgets that make network calls
 
