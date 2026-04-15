@@ -112,7 +112,7 @@ The clock widget (`src/lib/widgets/clock/`) is the canonical reference.
    `public/manifest.json` — they must stay in sync. Only bump the minor (Y)
    or major (X) digit if a maintainer has explicitly asked for it.
 5. **Release notes.** If your PR is user-visible, add an entry to the
-   appropriate `release-notes/vX.Y.Z.md` file (create one if it doesn't exist
+   appropriate `docs/release-notes/vX.Y.Z.md` file (create one if it doesn't exist
    yet for the in-progress version).
 
 ### PR Checklist
@@ -156,4 +156,4 @@ radar.
 ## License
 
 By contributing, you agree that your contributions are licensed under the
-project's [MIT License](LICENSE).
+project's [MIT License](../LICENSE).

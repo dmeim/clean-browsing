@@ -79,7 +79,7 @@ jobs:
         env:
           TAG_VERSION: ${{ steps.version.outputs.tag_version }}
         run: |
-          NOTES_PATH="release-notes/v${TAG_VERSION}.md"
+          NOTES_PATH="docs/release-notes/v${TAG_VERSION}.md"
           if [ ! -f "$NOTES_PATH" ]; then
             echo "::error::Missing $NOTES_PATH — every release tag needs a matching release-notes file."
             exit 1

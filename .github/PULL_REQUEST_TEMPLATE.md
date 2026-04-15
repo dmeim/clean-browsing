@@ -36,7 +36,7 @@ Clean Browsing uses `X.Y.Z` semver. By default only the patch (Z) digit moves â€
 
 - [ ] `package.json` version bumped
 - [ ] `public/manifest.json` version bumped to match
-- [ ] `release-notes/vX.Y.Z.md` updated or created (if the change is user-visible)
+- [ ] `docs/release-notes/vX.Y.Z.md` updated or created (if the change is user-visible)
 
 ## Screenshots / recordings
 

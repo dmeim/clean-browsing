@@ -42,7 +42,7 @@ These are used for development, builds, and packaging. None ship to users.
 ## License compatibility
 
 All of the above licenses (MIT, ISC, Apache-2.0, MPL-2.0) are compatible
-with Clean Browsing's own [MIT License](LICENSE) for redistribution as a
+with Clean Browsing's own [MIT License](../LICENSE) for redistribution as a
 Firefox extension. MPL-2.0 dependencies (web-ext) are dev-only and do not
 ship in the packaged extension.
 

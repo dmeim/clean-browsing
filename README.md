@@ -4,7 +4,7 @@
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Firefox Extension](https://img.shields.io/badge/platform-Firefox%20Extension-orange)](https://github.com/dmeim/clean-browsing)
 [![Stack](https://img.shields.io/badge/stack-Svelte%205%20%C2%B7%20Vite%20%C2%B7%20TS%20%C2%B7%20Tailwind%20v4-ff3e00)](src/)
-[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](docs/CONTRIBUTING.md)
 
 **A customizable new tab page for Firefox** — a grid of draggable, resizable widgets, built as a Manifest V2 extension. Everything lives locally; there are no subscriptions, accounts, or external services. Built with **Svelte 5 (runes)**, **Vite**, **TypeScript**, **Tailwind v4**, and **shadcn-svelte**.
 
@@ -80,8 +80,7 @@ clean-browsing/
 │       │   ├── registry.ts
 │       │   └── types.ts
 │       └── components/ui/     # shadcn-svelte primitives (button, card, dialog, …)
-├── docs/                      # Developer documentation
-└── release-notes/
+└── docs/                      # Developer documentation + release notes
 ```
 
 ### Architecture in Five Bullets
@@ -109,7 +108,7 @@ See [`docs/README.md`](docs/README.md) for the deeper walkthrough.
 - **[Component Rules](docs/COMPONENT_RULES.md)** — Svelte 5 patterns and conventions
 - **[UI Behavior](docs/UI_BEHAVIOR.md)** — edit mode, drag/resize, dialogs
 - **[Roadmap](docs/ROADMAP.md)** — what's planned after v1.0
-- **[Release Notes](release-notes/)**
+- **[Release Notes](docs/release-notes/)**
 
 ## 📊 Status
 
@@ -118,7 +117,7 @@ See [`docs/README.md`](docs/README.md) for the deeper walkthrough.
 
 ## 🤝 Contributing
 
-PRs welcome. See [CONTRIBUTING.md](CONTRIBUTING.md).
+PRs welcome. See [CONTRIBUTING.md](docs/CONTRIBUTING.md).
 
 ## 📄 License
 

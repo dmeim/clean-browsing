@@ -80,7 +80,7 @@ Users can export their configuration as JSON for backup or sharing. This export 
 
 If you discover a security vulnerability, please report it responsibly:
 
-1. **Email**: [Create an issue with the security label](../../issues/new)
+1. **Email**: [Create an issue with the security label](../../../issues/new)
 2. **Do not** disclose publicly until we've had a chance to address it
 3. **Include**: Steps to reproduce, potential impact, and suggested fix if known
 

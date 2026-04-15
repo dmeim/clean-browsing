@@ -149,7 +149,7 @@ the release workflow by asserting `package.json.version === manifest.version ===
 
 When the user asks for a release:
 
-1. **Release notes** — create `release-notes/vX.Y.Z.md` summarizing user-facing
+1. **Release notes** — create `docs/release-notes/vX.Y.Z.md` summarizing user-facing
    changes, fixes, and any migration notes. Keep a changelog-style format;
    v1.0.0 is the reference.
 2. **Version bumps** — sync `package.json` and `public/manifest.json` to the

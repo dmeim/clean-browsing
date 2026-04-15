@@ -115,7 +115,7 @@ If we make changes to this privacy policy, we will:
 
 For privacy-related questions:
 
-- Open an issue: [GitHub Issues](../../issues)
+- Open an issue: [GitHub Issues](../../../issues)
 - Review our code: The extension is open source
 
 ---
