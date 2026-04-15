@@ -13,9 +13,7 @@ Desktop.ini
 
 # Build output
 dist/
-
-# Extension manifest (generated/switched)
-extension/manifest.json
+web-ext-artifacts/
 
 # Persistent web-ext dev profile (Firefox storage lives here)
 .firefox-dev-profile/
