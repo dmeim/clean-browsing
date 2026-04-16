@@ -1,7 +1,6 @@
 <script lang="ts">
   import type { WidgetProps } from "$lib/widgets/types.js";
-  import type { TimerSettings, TimerPreset } from "./definition.js";
-  import { DEFAULT_PRESETS } from "./definition.js";
+  import type { TimerSettings } from "./definition.js";
   import { formatElapsed } from "$lib/widgets/_shared/time.js";
   import { playBeep } from "./beepSound.js";
   import {
@@ -22,7 +21,6 @@
   const totalDurationMs = $derived(settings.totalDurationMs ?? 0);
   const pausedRemainingMs = $derived(settings.pausedRemainingMs ?? 0);
   const defaultDurationMs = $derived(settings.defaultDurationMs ?? 5 * 60_000);
-  const presets = $derived<TimerPreset[]>(settings.presets ?? DEFAULT_PRESETS);
   const progressStyle = $derived(settings.progressStyle ?? "ring");
   const autoReset = $derived(settings.autoReset ?? false);
   const padV = $derived(settings.paddingV ?? 8);
@@ -159,10 +157,6 @@
     }
   }
 
-  function handlePreset(preset: TimerPreset) {
-    void startTimer(preset.durationMs);
-  }
-
   // Foreground-expiry handler. If the tab is open when the timer runs
   // out, the background alarm still fires the system notification, but
   // we also want to beep + transition state here so the UI updates.
@@ -235,27 +229,30 @@
 </script>
 
 <div class="widget-card timer">
+  {#if progressStyle === "ring"}
+    <svg class="ring" viewBox="0 0 100 100" aria-hidden="true">
+      <g transform="rotate(-90 50 50)">
+        <circle class="ring-track" cx="50" cy="50" r="45" />
+        <circle
+          class="ring-fill"
+          cx="50"
+          cy="50"
+          r="45"
+          style="stroke-dasharray: {2 * Math.PI * 45}; stroke-dashoffset: {2 *
+            Math.PI *
+            45 *
+            (1 - progress)};"
+        />
+      </g>
+    </svg>
+  {/if}
+
   <div
     class="widget-inner timer-inner"
     style="top: {padV}px; bottom: {padV}px; left: {padH}px; right: {padH}px;"
   >
-    <div class="display-wrap" class:expired={runState === "expired"}>
-      {#if progressStyle === "ring"}
-        <svg class="ring" viewBox="0 0 100 100" aria-hidden="true">
-          <circle class="ring-track" cx="50" cy="50" r="45" />
-          <circle
-            class="ring-fill"
-            cx="50"
-            cy="50"
-            r="45"
-            style="stroke-dasharray: {2 * Math.PI * 45}; stroke-dashoffset: {2 *
-              Math.PI *
-              45 *
-              (1 - progress)};"
-          />
-        </svg>
-      {/if}
-      <div class="display" aria-live="polite">{display}</div>
+    <div class="display" class:expired={runState === "expired"} aria-live="polite">
+      {display}
     </div>
 
     {#if progressStyle === "bar"}
@@ -290,17 +287,6 @@
       </button>
     </div>
 
-    {#if runState === "idle" || runState === "expired"}
-      {#if presets.length > 0}
-        <div class="presets">
-          {#each presets as preset, i (i)}
-            <button type="button" class="preset" onclick={() => handlePreset(preset)}>
-              {preset.label}
-            </button>
-          {/each}
-        </div>
-      {/if}
-    {/if}
   </div>
 </div>
 
@@ -308,21 +294,13 @@
   .timer-inner {
     display: flex;
     flex-direction: column;
-    gap: 0.5rem;
-    color: var(--widget-text, rgb(241 245 249));
-    overflow: hidden;
-  }
-
-  .display-wrap {
-    position: relative;
-    flex: 1;
-    min-height: 0;
-    display: flex;
     align-items: center;
     justify-content: center;
+    gap: 0.5rem;
+    color: var(--widget-text, rgb(241 245 249));
   }
 
-  .display-wrap.expired .display {
+  .display.expired {
     color: rgb(248 113 113);
     animation: pulse 0.8s ease-in-out infinite alternate;
   }
@@ -337,21 +315,24 @@
   }
 
   .display {
-    position: relative;
+    flex: 1;
+    display: flex;
+    align-items: center;
     font-size: 1.8rem;
     font-weight: 600;
     font-variant-numeric: tabular-nums;
     letter-spacing: 0.02em;
     color: var(--widget-accent, rgb(241 245 249));
-    z-index: 1;
   }
 
+  /* Ring fills the entire card so its compositing boundary aligns with
+     the card edge — prevents a visible seam in Firefox when the card
+     uses backdrop-filter. */
   .ring {
     position: absolute;
     inset: 0;
     width: 100%;
     height: 100%;
-    transform: rotate(-90deg);
   }
 
   .ring-track {
@@ -423,27 +404,5 @@
 
   .ctrl.primary:hover {
     background: rgb(59 130 246 / 0.3);
-  }
-
-  .presets {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.3rem;
-    justify-content: center;
-    flex-shrink: 0;
-  }
-
-  .preset {
-    padding: 0.25rem 0.55rem;
-    border-radius: 999px;
-    border: 1px solid rgb(71 85 105);
-    background: rgb(15 23 42 / 0.5);
-    color: rgb(226 232 240);
-    font-size: 0.7rem;
-    cursor: pointer;
-  }
-
-  .preset:hover {
-    background: rgb(30 41 59 / 0.8);
   }
 </style>

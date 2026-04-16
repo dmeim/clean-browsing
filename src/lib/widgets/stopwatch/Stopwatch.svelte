@@ -118,7 +118,7 @@
 <div class="widget-card stopwatch">
   <div
     class="widget-inner stopwatch-inner"
-    style="top: {padV}px; bottom: {padV}px; left: {padH}px; right: {padH}px;"
+    style="padding: {padV}px {padH}px;"
   >
     <div class="display" aria-live="polite">{display}</div>
 
@@ -175,12 +175,15 @@
 
 <style>
   .stopwatch-inner {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    box-sizing: border-box;
     display: flex;
     flex-direction: column;
     align-items: stretch;
     gap: 0.5rem;
     color: var(--widget-text, rgb(241 245 249));
-    overflow: hidden;
   }
 
   .display {
