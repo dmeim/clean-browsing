@@ -12,13 +12,13 @@
   </picture>
 </p>
 
-# Clean-Browsing
-
-[![Version](https://img.shields.io/badge/version-1.2.2-blue)](https://github.com/dmeim/clean-browsing/releases)
-[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Firefox Extension](https://img.shields.io/badge/platform-Firefox%20Extension-orange)](https://github.com/dmeim/clean-browsing)
-[![Stack](https://img.shields.io/badge/stack-Svelte%205%20%C2%B7%20Vite%20%C2%B7%20TS%20%C2%B7%20Tailwind%20v4-ff3e00)](src/)
-[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](docs/CONTRIBUTING.md)
+<p align="center">
+  <a href="https://github.com/dmeim/clean-browsing/releases"><img src="https://img.shields.io/badge/version-1.2.2-blue" alt="Version" /></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="License" /></a>
+  <a href="https://github.com/dmeim/clean-browsing"><img src="https://img.shields.io/badge/platform-Firefox%20Extension-orange" alt="Firefox Extension" /></a>
+  <a href="src/"><img src="https://img.shields.io/badge/stack-Svelte%205%20%C2%B7%20Vite%20%C2%B7%20TS%20%C2%B7%20Tailwind%20v4-ff3e00" alt="Stack" /></a>
+  <a href="docs/CONTRIBUTING.md"><img src="https://img.shields.io/badge/PRs-welcome-brightgreen.svg" alt="PRs Welcome" /></a>
+</p>
 
 **A customizable new tab page for Firefox** — a grid of draggable, resizable widgets, built as a Manifest V2 extension. Everything lives locally; there are no subscriptions, accounts, or external services. Built with **Svelte 5 (runes)**, **Vite**, **TypeScript**, **Tailwind v4**, and **shadcn-svelte**.
 
