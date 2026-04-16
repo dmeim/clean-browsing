@@ -58,7 +58,7 @@ For a one-off manual load, use `about:debugging#/runtime/this-firefox` → **Loa
 ├── svelte.config.js
 ├── public/
 │   ├── manifest.json         # MV2; chrome_url_overrides.newtab = index.html
-│   ├── icons/
+│   ├── branding/             # logo + banner variants (color/mono, filled/outline, svg/png, transparent)
 │   └── resources/
 └── src/
     ├── main.ts               # mount(App, { target: #app })

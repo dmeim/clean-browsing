@@ -40,7 +40,7 @@ Three families:
 --brand-lilac: #cdbfd2;
 ```
 
-Sampled from the logo (`public/icons/logo.png`). Use these for on-brand
+Sampled from the logo (`public/branding/logo-png/logo-color.png`). Use these for on-brand
 accents — highlights, illustrations, status chips, focus rings.
 
 ### shadcn-svelte HSL tokens

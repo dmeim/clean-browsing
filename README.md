@@ -1,6 +1,20 @@
+<p align="center">
+  <picture>
+    <source
+      media="(prefers-color-scheme: dark)"
+      srcset="public/branding/banner-png-transparent/banner-color-white-transparent.png"
+    />
+    <img
+      src="public/branding/banner-png-transparent/banner-color-black-transparent.png"
+      alt="Clean Browsing"
+      width="640"
+    />
+  </picture>
+</p>
+
 # Clean-Browsing
 
-[![Version](https://img.shields.io/badge/version-1.2.0-blue)](https://github.com/dmeim/clean-browsing/releases)
+[![Version](https://img.shields.io/badge/version-1.2.2-blue)](https://github.com/dmeim/clean-browsing/releases)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Firefox Extension](https://img.shields.io/badge/platform-Firefox%20Extension-orange)](https://github.com/dmeim/clean-browsing)
 [![Stack](https://img.shields.io/badge/stack-Svelte%205%20%C2%B7%20Vite%20%C2%B7%20TS%20%C2%B7%20Tailwind%20v4-ff3e00)](src/)
@@ -68,7 +82,7 @@ clean-browsing/
 ├── vite.config.ts             # Svelte + Tailwind v4 + $lib alias
 ├── public/
 │   ├── manifest.json          # MV2 manifest (chrome_url_overrides.newtab)
-│   ├── icons/
+│   ├── branding/              # logo + banner variants (color/mono, filled/outline, transparent)
 │   └── resources/
 ├── src/
 │   ├── main.ts                # Mounts App.svelte into #app

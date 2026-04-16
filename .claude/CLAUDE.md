@@ -43,7 +43,7 @@ prefixes instead (see `src/app.css`).
 ├── tsconfig.json
 ├── public/
 │   ├── manifest.json           # MV2 manifest (gecko min 109.0)
-│   ├── icons/
+│   ├── branding/               # logo + banner variants (color/mono, filled/outline, svg/png, transparent)
 │   └── resources/              # search engine logos, etc.
 └── src/
     ├── main.ts                 # mount(App, { target: #app })

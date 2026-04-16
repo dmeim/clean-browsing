@@ -38,7 +38,7 @@ browser.alarms.onAlarm.addListener((alarm) => {
       type: "basic",
       title: label || "Timer",
       message: "Time's up",
-      iconUrl: "icons/logo.png",
+      iconUrl: "branding/logo-png-transparent/logo-color-transparent.png",
     })
     .catch(() => {
       // notifications may be blocked at the OS level — nothing we can do
