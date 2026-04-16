@@ -13,7 +13,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/dmeim/clean-browsing/releases"><img src="https://img.shields.io/badge/version-1.3.0-blue" alt="Version" /></a>
+  <a href="https://github.com/dmeim/clean-browsing/releases"><img src="https://img.shields.io/badge/version-1.4.0-blue" alt="Version" /></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="License" /></a>
   <a href="https://github.com/dmeim/clean-browsing"><img src="https://img.shields.io/badge/platform-Firefox%20Extension-orange" alt="Firefox Extension" /></a>
   <a href="src/"><img src="https://img.shields.io/badge/stack-Svelte%205%20%C2%B7%20Vite%20%C2%B7%20TS%20%C2%B7%20Tailwind%20v4-ff3e00" alt="Stack" /></a>
@@ -42,6 +42,7 @@
 | 🌤️ **Weather**    | Current conditions + forecast from Open-Meteo (opt-in HTTP) | 6×4          |
 | ⏲️ **Timer**      | Countdown with presets, progress ring, and OS notification  | 4×4          |
 | ⏱️ **Stopwatch**  | Precision stopwatch with lap timing and CSV export          | 4×5          |
+| 📝 **Notes**      | Markdown sticky-note with interactive task checkboxes       | 6×4          |
 
 More widgets are on the [roadmap](docs/ROADMAP.md).
 
