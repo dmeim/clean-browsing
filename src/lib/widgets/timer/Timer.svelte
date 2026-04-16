@@ -230,8 +230,8 @@
 
 <div class="widget-card timer">
   {#if progressStyle === "ring"}
-    <svg class="ring" viewBox="0 0 100 100" aria-hidden="true">
-      <g transform="rotate(-90 50 50)">
+    <svg class="ring" viewBox="0 0 100 140" preserveAspectRatio="xMidYMin meet">
+      <g transform="rotate(-90 50 50)" aria-hidden="true">
         <circle class="ring-track" cx="50" cy="50" r="45" />
         <circle
           class="ring-fill"
@@ -244,6 +244,14 @@
             (1 - progress)};"
         />
       </g>
+      <text
+        x="50"
+        y="50"
+        text-anchor="middle"
+        dominant-baseline="central"
+        class="ring-time"
+        class:expired={runState === "expired"}
+        aria-live="polite">{display}</text>
     </svg>
   {/if}
 
@@ -251,9 +259,11 @@
     class="widget-inner timer-inner"
     style="top: {padV}px; bottom: {padV}px; left: {padH}px; right: {padH}px;"
   >
-    <div class="display" class:expired={runState === "expired"} aria-live="polite">
-      {display}
-    </div>
+    {#if progressStyle !== "ring"}
+      <div class="display" class:expired={runState === "expired"} aria-live="polite">
+        {display}
+      </div>
+    {/if}
 
     {#if progressStyle === "bar"}
       <div class="bar-track" aria-hidden="true">
@@ -295,13 +305,14 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
+    justify-content: flex-end;
     gap: 0.5rem;
     color: var(--widget-text, rgb(241 245 249));
   }
 
-  .display.expired {
+  .expired {
     color: rgb(248 113 113);
+    fill: rgb(248 113 113);
     animation: pulse 0.8s ease-in-out infinite alternate;
   }
 
@@ -314,10 +325,12 @@
     }
   }
 
+  /* Fallback display for bar mode (no ring SVG). */
   .display {
     flex: 1;
     display: flex;
     align-items: center;
+    justify-content: center;
     font-size: 1.8rem;
     font-weight: 600;
     font-variant-numeric: tabular-nums;
@@ -333,6 +346,15 @@
     inset: 0;
     width: 100%;
     height: 100%;
+  }
+
+  /* Time text inside the SVG — scales with the ring automatically. */
+  .ring-time {
+    fill: var(--widget-accent, rgb(241 245 249));
+    font-size: 18px;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.02em;
   }
 
   .ring-track {

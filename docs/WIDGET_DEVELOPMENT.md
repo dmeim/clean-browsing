@@ -362,3 +362,72 @@ You're probably overriding `border-radius` on `.widget-card` — don't. The
 card gets `border-radius` from `--widget-border-radius` automatically, and
 `overflow: hidden` clips inner content to that radius. Set your own inner
 layout, not the outer card's shape.
+
+## Firefox Compositing Seams (the "white border" problem)
+
+`.widget-card` uses `backdrop-filter: blur(…)`. In Firefox, any child
+element that creates a **CSS compositing layer** will show a visible white
+rectangular seam at its boundary. This looks like a ghost border inside the
+widget even though no `border` property is set.
+
+Properties that trigger compositing layers (and therefore seams):
+
+- `position: absolute` or `fixed` **with** any of the below
+- `transform` (any value, including `rotate`)
+- `opacity` less than 1
+- `will-change`
+- `filter` / `backdrop-filter`
+- `overflow: hidden` (in some cases)
+- Large SVG elements (Firefox promotes them to their own layer)
+
+### How to avoid it
+
+1. **Don't use SVG elements inside `.widget-inner`.** If your widget needs
+   an SVG overlay (progress ring, chart, etc.), render it as a **direct
+   child of `.widget-card`**, positioned with `position: absolute; inset: 0`
+   so it fills the entire card. Its compositing boundary then coincides with
+   the card edge and the seam is invisible — it merges with the card's own
+   border. See the timer widget for a working example.
+
+2. **Don't use CSS `transform` inside `.widget-card`.** If you need a
+   rotation (e.g., for an SVG ring starting at 12 o'clock), use an SVG
+   `<g transform="rotate(…)">` attribute instead of CSS
+   `transform: rotate(…)`. SVG-level transforms don't create CSS
+   compositing layers.
+
+3. **Keep `.widget-inner` simple.** Match the pattern used by clock/date:
+   `display: flex`, no `position` override, no `overflow: hidden`, no
+   `z-index`, no `transform`. Let the global `position: absolute` from
+   `app.css` and the standard `top/bottom/left/right` inline insets do the
+   positioning.
+
+### Scaling text to match widget size
+
+If your widget has text that should scale proportionally with the widget
+(not stay at a fixed `rem` size), there are two approaches:
+
+- **`fitText` action** — best for single-line text that should fill its
+  container (clock, date). See `src/lib/grid/fitText.ts`.
+
+- **SVG `<text>` element** — best when text needs to stay centered inside
+  an SVG graphic (e.g., the countdown inside the timer ring). Place the
+  `<text>` at the same coordinates as the graphic's center. The viewBox
+  scaling handles sizing automatically — the text grows and shrinks with
+  the SVG. See the timer widget's `ring-time` class for an example.
+
+### Reference: the timer widget pattern
+
+The timer widget is the canonical example of an SVG-heavy widget that
+avoids the compositing seam:
+
+```
+.widget-card.timer
+  svg.ring (position: absolute, inset: 0 — fills entire card)
+    <g transform="rotate(…)">         ← SVG transform, not CSS
+      <circle class="ring-track" />
+      <circle class="ring-fill" />
+    </g>
+    <text class="ring-time">          ← text inside SVG, scales with ring
+  .widget-inner.timer-inner           ← standard absolute + insets
+    .controls                         ← pinned to bottom with flex-end
+```
