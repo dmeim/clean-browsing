@@ -251,7 +251,8 @@
         dominant-baseline="central"
         class="ring-time"
         class:expired={runState === "expired"}
-        aria-live="polite">{display}</text>
+        aria-live="polite">{display}</text
+      >
     </svg>
   {/if}
 
@@ -296,7 +297,6 @@
         <Icon name="rotate-ccw" size={16} />
       </button>
     </div>
-
   </div>
 </div>
 

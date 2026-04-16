@@ -116,10 +116,7 @@
 </script>
 
 <div class="widget-card stopwatch">
-  <div
-    class="widget-inner stopwatch-inner"
-    style="padding: {padV}px {padH}px;"
-  >
+  <div class="widget-inner stopwatch-inner" style="padding: {padV}px {padH}px;">
     <div class="display" aria-live="polite">{display}</div>
 
     <div class="controls">
