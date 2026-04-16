@@ -2,7 +2,7 @@
   "manifest_version": 2,
   "name": "Clean Browsing",
   "version": "1.3.0",
-  "description": "A customizable, local-first new tab page for Firefox — a grid of draggable, resizable widgets.",
+  "description": "A customizable, local-first new tab page for Firefox with a grid of draggable, resizable widgets.",
   "permissions": [
     "storage",
     "unlimitedStorage",

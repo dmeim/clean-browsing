@@ -40,8 +40,8 @@
 | 🧮 **Calculator** | Keyboard-friendly calculator                                | 4×6          |
 | 🖼️ **Picture**    | User-supplied image tile                                    | 4×4          |
 | 🌤️ **Weather**    | Current conditions + forecast from Open-Meteo (opt-in HTTP) | 6×4          |
-| ⏱️ **Stopwatch**  | Start/stop/lap stopwatch                                    | 4×3          |
-| ⏲️ **Timer**      | Countdown with OS notification                              | 4×3          |
+| ⏲️ **Timer**      | Countdown with presets, progress ring, and OS notification  | 4×4          |
+| ⏱️ **Stopwatch**  | Precision stopwatch with lap timing and CSV export          | 4×5          |
 
 More widgets are on the [roadmap](docs/ROADMAP.md).
 

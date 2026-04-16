@@ -14,6 +14,8 @@ For the developer-facing "how do I build a new widget" walkthrough, see [`../WID
 | [Calculator](./calculator.md) | `calculator` | 4 × 6        | Basic calculator with optional history                        |
 | [Picture](./picture.md)       | `picture`    | 4 × 4        | Custom image from the shared image library                    |
 | [Weather](./weather.md)       | `weather`    | 6 × 4        | Current conditions and forecast from Open-Meteo (opt-in HTTP) |
+| [Timer](./timer.md)           | `timer`      | 4 × 4        | Countdown timer with presets, progress ring, and OS alerts    |
+| [Stopwatch](./stopwatch.md)   | `stopwatch`  | 4 × 5        | Precision stopwatch with lap timing and CSV export            |
 
 ## In development
 
@@ -22,8 +24,6 @@ These are design documents for widgets that are planned or at the brainstorming 
 | Widget                                | Status     | Notes                                                                     |
 | ------------------------------------- | ---------- | ------------------------------------------------------------------------- |
 | [Notes](./wip-notes.md)               | ⭕ Planned | Sticky-note editor with auto-save. Plain-text v1, rich text deferred.     |
-| [Timer](./wip-timer.md)               | 💡 Idea    | Countdown timer with presets and browser notifications.                   |
-| [Stopwatch](./wip-stopwatch.md)       | ⭕ Planned | Precision up-timer with lap history and CSV export.                       |
 | [To-Do / Reminder](./wip-todo.md)     | ⭕ Planned | Per-widget task list with due dates, priority, and opt-in notifications.  |
 | [Mini-Sites](./wip-mini-sites.md)     | ⭕ Planned | Iframe embed of an external URL; gracefully handles unembeddable sites.   |
 | [Embeds](./wip-embeds.md)             | ⭕ Planned | Paste-an-embed-snippet widget (YouTube, Twitter, etc.) with sanitization. |

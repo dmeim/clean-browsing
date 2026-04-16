@@ -49,9 +49,7 @@ Widgets that could be built next. Each would be a new folder under
 | ------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Weather**               | Needs geolocation + a weather API. Network calls are allowed for this widget under the project's "widgets can fetch what they need to function" policy, but the implementation must be opt-in, clearly disclosed in the settings dialog, and reflected in the privacy policy. Open-Meteo (no API key, global) is the leading candidate. See [`docs/widgets/wip-weather.md`](widgets/wip-weather.md). |
 | **To-Do**                 | Straightforward: a list store per-instance. Notifications API is optional.                                                                                                                                                                                                                                                                                                                           |
-| **Timer**                 | Countdown timer. No external deps. Native `Notification` API for "timer done."                                                                                                                                                                                                                                                                                                                       |
-| **Stopwatch**             | Precision timer with lap records. No external deps.                                                                                                                                                                                                                                                                                                                                                  |
-| **Pomodoro**              | Specialized timer — build on top of a generic Timer widget rather than duplicating logic.                                                                                                                                                                                                                                                                                                            |
+| **Pomodoro**              | Specialized timer — build on top of the shipped Timer widget rather than duplicating logic.                                                                                                                                                                                                                                                                                                          |
 | **World Clock**           | Multiple timezones. Likely a variant of the Clock widget rather than a new one.                                                                                                                                                                                                                                                                                                                      |
 | **RSS reader**            | Needs a CORS-safe fetch path. Local-first-ish if the user supplies their own feed URLs.                                                                                                                                                                                                                                                                                                              |
 | **Top sites / bookmarks** | Requires the `topSites` or `bookmarks` permission — opt-in via the extension permission model.                                                                                                                                                                                                                                                                                                       |
@@ -113,17 +111,18 @@ completeness; don't assume any of these will ship.
 - **Widget marketplace / plugin system** — load third-party widgets from
   a directory. Big architectural shift; needs careful sandboxing.
 
-## Shipped in v1.0.0
+## Shipped
 
-For reference, what the first release actually contains:
-
-- 24×16 widget grid with drag, resize, edit mode
-- Persistent layout in `browser.storage.local`
-- Five built-in widgets: Clock, Date, Search, Calculator, Picture
-- Per-widget settings dialogs
-- Global widget appearance defaults (font size/weight/color, backgrounds,
-  blur, border radius, padding, alignment)
-- Light / dark mode via `mode-watcher`
-- JSON settings export
-- ZIP image library export via `fflate`
-- Firefox MV2 packaging via `web-ext`
+- **v1.3.0** — Timer and Stopwatch widgets. See [`release-notes/v1.3.0.md`](release-notes/v1.3.0.md).
+- **v1.0.0** — Initial rewrite. For reference, what the first release
+  actually contains:
+  - 24×16 widget grid with drag, resize, edit mode
+  - Persistent layout in `browser.storage.local`
+  - Five built-in widgets: Clock, Date, Search, Calculator, Picture
+  - Per-widget settings dialogs
+  - Global widget appearance defaults (font size/weight/color, backgrounds,
+    blur, border radius, padding, alignment)
+  - Light / dark mode via `mode-watcher`
+  - JSON settings export
+  - ZIP image library export via `fflate`
+  - Firefox MV2 packaging via `web-ext`

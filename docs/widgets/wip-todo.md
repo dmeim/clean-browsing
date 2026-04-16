@@ -98,18 +98,7 @@ export type TodoSettings = {
 
 ## Manifest impact
 
-Adding the Todo widget requires:
-
-```diff
-  "permissions": [
-    "storage",
--   "unlimitedStorage"
-+   "unlimitedStorage",
-+   "notifications"
-  ]
-```
-
-Flag this in the release notes when the widget ships. If the Timer widget lands first, the permission is already added and this is a no-op.
+None. The `notifications` permission used for reminders already landed with the shipped Timer widget in v1.3.0.
 
 ## Testing checklist (Firefox MV2)
 
