@@ -30,7 +30,7 @@
 - 🧱 **Component library** — shadcn-svelte + bits-ui primitives, styled with Tailwind v4
 - ⚡ **Fast feedback loop** — `vite build --watch` + `web-ext run` for live Firefox reloads
 
-## 🧩 Shipped Widgets
+## 🧩 Supported Widgets
 
 | Widget            | Description                                                 | Default size |
 | ----------------- | ----------------------------------------------------------- | ------------ |
@@ -40,95 +40,42 @@
 | 🧮 **Calculator** | Keyboard-friendly calculator                                | 4×6          |
 | 🖼️ **Picture**    | User-supplied image tile                                    | 4×4          |
 | 🌤️ **Weather**    | Current conditions + forecast from Open-Meteo (opt-in HTTP) | 6×4          |
+| ⏱️ **Stopwatch**  | Start/stop/lap stopwatch                                    | 4×3          |
+| ⏲️ **Timer**      | Countdown with OS notification                              | 4×3          |
 
-Each widget lives in its own folder under [`src/lib/widgets/<name>/`](src/lib/widgets) as a `{Widget}.svelte` + `{Widget}Settings.svelte` + `definition.ts` trio, registered through a central registry.
+More widgets are on the [roadmap](docs/ROADMAP.md).
 
-## 🚀 Quick Start (Users)
+## 🚀 Quick Start
 
-1. Clone the repo and build the extension:
-   ```bash
-   git clone https://github.com/dmeim/clean-browsing.git
-   cd clean-browsing
-   npm install
-   npm run build
-   ```
-2. In Firefox, open `about:debugging#/runtime/this-firefox` → **Load Temporary Add-on…** → pick `dist/manifest.json`.
+1. Download the latest `clean_browsing-*.xpi` (or `.zip`) from the [**Releases** page](https://github.com/dmeim/clean-browsing/releases/latest).
+2. In Firefox, open `about:addons` → gear icon → **Install Add-on From File…** → pick the downloaded `.xpi`.
 3. Open a new tab. Use the toolbar's ✎ button to toggle edit mode and drop in widgets.
 
-## 🛠️ Developer Setup
+> Unsigned builds may require `xpinstall.signatures.required = false` in `about:config`, or use Firefox Developer Edition / Nightly.
 
-Node 20+ is recommended.
+### Advanced: Build from source
+
+Prefer to build it yourself? Clone the repo and load it as a temporary add-on:
 
 ```bash
+git clone https://github.com/dmeim/clean-browsing.git
+cd clean-browsing
 npm install
-
-# Live dev: rebuilds on change + launches Firefox with the extension loaded
-npm run dev
-
-# One-off production build (outputs to dist/)
 npm run build
-
-# Type + Svelte diagnostics
-npm run check
 ```
 
-`npm run dev` runs `vite build --watch` alongside `web-ext run --source-dir=dist --target=firefox-desktop`, so edits to `.svelte`/`.ts`/`.css` files rebuild and hot-reload the add-on automatically.
-
-### Project Structure
-
-```
-clean-browsing/
-├── index.html                 # Vite entry (becomes the new tab page)
-├── vite.config.ts             # Svelte + Tailwind v4 + $lib alias
-├── public/
-│   ├── manifest.json          # MV2 manifest (chrome_url_overrides.newtab)
-│   ├── branding/              # logo + banner variants (color/mono, filled/outline, transparent)
-│   └── resources/
-├── src/
-│   ├── main.ts                # Mounts App.svelte into #app
-│   ├── App.svelte
-│   ├── app.css                # Tailwind v4 entry
-│   └── lib/
-│       ├── grid/              # Grid.svelte, GridItem.svelte, store.svelte.ts
-│       ├── ui/                # Toolbar, dialogs, uiStore.svelte.ts
-│       ├── widgets/           # clock, date, search, calculator, picture
-│       │   ├── registry.ts
-│       │   └── types.ts
-│       └── components/ui/     # shadcn-svelte primitives (button, card, dialog, …)
-└── docs/                      # Developer documentation + release notes
-```
-
-### Architecture in Five Bullets
-
-- **Grid store** (`src/lib/grid/store.svelte.ts`) — a Svelte 5 rune-based store that owns the `GridLayout` (`cols`, `rows`, `instances`) and persists it to `browser.storage.local` under `clean-browsing:layout:v2`. Exposes `addWidget`, `moveWidget`, `resizeWidget`, `canPlace`, `findFreeSlot`, etc.
-- **Grid components** — `Grid.svelte` renders a CSS grid of `GridItem.svelte`. `GridItem` handles pointer-capture drag/resize with cell-stride math read from the parent's computed grid template. Drag preview follows the cursor freely; placement is validated on drop.
-- **Widget registry** (`src/lib/widgets/registry.ts`) — a `Map<string, WidgetDefinition>` populated by each widget's `definition.ts` at module load. Definitions bundle `component`, `settingsComponent`, `defaultSize`/`minSize`/`maxSize`, and typed `defaultSettings`.
-- **UI store** (`src/lib/ui/uiStore.svelte.ts`) — tracks edit mode, open dialogs (add widget, settings, per-widget settings).
-- **Styling** — Tailwind v4 via `@tailwindcss/vite` (no PostCSS config, no content globs), with shadcn-svelte components under `src/lib/components/ui/` using `tailwind-variants`, `clsx`, and `lucide-svelte` icons.
-
-### Adding a Widget
-
-1. Create `src/lib/widgets/<name>/` with `<Name>.svelte`, `<Name>Settings.svelte`, and `definition.ts`.
-2. In `definition.ts`, export a typed `WidgetDefinition<TSettings>` and call `registerWidget(def)` at the bottom of the file.
-3. Import the definition module from `src/lib/widgets/index.ts` so the registration side-effect runs at startup.
-4. `npm run dev` — the widget shows up in the Add Widget dialog.
-
-See [`docs/README.md`](docs/README.md) for the deeper walkthrough.
+Then open `about:debugging#/runtime/this-firefox` → **Load Temporary Add-on…** → pick `dist/manifest.json`.
 
 ## 📚 Documentation
 
-- **[Developer Guide](docs/README.md)** — stack overview and architecture
+- **[Developer Setup](docs/DEVELOPER.md)** — local build, project structure, architecture overview
+- **[Developer Guide](docs/README.md)** — stack overview and deep-dive
 - **[Widget Development](docs/WIDGET_DEVELOPMENT.md)** — how to build a new widget
 - **[Styling Guide](docs/STYLING_GUIDE.md)** — Tailwind v4 and design tokens
 - **[Component Rules](docs/COMPONENT_RULES.md)** — Svelte 5 patterns and conventions
 - **[UI Behavior](docs/UI_BEHAVIOR.md)** — edit mode, drag/resize, dialogs
-- **[Roadmap](docs/ROADMAP.md)** — what's planned after v1.0
+- **[Roadmap](docs/ROADMAP.md)** — what's planned next
 - **[Release Notes](docs/release-notes/)**
-
-## 📊 Status
-
-- **Shipped**: 24×16 widget grid with drag/resize, edit mode, persistent layout, clock/date/search/calculator/picture/weather widgets, per-widget settings dialogs, light/dark mode, global widget appearance defaults, JSON settings export, ZIP image library export
-- **Coming next**: see [docs/ROADMAP.md](docs/ROADMAP.md) — notes widget, per-instance appearance overrides, full layout import/export, additional widgets
 
 ## 🤝 Contributing
 
