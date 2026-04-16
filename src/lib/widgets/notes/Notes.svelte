@@ -4,7 +4,7 @@
   import { widgetScaler } from "$lib/grid/widgetScaler.js";
   import { uiStore } from "$lib/ui/uiStore.svelte.js";
   import type { NotesSettings } from "./definition.js";
-  import { renderMarkdown, toggleTaskAt } from "./markdown.js";
+  import { renderMarkdown, toggleTaskAt, removeCompletedTasks } from "./markdown.js";
 
   let { settings, updateSettings }: WidgetProps<NotesSettings> = $props();
 
@@ -20,6 +20,8 @@
   const isEmpty = $derived(content.trim().length === 0);
   const html = $derived(renderMarkdown(content));
 
+  const hasCompleted = $derived(/^[ \t]*(?:(?:[-*+]|\d+\.)[ \t]+)?\[(?:x|X)\]/m.test(content));
+
   const charCount = $derived(content.length);
   const wordCount = $derived(content.trim() === "" ? 0 : content.trim().split(/\s+/).length);
 
@@ -29,6 +31,7 @@
     return 'system-ui, -apple-system, "Segoe UI", Roboto, sans-serif';
   });
 
+  let hovered = $state(false);
   let editOpen = $state(false);
   let draft = $state("");
   let overLimit = $derived(maxCharacters > 0 && draft.length > maxCharacters);
@@ -52,6 +55,11 @@
 
   function handleDialogOpenChange(next: boolean) {
     if (!next) cancelEditor();
+  }
+
+  function clearCompleted(ev: MouseEvent) {
+    ev.stopPropagation();
+    updateSettings({ ...settings, content: removeCompletedTasks(content) });
   }
 
   let bodyEl: HTMLDivElement | undefined = $state();
@@ -90,7 +98,12 @@
   }
 </script>
 
-<div class="widget-card notes">
+<!-- svelte-ignore a11y_no_static_element_interactions -->
+<div
+  class="widget-card notes"
+  onmouseenter={() => (hovered = true)}
+  onmouseleave={() => (hovered = false)}
+>
   <!-- svelte-ignore a11y_no_static_element_interactions -->
   <div
     class="widget-inner notes-inner"
@@ -112,6 +125,16 @@
         <!-- eslint-disable-next-line svelte/no-at-html-tags -->
         {@html html}
       </div>
+
+      <button
+        type="button"
+        class="clear-completed"
+        class:visible={hovered && hasCompleted && !uiStore.editMode}
+        onclick={clearCompleted}
+        ondblclick={(ev) => ev.stopPropagation()}
+      >
+        Clear completed
+      </button>
     {/if}
 
     {#if showCounter && !isEmpty}
@@ -287,6 +310,30 @@
   .notes-body :global(td) {
     border: 1px solid var(--widget-border, rgb(148 163 184 / 0.4));
     padding: 0.25em 0.5em;
+  }
+
+  .clear-completed {
+    position: absolute;
+    top: 0;
+    right: 0;
+    padding: 0.1rem 0.35rem;
+    font-size: 0.6rem;
+    color: var(--widget-muted, rgb(148 163 184));
+    background: rgb(15 23 42 / 0.5);
+    border: 1px solid rgb(148 163 184 / 0.25);
+    border-radius: 0.25rem;
+    cursor: pointer;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.15s ease;
+  }
+  .clear-completed.visible {
+    opacity: 1;
+    pointer-events: auto;
+  }
+  .clear-completed:hover {
+    color: var(--widget-accent, rgb(241 245 249));
+    background: rgb(15 23 42 / 0.7);
   }
 
   .counter {

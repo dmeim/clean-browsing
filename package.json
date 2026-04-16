@@ -1,7 +1,7 @@
 {
   "name": "clean-browsing",
   "private": true,
-  "version": "1.4.0",
+  "version": "1.4.1",
   "type": "module",
   "scripts": {
     "dev": "concurrently \"vite build --watch\" \"web-ext run --source-dir=dist --target=firefox-desktop --no-reload-extension --firefox-profile=.firefox-dev-profile --profile-create-if-missing --keep-profile-changes\"",

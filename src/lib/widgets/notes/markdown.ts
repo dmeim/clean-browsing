@@ -40,8 +40,13 @@ function postProcess(html: string): string {
   return root.innerHTML;
 }
 
-// Flip the Nth task-list marker in source markdown. Handles both standard
-// GFM (`- [ ]`) and bare Obsidian-style (`[ ]`) task markers.
+export function removeCompletedTasks(source: string): string {
+  return source
+    .split("\n")
+    .filter((line) => !/^[ \t]*(?:(?:[-*+]|\d+\.)[ \t]+)?\[(?:x|X)\]/.test(line))
+    .join("\n");
+}
+
 export function toggleTaskAt(source: string, index: number): string {
   const re = /^([ \t]*(?:(?:[-*+]|\d+\.)[ \t]+)?)\[( |x|X)\]/gm;
   let i = 0;

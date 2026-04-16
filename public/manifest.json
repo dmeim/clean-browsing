@@ -1,7 +1,7 @@
 {
   "manifest_version": 2,
   "name": "Clean Browsing",
-  "version": "1.4.0",
+  "version": "1.4.1",
   "description": "A customizable, local-first new tab page for Firefox with a grid of draggable, resizable widgets.",
   "permissions": [
     "storage",
