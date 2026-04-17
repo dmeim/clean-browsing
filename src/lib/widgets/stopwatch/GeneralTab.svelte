@@ -1,11 +1,9 @@
 <script lang="ts">
-  import type { WidgetSettingsProps } from "$lib/widgets/types.js";
+  import type { WidgetSettingsTabProps } from "$lib/widgets/types.js";
   import type { StopwatchSettings, StopwatchPrecision } from "./definition.js";
 
-  let { settings, updateSettings }: WidgetSettingsProps<StopwatchSettings> = $props();
+  let { settings, updateSettings }: WidgetSettingsTabProps<StopwatchSettings> = $props();
 
-  // Backfill any field missing on older instances so the form always has a
-  // complete settings shape to work with.
   const normalized = $derived<StopwatchSettings>({
     runState: settings.runState ?? "idle",
     startedAtEpoch: settings.startedAtEpoch ?? 0,
@@ -23,9 +21,6 @@
     updateSettings({ ...normalized, [key]: value });
   }
 
-  // Two-step confirm for destructive "Clear history" — we don't have a
-  // shadcn alert-dialog primitive and `confirm()` is visually jarring, so
-  // a first click arms the button and a second click performs the clear.
   let confirmClear = $state(false);
   let confirmTimer = 0;
 
@@ -48,8 +43,6 @@
   function exportCsv() {
     if (normalized.laps.length === 0) return;
     const header = "index,split_ms,total_ms,recorded_at_iso\n";
-    // The persisted array is newest-first; export oldest-first so the csv
-    // reads chronologically.
     const rows = [...normalized.laps]
       .sort((a, b) => a.index - b.index)
       .map((l) => `${l.index},${l.splitMs},${l.totalMs},${new Date(l.recordedAt).toISOString()}`)
@@ -63,7 +56,6 @@
     document.body.appendChild(a);
     a.click();
     a.remove();
-    // Defer revoke so Firefox actually finishes the download in MV2 contexts.
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   }
 
@@ -151,36 +143,6 @@
       </button>
     </div>
   </div>
-
-  <div class="row stack">
-    <div class="label-row">
-      <span class="label">Vertical padding</span>
-      <span class="value">{normalized.paddingV}px</span>
-    </div>
-    <input
-      type="range"
-      min="0"
-      max="80"
-      step="1"
-      value={normalized.paddingV}
-      oninput={(e) => set("paddingV", Number((e.currentTarget as HTMLInputElement).value))}
-    />
-  </div>
-
-  <div class="row stack">
-    <div class="label-row">
-      <span class="label">Horizontal padding</span>
-      <span class="value">{normalized.paddingH}px</span>
-    </div>
-    <input
-      type="range"
-      min="0"
-      max="80"
-      step="1"
-      value={normalized.paddingH}
-      oninput={(e) => set("paddingH", Number((e.currentTarget as HTMLInputElement).value))}
-    />
-  </div>
 </div>
 
 <style>
@@ -235,12 +197,6 @@
     padding: 0.05rem 0.3rem;
     border-radius: 0.25rem;
     color: rgb(203 213 225);
-  }
-
-  input[type="range"] {
-    width: 100%;
-    accent-color: rgb(59 130 246);
-    cursor: pointer;
   }
 
   input[type="checkbox"] {

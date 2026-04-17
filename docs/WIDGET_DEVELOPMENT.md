@@ -226,6 +226,7 @@ export type WidgetDefinition<TSettings = unknown> = {
   description?: string;
   component: Component<WidgetProps<TSettings>>;
   settingsComponent?: Component<WidgetSettingsProps<TSettings>>;
+  settingsTabs?: WidgetSettingsTab<TSettings>[];
   defaultSize: GridSize;
   minSize?: GridSize;
   maxSize?: GridSize;
@@ -238,8 +239,16 @@ export type WidgetProps<TSettings = unknown> = {
 };
 ```
 
-- `settingsComponent` is optional — a widget without per-instance settings
-  can omit it, and the "Widget Settings" button will just not appear.
+- `settingsComponent` is the legacy flat settings form. A widget without
+  per-instance settings can omit it, and the "Widget Settings" button will
+  just not appear.
+- `settingsTabs` is the preferred pattern for new widgets. Declaring it
+  triggers a tabbed dialog (sidebar on the left, tab content on the right)
+  mirroring the main app settings modal. Every shipped widget uses this.
+  Drop in the shared [`WidgetAppearanceTab`](../src/lib/ui/settings/WidgetAppearanceTab.svelte)
+  for the Appearance tab and ship your own General / specialized tabs
+  (each implementing `WidgetSettingsTabProps<TSettings>`). When
+  `settingsTabs` is set, `settingsComponent` is ignored.
 - `defaultSettings` is required even if it's `{}`. TypeScript infers
   `TSettings` from this field if you don't pass the generic explicitly.
 - `GridSize` is `{ w: number; h: number }` in cells.

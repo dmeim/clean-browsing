@@ -12,25 +12,16 @@ doesn't imply priority.
 Features with real design weight behind them, likely to land in the next
 few releases.
 
-### Notes widget
+### Inherit global appearance toggle
 
-A local-only rich-text note-taking widget. Design questions:
-
-- Editor: lightweight contenteditable + small toolbar, or pull in a
-  dedicated editor library? Keep bundle size in mind.
-- Storage: per-instance in `WidgetInstance.settings` (fine for short
-  notes), or separate entry under `browser.storage.local` / IndexedDB
-  for larger content?
-- Sync: out of scope (local-first).
-
-### Widget appearance overrides (per-instance)
-
-The global widget appearance system is already in place
-(`src/lib/ui/settings/WidgetAppearanceEditor.svelte`); per-instance
-overrides exist in the type system (`WidgetInstance.styleOverrides`) but
-don't yet have a UI. Plan: add an "Appearance" tab inside
-`WidgetSettingsDialog` that edits `styleOverrides` and merges on top of
-the global defaults.
+Per-instance appearance overrides already ship (edited inline inside
+each widget's **Appearance** tab). The placeholder **Inherit global
+appearance** toggle is live in the UI but wired inert. The remaining
+work is the inherit/override semantics: when unchecked, the widget
+should diverge from the global defaults; when checked, it should track
+them. Design questions are around what happens to existing overrides
+when toggled back on, and whether inherit should be the default for
+new instances.
 
 ### Layout import / export
 
@@ -102,7 +93,6 @@ priority.
 Things that have been mentioned but aren't scoped yet. Include for
 completeness; don't assume any of these will ship.
 
-- **Ping monitor** — URL uptime checks from the new tab page
 - **System monitor** — CPU/RAM via any available browser APIs (none exist
   in MV2, so this is probably never)
 - **Embeds** — configurable iframe widget with safelist
@@ -113,6 +103,8 @@ completeness; don't assume any of these will ship.
 
 ## Shipped
 
+- **v1.5.0** — Ping Monitor widget and tabbed widget settings modals. See [`release-notes/v1.5.0.md`](release-notes/v1.5.0.md).
+- **v1.4.0** — Notes widget. See [`release-notes/v1.4.0.md`](release-notes/v1.4.0.md).
 - **v1.3.0** — Timer and Stopwatch widgets. See [`release-notes/v1.3.0.md`](release-notes/v1.3.0.md).
 - **v1.0.0** — Initial rewrite. For reference, what the first release
   actually contains:

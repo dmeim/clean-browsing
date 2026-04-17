@@ -1,12 +1,12 @@
 <script lang="ts">
-  import type { WidgetSettingsProps } from "$lib/widgets/types.js";
+  import type { WidgetSettingsTabProps } from "$lib/widgets/types.js";
   import type { PictureSettings } from "./definition.js";
   import { imageLibrary } from "$lib/storage/imageLibrary.svelte.js";
   import ImageAdjustments, {
     type ImageAdjustmentValue,
   } from "$lib/ui/common/ImageAdjustments.svelte";
 
-  let { settings, updateSettings }: WidgetSettingsProps<PictureSettings> = $props();
+  let { settings, updateSettings }: WidgetSettingsTabProps<PictureSettings> = $props();
 
   const MAX_BYTES = 5 * 1024 * 1024;
 

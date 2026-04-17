@@ -1,11 +1,11 @@
 <script lang="ts">
-  import type { WidgetSettingsProps } from "$lib/widgets/types.js";
+  import type { WidgetSettingsTabProps } from "$lib/widgets/types.js";
   import type { TimerSettings, TimerPreset } from "./definition.js";
   import { DEFAULT_PRESETS } from "./definition.js";
   import { msToHms, hmsToMs } from "$lib/widgets/_shared/time.js";
   import Icon from "$lib/widgets/_shared/Icon.svelte";
 
-  let { settings, updateSettings }: WidgetSettingsProps<TimerSettings> = $props();
+  let { settings, updateSettings }: WidgetSettingsTabProps<TimerSettings> = $props();
 
   const normalized = $derived<TimerSettings>({
     runState: settings.runState ?? "idle",
@@ -253,36 +253,6 @@
       <button type="button" class="btn" onclick={addPreset}>Add preset</button>
     </div>
   </div>
-
-  <div class="row stack">
-    <div class="label-row">
-      <span class="label">Vertical padding</span>
-      <span class="value">{normalized.paddingV}px</span>
-    </div>
-    <input
-      type="range"
-      min="0"
-      max="80"
-      step="1"
-      value={normalized.paddingV}
-      oninput={(e) => set("paddingV", Number((e.currentTarget as HTMLInputElement).value))}
-    />
-  </div>
-
-  <div class="row stack">
-    <div class="label-row">
-      <span class="label">Horizontal padding</span>
-      <span class="value">{normalized.paddingH}px</span>
-    </div>
-    <input
-      type="range"
-      min="0"
-      max="80"
-      step="1"
-      value={normalized.paddingH}
-      oninput={(e) => set("paddingH", Number((e.currentTarget as HTMLInputElement).value))}
-    />
-  </div>
 </div>
 
 <style>
@@ -315,27 +285,9 @@
     color: rgb(226 232 240);
   }
 
-  .label-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-  }
-
-  .value {
-    font-size: 0.75rem;
-    color: rgb(148 163 184);
-    font-variant-numeric: tabular-nums;
-  }
-
   .hint {
     font-size: 0.7rem;
     color: rgb(148 163 184);
-  }
-
-  input[type="range"] {
-    width: 100%;
-    accent-color: rgb(59 130 246);
-    cursor: pointer;
   }
 
   input[type="checkbox"] {

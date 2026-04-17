@@ -1,12 +1,12 @@
 <script lang="ts">
   import dayjs from "dayjs";
   import advancedFormat from "dayjs/plugin/advancedFormat.js";
-  import type { WidgetSettingsProps } from "$lib/widgets/types.js";
+  import type { WidgetSettingsTabProps } from "$lib/widgets/types.js";
   import type { DateSettings } from "./definition.js";
 
   dayjs.extend(advancedFormat);
 
-  let { settings, updateSettings }: WidgetSettingsProps<DateSettings> = $props();
+  let { settings, updateSettings }: WidgetSettingsTabProps<DateSettings> = $props();
 
   const currentFormat = $derived(settings.format || "YYYY-MM-DD");
 
@@ -95,48 +95,6 @@
   </div>
 
   <div class="section">
-    <div class="label-row">
-      <span class="label">Vertical padding</span>
-      <span class="value"
-        >{settings.paddingV ?? (settings as { padding?: number }).padding ?? 0}px</span
-      >
-    </div>
-    <input
-      type="range"
-      min="0"
-      max="80"
-      step="1"
-      value={settings.paddingV ?? (settings as { padding?: number }).padding ?? 0}
-      oninput={(e) =>
-        updateSettings({
-          ...settings,
-          paddingV: Number((e.currentTarget as HTMLInputElement).value),
-        })}
-    />
-  </div>
-
-  <div class="section">
-    <div class="label-row">
-      <span class="label">Horizontal padding</span>
-      <span class="value"
-        >{settings.paddingH ?? (settings as { padding?: number }).padding ?? 0}px</span
-      >
-    </div>
-    <input
-      type="range"
-      min="0"
-      max="80"
-      step="1"
-      value={settings.paddingH ?? (settings as { padding?: number }).padding ?? 0}
-      oninput={(e) =>
-        updateSettings({
-          ...settings,
-          paddingH: Number((e.currentTarget as HTMLInputElement).value),
-        })}
-    />
-  </div>
-
-  <div class="section">
     <div class="label">Common tokens</div>
     <div class="tokens">
       <div><code>YYYY</code> year</div>
@@ -181,21 +139,6 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-  }
-
-  .value {
-    font-size: 0.75rem;
-    color: rgb(203 213 225);
-    font-variant-numeric: tabular-nums;
-    text-transform: none;
-    letter-spacing: 0;
-    font-weight: 500;
-  }
-
-  input[type="range"] {
-    width: 100%;
-    accent-color: rgb(59 130 246);
-    cursor: pointer;
   }
 
   .help-link {

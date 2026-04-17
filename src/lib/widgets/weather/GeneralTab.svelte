@@ -1,9 +1,9 @@
 <script lang="ts">
-  import type { WidgetSettingsProps } from "$lib/widgets/types.js";
+  import type { WidgetSettingsTabProps } from "$lib/widgets/types.js";
   import type { WeatherSettings, WeatherLocation } from "./definition.js";
   import { geocode, type GeocodeResult } from "./api.js";
 
-  let { settings, updateSettings }: WidgetSettingsProps<WeatherSettings> = $props();
+  let { settings, updateSettings }: WidgetSettingsTabProps<WeatherSettings> = $props();
 
   let query = $state("");
   let searching = $state(false);
@@ -21,7 +21,7 @@
       ...settings,
       location: loc,
       hasBeenConfigured: true,
-      cachedData: null, // force a refetch with the new coordinates
+      cachedData: null,
     });
     results = [];
     query = "";
@@ -242,36 +242,6 @@
       onchange={(e) => set("compactMode", (e.currentTarget as HTMLInputElement).checked)}
     />
   </label>
-
-  <div class="section">
-    <div class="label-row">
-      <span class="label inline">Vertical padding</span>
-      <span class="value">{settings.paddingV ?? 8}px</span>
-    </div>
-    <input
-      type="range"
-      min="0"
-      max="80"
-      step="1"
-      value={settings.paddingV ?? 8}
-      oninput={(e) => set("paddingV", Number((e.currentTarget as HTMLInputElement).value))}
-    />
-  </div>
-
-  <div class="section">
-    <div class="label-row">
-      <span class="label inline">Horizontal padding</span>
-      <span class="value">{settings.paddingH ?? 12}px</span>
-    </div>
-    <input
-      type="range"
-      min="0"
-      max="80"
-      step="1"
-      value={settings.paddingH ?? 12}
-      oninput={(e) => set("paddingH", Number((e.currentTarget as HTMLInputElement).value))}
-    />
-  </div>
 </div>
 
 <style>
@@ -451,24 +421,6 @@
   input[type="checkbox"] {
     width: 1rem;
     height: 1rem;
-    accent-color: rgb(59 130 246);
-    cursor: pointer;
-  }
-
-  .label-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-  }
-
-  .value {
-    font-size: 0.75rem;
-    color: rgb(203 213 225);
-    font-variant-numeric: tabular-nums;
-  }
-
-  input[type="range"] {
-    width: 100%;
     accent-color: rgb(59 130 246);
     cursor: pointer;
   }

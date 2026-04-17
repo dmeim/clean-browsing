@@ -6,32 +6,32 @@ For the developer-facing "how do I build a new widget" walkthrough, see [`../WID
 
 ## Shipping widgets
 
-| Widget                        | ID           | Default size | Summary                                                       |
-| ----------------------------- | ------------ | ------------ | ------------------------------------------------------------- |
-| [Clock](./clock.md)           | `clock`      | 4 × 2        | Current time with configurable format and locale              |
-| [Date](./date.md)             | `date`       | 4 × 2        | Current date formatted with a Day.js pattern                  |
-| [Search](./search.md)         | `search`     | 8 × 2        | Search bar targeting Google, Bing, DuckDuckGo, or custom      |
-| [Calculator](./calculator.md) | `calculator` | 4 × 6        | Basic calculator with optional history                        |
-| [Picture](./picture.md)       | `picture`    | 4 × 4        | Custom image from the shared image library                    |
-| [Weather](./weather.md)       | `weather`    | 6 × 4        | Current conditions and forecast from Open-Meteo (opt-in HTTP) |
-| [Timer](./timer.md)           | `timer`      | 4 × 4        | Countdown timer with presets, progress ring, and OS alerts    |
-| [Stopwatch](./stopwatch.md)   | `stopwatch`  | 4 × 5        | Precision stopwatch with lap timing and CSV export            |
-| [Notes](./notes.md)           | `notes`      | 6 × 4        | Markdown sticky-note with interactive task checkboxes         |
+| Widget                            | ID             | Default size | Summary                                                        |
+| --------------------------------- | -------------- | ------------ | -------------------------------------------------------------- |
+| [Clock](./clock.md)               | `clock`        | 4 × 2        | Current time with configurable format and locale               |
+| [Date](./date.md)                 | `date`         | 4 × 2        | Current date formatted with a Day.js pattern                   |
+| [Search](./search.md)             | `search`       | 8 × 2        | Search bar targeting Google, Bing, DuckDuckGo, or custom       |
+| [Calculator](./calculator.md)     | `calculator`   | 4 × 6        | Basic calculator with optional history                         |
+| [Picture](./picture.md)           | `picture`      | 4 × 4        | Custom image from the shared image library                     |
+| [Weather](./weather.md)           | `weather`      | 6 × 4        | Current conditions and forecast from Open-Meteo (opt-in HTTP)  |
+| [Timer](./timer.md)               | `timer`        | 4 × 4        | Countdown timer with presets, progress ring, and OS alerts     |
+| [Stopwatch](./stopwatch.md)       | `stopwatch`    | 4 × 5        | Precision stopwatch with lap timing and CSV export             |
+| [Notes](./notes.md)               | `notes`        | 6 × 4        | Markdown sticky-note with interactive task checkboxes          |
+| [Ping Monitor](./ping-monitor.md) | `ping-monitor` | 6 × 3        | Per-target HTTP health checks with sparklines and uptime stats |
 
 ## In development
 
 These are design documents for widgets that are planned or at the brainstorming stage. None of them ship yet, and everything on these pages is provisional — scope, settings, and even whether a given widget lands at all are open questions. Each page flags the open design decisions that need to be resolved before implementation starts.
 
-| Widget                                | Status     | Notes                                                                     |
-| ------------------------------------- | ---------- | ------------------------------------------------------------------------- |
-| [To-Do / Reminder](./wip-todo.md)     | ⭕ Planned | Per-widget task list with due dates, priority, and opt-in notifications.  |
-| [Mini-Sites](./wip-mini-sites.md)     | ⭕ Planned | Iframe embed of an external URL; gracefully handles unembeddable sites.   |
-| [Embeds](./wip-embeds.md)             | ⭕ Planned | Paste-an-embed-snippet widget (YouTube, Twitter, etc.) with sanitization. |
-| [Ping Monitor](./wip-ping-monitor.md) | ⭕ Planned | HTTP health check with sparkline. Makes network calls by design.          |
+| Widget                            | Status     | Notes                                                                     |
+| --------------------------------- | ---------- | ------------------------------------------------------------------------- |
+| [To-Do / Reminder](./wip-todo.md) | ⭕ Planned | Per-widget task list with due dates, priority, and opt-in notifications.  |
+| [Mini-Sites](./wip-mini-sites.md) | ⭕ Planned | Iframe embed of an external URL; gracefully handles unembeddable sites.   |
+| [Embeds](./wip-embeds.md)         | ⭕ Planned | Paste-an-embed-snippet widget (YouTube, Twitter, etc.) with sanitization. |
 
 ### Widgets that make network calls
 
-Clean Browsing is local-first **by default**, but widgets whose core function requires network access (Weather, Ping Monitor, Embeds, Mini-Sites) are allowed to make HTTP requests under a consistent set of rules:
+Clean Browsing is local-first **by default**, but widgets whose core function requires network access (Weather, Ping Monitor, and future Embeds / Mini-Sites) are allowed to make HTTP requests under a consistent set of rules:
 
 1. **Opt-in.** A freshly-added widget must not fire a network call before the user has configured it. The user has to enter a URL, pick a location, or paste an embed snippet first.
 2. **Disclosed.** The settings dialog for any network-using widget shows a clear notice naming the host(s) the widget will contact and the rough frequency.

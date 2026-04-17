@@ -1,12 +1,21 @@
 <script lang="ts">
   import type { WidgetSettingsTabProps } from "$lib/widgets/types.js";
   import type { WidgetDefaults, WidgetStylePreset } from "$lib/settings/types.js";
-  import WidgetAppearanceEditor from "$lib/ui/settings/WidgetAppearanceEditor.svelte";
-  import WidgetPresetBar from "$lib/ui/settings/WidgetPresetBar.svelte";
-  import WidgetPreviewTile from "$lib/ui/settings/WidgetPreviewTile.svelte";
-  import PaddingControl from "$lib/ui/settings/PaddingControl.svelte";
-  import type { PingMonitorSettings } from "../definition.js";
+  import WidgetAppearanceEditor from "./WidgetAppearanceEditor.svelte";
+  import WidgetPresetBar from "./WidgetPresetBar.svelte";
+  import WidgetPreviewTile from "./WidgetPreviewTile.svelte";
+  import PaddingControl from "./PaddingControl.svelte";
 
+  // This tab is generic over any widget's settings shape. TypeScript
+  // generics are invariant, so widening to `any` lets every widget's
+  // definition drop this component into its settingsTabs array without
+  // casting. Widgets that don't define paddingV/paddingH (like Picture,
+  // which uses a single inner image padding) get a tab without the
+  // padding section.
+  // TypeScript generics are invariant, so widening to `any` lets every
+  // widget's definition drop this component into its settingsTabs array
+  // without a cast. The paddedSettings derived below narrows safely for
+  // internal use.
   let {
     settings,
     updateSettings,
@@ -14,10 +23,14 @@
     setWorkingStyle,
     hasOverrides,
     resetOverrides,
-  }: WidgetSettingsTabProps<PingMonitorSettings> = $props();
+  }: WidgetSettingsTabProps<any> = $props();
 
-  const padV = $derived(settings.paddingV ?? 8);
-  const padH = $derived(settings.paddingH ?? 8);
+  const paddedSettings = $derived(settings as { paddingV?: number; paddingH?: number });
+  const showPadding = $derived(
+    paddedSettings.paddingV !== undefined || paddedSettings.paddingH !== undefined,
+  );
+  const padV = $derived(paddedSettings.paddingV ?? 0);
+  const padH = $derived(paddedSettings.paddingH ?? 0);
 
   function applyPreset(preset: WidgetStylePreset) {
     setWorkingStyle($state.snapshot(preset.style) as WidgetDefaults);
@@ -25,14 +38,17 @@
 </script>
 
 <div class="tab-body">
-  <section class="group">
-    <h3 class="group-title">Padding</h3>
-    <PaddingControl
-      paddingV={padV}
-      paddingH={padH}
-      onChange={(p) => updateSettings({ ...settings, paddingV: p.paddingV, paddingH: p.paddingH })}
-    />
-  </section>
+  {#if showPadding}
+    <section class="group">
+      <h3 class="group-title">Padding</h3>
+      <PaddingControl
+        paddingV={padV}
+        paddingH={padH}
+        onChange={(p) =>
+          updateSettings({ ...settings, paddingV: p.paddingV, paddingH: p.paddingH })}
+      />
+    </section>
+  {/if}
 
   <section class="group">
     <label class="row disabled-row" title="Coming soon">

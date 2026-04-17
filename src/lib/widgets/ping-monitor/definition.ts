@@ -1,7 +1,7 @@
 import type { WidgetDefinition } from "$lib/widgets/types.js";
 import { registerWidget } from "$lib/widgets/registry.js";
 import PingMonitor from "./PingMonitor.svelte";
-import AppearanceTab from "./tabs/AppearanceTab.svelte";
+import WidgetAppearanceTab from "$lib/ui/settings/WidgetAppearanceTab.svelte";
 import GeneralTab from "./tabs/GeneralTab.svelte";
 import TargetsTab from "./tabs/TargetsTab.svelte";
 
@@ -90,7 +90,7 @@ export const pingMonitorDefinition: WidgetDefinition<PingMonitorSettings> = {
       id: "appearance",
       label: "Appearance",
       icon: "M12 3a9 9 0 1 0 9 9c0-1.66-3-2-3-4s2.34-1 2-3c-.37-2.2-4-5-8-5z M8 14a1 1 0 1 0 0-2 1 1 0 0 0 0 2z M12 9a1 1 0 1 0 0-2 1 1 0 0 0 0 2z M16 14a1 1 0 1 0 0-2 1 1 0 0 0 0 2z",
-      component: AppearanceTab,
+      component: WidgetAppearanceTab,
     },
     {
       id: "general",

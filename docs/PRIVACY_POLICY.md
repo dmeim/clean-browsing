@@ -1,6 +1,6 @@
 # Privacy Policy
 
-**Effective date:** 2026-04-15
+**Effective date:** 2026-04-16
 **Extension:** Clean Browsing
 **Applies to:** v1.2.0 and later
 
@@ -83,11 +83,12 @@ Clean Browsing allows individual widgets to make network requests **only when th
 
 ### Network-using widgets currently shipping
 
-| Widget      | Hosts contacted                                      | When                                                                                                                |
-| ----------- | ---------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
-| **Weather** | `api.open-meteo.com`, `geocoding-api.open-meteo.com` | Forecast: only after you pick a location, then on the refresh interval you choose. Geocoding: only when you search. |
+| Widget           | Hosts contacted                                      | When                                                                                                                                                                                   |
+| ---------------- | ---------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Weather**      | `api.open-meteo.com`, `geocoding-api.open-meteo.com` | Forecast: only after you pick a location, then on the refresh interval you choose. Geocoding: only when you search.                                                                    |
+| **Ping Monitor** | Any hosts you add as targets                         | Only after you add at least one target with a valid URL. Each target runs on its own interval (configurable per target). The widget pauses all checks when the new tab page is closed. |
 
-The Weather widget is the **only** source of outbound HTTP requests in v1.2.0. It will not fire any request until you have configured a location in its settings. A Weather widget that has been added but never configured produces zero network traffic. Coordinates and forecast data are stored only in `browser.storage.local` and are never shared with anyone other than Open-Meteo.
+A Weather or Ping Monitor widget that has been added but never configured produces **zero** network traffic. Ping Monitor uses `mode: "no-cors"` for its fetches, so it needs no host-specific manifest permissions — the trade-off is that responses are opaque (reachable / slow / unreachable, not HTTP status codes).
 
 The Search widget is a special case worth spelling out: when you submit a query, it opens the search engine's results page in a new tab. That is a normal browser navigation you initiated by pressing Enter — the extension itself does not send your query anywhere. Once the results page is open, whatever network activity happens there is between you and your chosen search engine, governed by _their_ privacy policy, not this one.
 
@@ -95,7 +96,6 @@ The Search widget is a special case worth spelling out: when you submit a query,
 
 The following widgets are planned and would introduce network requests if they ship (see `docs/widgets/wip-*.md` for full design notes). None of them are shipping yet. Each would be added to the table above, with its hosts, on the release that lands it.
 
-- **Ping Monitor** — would contact URLs you configure to check whether they're reachable.
 - **Mini-Sites** — would embed URLs you configure inside an iframe.
 - **Embeds** — would render embed snippets you paste, loading resources from the source platforms (YouTube, Spotify, Twitter/X, etc.).
 

@@ -1,8 +1,8 @@
 <script lang="ts">
-  import type { WidgetSettingsProps } from "$lib/widgets/types.js";
+  import type { WidgetSettingsTabProps } from "$lib/widgets/types.js";
   import type { NotesSettings, NotesFontFamily } from "./definition.js";
 
-  let { settings, updateSettings }: WidgetSettingsProps<NotesSettings> = $props();
+  let { settings, updateSettings }: WidgetSettingsTabProps<NotesSettings> = $props();
 
   const normalized = $derived<NotesSettings>({
     content: settings.content ?? "",
@@ -85,36 +85,6 @@
       onchange={(e) => set("showCounter", (e.currentTarget as HTMLInputElement).checked)}
     />
   </label>
-
-  <div class="row stack">
-    <div class="label-row">
-      <span class="label">Vertical padding</span>
-      <span class="value">{normalized.paddingV}px</span>
-    </div>
-    <input
-      type="range"
-      min="0"
-      max="80"
-      step="1"
-      value={normalized.paddingV}
-      oninput={(e) => set("paddingV", Number((e.currentTarget as HTMLInputElement).value))}
-    />
-  </div>
-
-  <div class="row stack">
-    <div class="label-row">
-      <span class="label">Horizontal padding</span>
-      <span class="value">{normalized.paddingH}px</span>
-    </div>
-    <input
-      type="range"
-      min="0"
-      max="80"
-      step="1"
-      value={normalized.paddingH}
-      oninput={(e) => set("paddingH", Number((e.currentTarget as HTMLInputElement).value))}
-    />
-  </div>
 
   <div class="row stack">
     <span class="label">Export</span>
