@@ -75,7 +75,11 @@ function createStore() {
     loadPromise = (async () => {
       const saved = await loadRaw();
       if (saved) {
-        layout = saved;
+        const migrated = migrateLayout(saved);
+        layout = migrated;
+        if (migrated !== saved) {
+          await saveRaw($state.snapshot(layout) as GridLayout);
+        }
       } else {
         layout = defaultLayout();
         loaded = true;
@@ -121,19 +125,29 @@ function createStore() {
     editing = false;
   }
 
+  // Widget definitions express defaultSize/minSize/maxSize in normal-mode
+  // cell units. When the grid is in dense mode (each cell is half a normal
+  // cell on each axis), we scale those values by 2 so widgets keep their
+  // intended physical size in either mode. setDenseGrid() already doubles
+  // existing instances for the same reason.
+  function denseScale(): number {
+    return layout.cols >= DENSE_COLS ? 2 : 1;
+  }
+
   function addWidget(widgetId: string, position?: { x: number; y: number }): void {
     const def = getWidget(widgetId);
     if (!def) {
       console.error(`[grid] unknown widget id "${widgetId}"`);
       return;
     }
+    const m = denseScale();
     const instance: WidgetInstance = {
       instanceId: newInstanceId(),
       widgetId,
       x: position?.x ?? 0,
       y: position?.y ?? 0,
-      w: def.defaultSize.w,
-      h: def.defaultSize.h,
+      w: def.defaultSize.w * m,
+      h: def.defaultSize.h * m,
       settings: structuredClone(def.defaultSettings),
     };
     layout.instances.push(instance);
@@ -208,10 +222,11 @@ function createStore() {
     const inst = layout.instances.find((i) => i.instanceId === instanceId);
     if (!inst) return false;
     const def = getWidget(inst.widgetId);
-    const minW = def?.minSize?.w ?? 1;
-    const minH = def?.minSize?.h ?? 1;
-    const maxW = def?.maxSize?.w ?? layout.cols;
-    const maxH = def?.maxSize?.h ?? layout.rows;
+    const m = denseScale();
+    const minW = (def?.minSize?.w ?? 1) * m;
+    const minH = (def?.minSize?.h ?? 1) * m;
+    const maxW = def?.maxSize ? def.maxSize.w * m : layout.cols;
+    const maxH = def?.maxSize ? def.maxSize.h * m : layout.rows;
     const clampedW = Math.max(minW, Math.min(maxW, w));
     const clampedH = Math.max(minH, Math.min(maxH, h));
     if (!canPlace(instanceId, inst.x, inst.y, clampedW, clampedH)) return false;
@@ -235,7 +250,8 @@ function createStore() {
   function addWidgetAuto(widgetId: string): boolean {
     const def = getWidget(widgetId);
     if (!def) return false;
-    const slot = findFreeSlot(def.defaultSize.w, def.defaultSize.h);
+    const m = denseScale();
+    const slot = findFreeSlot(def.defaultSize.w * m, def.defaultSize.h * m);
     if (!slot) return false;
     addWidget(widgetId, slot);
     return true;
@@ -327,6 +343,25 @@ function createStore() {
     commitEdit,
     cancelEdit,
   };
+}
+
+// One-shot migrations applied to layouts loaded from storage. Returns the
+// same reference if nothing changed, or a new layout if any instance was
+// dropped or rewritten.
+function migrateLayout(saved: GridLayout): GridLayout {
+  const filtered = saved.instances.filter((inst) => {
+    if (inst.widgetId !== "ping-monitor") return true;
+    const s = inst.settings as Record<string, unknown> | null | undefined;
+    // v1.5.0 ping-monitor stored `targets: PingTarget[]`; v1.5.1 stores a
+    // single `target`. Drop the old shape — see release notes.
+    if (s && Array.isArray((s as { targets?: unknown }).targets)) return false;
+    return true;
+  });
+  if (filtered.length === saved.instances.length) return saved;
+  console.info(
+    `[grid] dropped ${saved.instances.length - filtered.length} legacy multi-target ping-monitor instance(s)`,
+  );
+  return { ...saved, instances: filtered };
 }
 
 function defaultLayout(): GridLayout {

@@ -1,8 +1,8 @@
 <script lang="ts">
   import { onDestroy, untrack } from "svelte";
   import type { WidgetProps } from "$lib/widgets/types.js";
-  import type { PingMonitorSettings, PingStatus, PingTarget } from "./definition.js";
-  import { MAX_HISTORY, normalizeTarget } from "./definition.js";
+  import type { PingMonitorSettings, PingStatus } from "./definition.js";
+  import { MAX_HISTORY, normalizeTarget, normalizeUptimeWindows } from "./definition.js";
   import {
     checkUrl,
     normalizeUrl,
@@ -12,199 +12,249 @@
     uptimePercent,
   } from "./ping.js";
   import PingIcon from "./PingIcon.svelte";
-  import PingTargetCard from "./PingTargetCard.svelte";
+  import { uiStore } from "$lib/ui/uiStore.svelte.js";
 
   let { settings, updateSettings }: WidgetProps<PingMonitorSettings> = $props();
 
-  // UI-facing flag: true while any target's check is in flight.
-  let anyLoading = $state(false);
+  let isLoading = $state(false);
+  let hovered = $state(false);
 
-  // Plain bookkeeping (not reactive): prevents spurious transition
-  // notifications on mount and serializes per-target fetches. A reactive
-  // SvelteSet would re-trigger the timer $effect on every mutation,
-  // which caused the v1 infinite-loop bug.
-  const prevStatuses: Record<string, PingStatus> = {};
-  // eslint-disable-next-line svelte/prefer-svelte-reactivity
-  const loadingTargets = new Set<string>();
+  // Plain bookkeeping (not reactive). A reactive value here would re-trigger
+  // the timer $effect on every mutation, which caused the v1 infinite-loop
+  // bug.
+  let prevStatus: PingStatus | null = null;
+  let currentTimer: { id: ReturnType<typeof setInterval>; intervalMs: number } | null = null;
 
-  // Per-target timer bookkeeping, entirely plain (not reactive).
-  // Maps targetId → { id: intervalId, intervalMs }. The $effect below
-  // diffs desired vs actual state; timers are only touched when targets
-  // are added, removed, or have their intervalMs edited. A SvelteMap
-  // here would make every .set() invalidate the effect, looping forever.
-  // eslint-disable-next-line svelte/prefer-svelte-reactivity
-  const timers = new Map<string, { id: ReturnType<typeof setInterval>; intervalMs: number }>();
+  const target = $derived(normalizeTarget(settings.target));
 
-  /**
-   * Normalize the stored targets (handles legacy schema migration) and
-   * return the current read view. We don't persist normalization back
-   * eagerly — that happens the next time the user edits settings or a
-   * check persists history.
-   */
-  function readTargets(): PingTarget[] {
-    const legacy = settings as unknown as Record<string, unknown>;
-    return settings.targets.map((t) => normalizeTarget(t, legacy));
-  }
+  async function runCheck(): Promise<void> {
+    if (isLoading) return;
+    const current = normalizeTarget(settings.target);
+    if (!isValidPingInput(current.url)) return;
 
-  async function runCheckForTarget(targetId: string): Promise<void> {
-    if (loadingTargets.has(targetId)) return;
-    const targets = readTargets();
-    const target = targets.find((t) => t.id === targetId);
-    if (!target || !isValidPingInput(target.url)) return;
-
-    loadingTargets.add(targetId);
-    anyLoading = true;
+    isLoading = true;
     try {
       const sample = await checkUrl(
-        normalizeUrl(target.url),
-        target.timeoutMs,
-        target.slowThresholdMs,
-        target.method,
+        normalizeUrl(current.url),
+        current.timeoutMs,
+        current.slowThresholdMs,
+        current.method,
       );
 
-      // Re-read after the async gap so we never overwrite user edits
-      // made while the fetch was in flight.
-      const fresh = readTargets().find((t) => t.id === targetId);
-      if (!fresh) return; // target was removed while in flight
-
+      // Re-read after the async gap so we never overwrite user edits made
+      // while the fetch was in flight.
+      const fresh = normalizeTarget(settings.target);
       const nextHistory = [...fresh.history, sample].slice(-MAX_HISTORY);
 
-      const prev = prevStatuses[targetId] ?? "unknown";
       if (
         settings.notificationsOnTransition &&
-        prev !== "unknown" &&
-        statusTransitioned(prev, sample.status)
+        prevStatus &&
+        prevStatus !== "unknown" &&
+        statusTransitioned(prevStatus, sample.status)
       ) {
-        fireTransitionNotification(fresh.label, fresh.url, prev, sample.status);
+        fireTransitionNotification(fresh.label, fresh.url, prevStatus, sample.status);
       }
-      prevStatuses[targetId] = sample.status;
+      prevStatus = sample.status;
 
-      const updatedTargets = readTargets().map((t) =>
-        t.id === targetId ? { ...t, history: nextHistory } : t,
-      );
-      updateSettings({ ...settings, targets: updatedTargets });
+      updateSettings({
+        ...settings,
+        target: { ...fresh, history: nextHistory },
+      });
     } finally {
-      loadingTargets.delete(targetId);
-      anyLoading = loadingTargets.size > 0;
+      isLoading = false;
     }
   }
 
-  function checkAll() {
-    for (const t of readTargets()) {
-      if (isValidPingInput(t.url)) runCheckForTarget(t.id);
-    }
-  }
-
-  // Diff-based timer management. This effect re-runs on every settings
-  // change (same reason every prop update triggers a re-run), but the
-  // diff ensures we only touch timers when a target's intervalMs truly
-  // changes, or a target is added/removed. Everything else is a no-op.
+  // Diff-based timer management. Re-runs on every settings change but only
+  // touches the interval when the URL becomes (in)valid or intervalMs
+  // changes. Plain mutable bookkeeping — never read reactively.
   $effect(() => {
-    const targets = readTargets();
+    const t = normalizeTarget(settings.target);
 
-    // Seed prevStatuses on first encounter of each target so we don't
-    // fire a spurious transition notification for the first check.
     untrack(() => {
-      for (const t of targets) {
-        if (!(t.id in prevStatuses) && t.history.length > 0) {
-          prevStatuses[t.id] = t.history[t.history.length - 1].status;
-        }
+      if (prevStatus === null && t.history.length > 0) {
+        prevStatus = t.history[t.history.length - 1].status;
       }
     });
 
-    // Desired state: which targets should have timers, and at what interval.
-    // Plain Map — purely local bookkeeping, never read reactively.
-    // eslint-disable-next-line svelte/prefer-svelte-reactivity
-    const desired = new Map<string, number>();
-    for (const t of targets) {
-      if (isValidPingInput(t.url)) desired.set(t.id, t.intervalMs);
-    }
+    const desired = isValidPingInput(t.url) ? t.intervalMs : null;
 
-    // Remove stale or mis-intervaled timers.
-    for (const [id, { id: timerId, intervalMs }] of timers) {
-      if (desired.get(id) !== intervalMs) {
-        clearInterval(timerId);
-        timers.delete(id);
-      }
+    if (currentTimer && currentTimer.intervalMs !== desired) {
+      clearInterval(currentTimer.id);
+      currentTimer = null;
     }
-
-    // Add missing timers.
-    for (const [id, intervalMs] of desired) {
-      if (!timers.has(id)) {
-        const timerId = setInterval(() => runCheckForTarget(id), intervalMs);
-        timers.set(id, { id: timerId, intervalMs });
-      }
+    if (desired !== null && !currentTimer) {
+      const id = setInterval(runCheck, desired);
+      currentTimer = { id, intervalMs: desired };
     }
   });
 
   onDestroy(() => {
-    for (const { id } of timers.values()) clearInterval(id);
-    timers.clear();
+    if (currentTimer) {
+      clearInterval(currentTimer.id);
+      currentTimer = null;
+    }
   });
 
   const HOUR_MS = 3_600_000;
-  const DAY_MS = 86_400_000;
 
-  const allHistory = $derived(settings.targets.flatMap((t) => t.history ?? []));
-  const uptime1h = $derived(uptimePercent(allHistory, HOUR_MS));
-  const uptime24h = $derived(uptimePercent(allHistory, DAY_MS));
+  const uptimeWindows = $derived(
+    [...normalizeUptimeWindows(settings.uptimeWindows)].sort((a, b) => a - b),
+  );
+
+  const uptimeReadings = $derived(
+    uptimeWindows.map((hours) => ({
+      hours,
+      value: uptimePercent(target.history, hours * HOUR_MS),
+    })),
+  );
 
   function fmtUptime(v: number | null): string {
     return v != null ? `${v.toFixed(1)}%` : "N/A";
   }
 
+  const lastSample = $derived(
+    target.history.length > 0 ? target.history[target.history.length - 1] : null,
+  );
+  const status = $derived<PingStatus>(lastSample?.status ?? "unknown");
+  const delayText = $derived(lastSample?.durationMs != null ? `${lastSample.durationMs} ms` : "--");
+
+  const statusColor = $derived(
+    status === "reachable"
+      ? "var(--ui-success)"
+      : status === "slow"
+        ? "var(--ui-warning)"
+        : status === "unreachable"
+          ? "var(--ui-error)"
+          : "var(--ui-muted-fg, rgb(148 163 184))",
+  );
+
+  const SPARKLINE_COUNT = 20;
+  const SVG_W = 100;
+  const SVG_H = 24;
+
+  const sparklinePoints = $derived.by(() => {
+    const samples = target.history.slice(-SPARKLINE_COUNT);
+    if (samples.length < 2) return "";
+    const durations = samples.map((s) => s.durationMs).filter((d): d is number => d != null);
+    const maxD = Math.max(...durations, target.slowThresholdMs, 1);
+    return samples
+      .map((s, i) => {
+        const x = (i / (samples.length - 1)) * SVG_W;
+        const y = s.durationMs != null ? SVG_H - (s.durationMs / maxD) * (SVG_H - 2) - 1 : 1;
+        return `${x.toFixed(1)},${y.toFixed(1)}`;
+      })
+      .join(" ");
+  });
+
   const padV = $derived(settings.paddingV ?? 8);
   const padH = $derived(settings.paddingH ?? 8);
+
+  const hasUrl = $derived(isValidPingInput(target.url));
+  const showRefresh = $derived(hovered && hasUrl && !uiStore.editMode);
 </script>
 
-<div class="widget-card ping-monitor">
+<!-- svelte-ignore a11y_no_static_element_interactions -->
+<div
+  class="widget-card ping-monitor"
+  onmouseenter={() => (hovered = true)}
+  onmouseleave={() => (hovered = false)}
+>
   <div
     class="widget-inner ping-inner"
     style="top: {padV}px; bottom: {padV}px; left: {padH}px; right: {padH}px;"
   >
-    {#if settings.targets.length === 0}
+    {#if !hasUrl}
       <div class="empty">
         <PingIcon name="wifi" size={28} class="empty-icon" />
-        <span class="empty-text">Open settings to add targets</span>
+        <span class="empty-text">Open settings to set a URL</span>
       </div>
     {:else}
-      <div class="header">
-        <span class="title">Ping Monitor</span>
-        <button
-          type="button"
-          class="refresh-btn"
-          onclick={checkAll}
-          disabled={anyLoading}
-          title="Check now"
-        >
-          <PingIcon name="rotate-cw" size={14} class={anyLoading ? "spin" : ""} />
-        </button>
+      <div class="section section-top">
+        <div class="status-row">
+          <span class="dot" style="background: {statusColor};"></span>
+          <span class="delay" style="color: {statusColor};">{delayText}</span>
+        </div>
       </div>
 
-      <div class="cards">
-        {#each settings.targets as target (target.id)}
-          {@const normalized = (() => {
-            const legacy = settings as unknown as Record<string, unknown>;
-            return normalizeTarget(target, legacy);
-          })()}
-          <PingTargetCard target={normalized} slowThresholdMs={normalized.slowThresholdMs} />
-        {/each}
+      <div class="section section-graph">
+        {#if sparklinePoints}
+          <svg class="sparkline" viewBox="0 0 {SVG_W} {SVG_H}" preserveAspectRatio="none">
+            <polyline
+              points={sparklinePoints}
+              fill="none"
+              stroke={statusColor}
+              stroke-width="1.5"
+              stroke-linejoin="round"
+              stroke-linecap="round"
+            />
+          </svg>
+        {:else}
+          <div class="sparkline-placeholder"></div>
+        {/if}
       </div>
 
-      <div class="stats">
-        <span class="stat">1h: {fmtUptime(uptime1h)}</span>
-        <span class="stat">24h: {fmtUptime(uptime24h)}</span>
+      <div class="section section-bottom">
+        <span class="label-text">{target.label || target.url}</span>
+        <span class="uptime-row">
+          {#each uptimeReadings as reading, i (reading.hours)}
+            {#if i > 0}<span class="uptime-sep">·</span>{/if}
+            <span class="uptime-cell">{reading.hours}h&nbsp;{fmtUptime(reading.value)}</span>
+          {/each}
+        </span>
       </div>
+
+      <button
+        type="button"
+        class="refresh-btn"
+        class:visible={showRefresh}
+        disabled={isLoading}
+        onclick={runCheck}
+        title="Check now"
+      >
+        <PingIcon name="rotate-cw" size={14} class={isLoading ? "spin" : ""} />
+      </button>
     {/if}
   </div>
 </div>
 
 <style>
+  /*
+   * The widget body is a CSS container, and every visible element sizes
+   * itself in cqmin against that container. Same input → same output, so
+   * .delay and .label-text use identical formulas and grow in lockstep.
+   * Sections set vertical proportions via flex-basis; bottom is wider
+   * (36%) than top (24%) because it stacks two lines.
+   */
   .ping-inner {
     display: flex;
     flex-direction: column;
-    gap: 0.4rem;
+    align-items: stretch;
     overflow: hidden;
+    container-type: size;
+    gap: clamp(0.1rem, 1.5cqmin, 0.6rem);
+  }
+
+  .section {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 0;
+    min-width: 0;
+  }
+
+  .section-top {
+    flex: 0 0 22%;
+  }
+  .section-graph {
+    flex: 1 1 auto;
+    display: block;
+    position: relative;
+  }
+  .section-bottom {
+    flex: 0 0 32%;
+    flex-direction: column;
+    gap: clamp(0.1rem, 2cqmin, 0.6rem);
   }
 
   .empty {
@@ -213,51 +263,128 @@
     align-items: center;
     justify-content: center;
     height: 100%;
-    gap: 0.5rem;
+    width: 100%;
+    gap: clamp(0.2rem, 4cqmin, 0.75rem);
     color: rgb(148 163 184);
   }
 
   :global(.empty-icon) {
     opacity: 0.5;
+    width: clamp(1rem, 18cqmin, 3rem);
+    height: clamp(1rem, 18cqmin, 3rem);
   }
 
   .empty-text {
-    font-size: 0.8rem;
+    font-size: clamp(0.55rem, 7cqmin, 1.25rem);
+    text-align: center;
+    line-height: 1.15;
+    padding: 0 0.25rem;
   }
 
-  .header {
+  .status-row {
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    gap: clamp(0.2rem, 3cqmin, 1rem);
+    max-width: 100%;
+  }
+
+  .dot {
+    width: clamp(0.3rem, 4cqmin, 1.75rem);
+    height: clamp(0.3rem, 4cqmin, 1.75rem);
+    border-radius: 50%;
     flex-shrink: 0;
   }
 
-  .title {
-    font-size: 0.75rem;
+  .delay {
+    font-size: clamp(0.7rem, 11cqmin, 5rem);
     font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+    white-space: nowrap;
+  }
+
+  .sparkline,
+  .sparkline-placeholder {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
+
+  .label-text {
+    font-size: clamp(0.6rem, 11cqmin, 5rem);
     color: rgb(148 163 184);
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
+    text-align: center;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    /* Line-height accommodates descenders ('g', 'p', 'y') so that the
+       overflow:hidden box (needed for ellipsis) doesn't clip the bottoms
+       of those glyphs. flex-shrink:0 keeps the line-box at its full
+       1.3em height even when the section gets too tight to hold both
+       lines + gap — without that, the column flex compresses the label
+       and the bottom of the descender disappears under the clip. */
+    line-height: 1.3;
+    padding: 0 0.15rem;
+    flex-shrink: 0;
+  }
+
+  .uptime-row {
+    display: inline-flex;
+    align-items: center;
+    gap: clamp(0.15rem, 2cqmin, 0.85rem);
+    font-size: clamp(0.5rem, 8cqmin, 3.5rem);
+    color: rgb(130 145 168);
+    font-variant-numeric: tabular-nums;
+    line-height: 1.15;
+    max-width: 100%;
+    flex-shrink: 0;
+  }
+
+  .uptime-cell {
+    white-space: nowrap;
+  }
+
+  .uptime-sep {
+    opacity: 0.6;
   }
 
   .refresh-btn {
+    position: absolute;
+    top: clamp(0.05rem, 2cqmin, 0.5rem);
+    right: clamp(0.05rem, 2cqmin, 0.5rem);
     display: flex;
     align-items: center;
     justify-content: center;
-    background: none;
-    border: none;
+    padding: clamp(0.08rem, 2cqmin, 0.5rem);
+    background: rgb(15 23 42 / 0.5);
+    border: 1px solid rgb(148 163 184 / 0.25);
+    border-radius: 0.25rem;
     color: rgb(148 163 184);
     cursor: pointer;
-    padding: 0.15rem;
-    border-radius: 0.25rem;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.15s ease;
+  }
+
+  .refresh-btn :global(svg) {
+    width: clamp(0.55rem, 4cqmin, 1.6rem);
+    height: clamp(0.55rem, 4cqmin, 1.6rem);
+  }
+
+  .refresh-btn.visible {
+    opacity: 1;
+    pointer-events: auto;
   }
 
   .refresh-btn:hover {
     color: rgb(226 232 240);
+    background: rgb(15 23 42 / 0.7);
   }
 
   .refresh-btn:disabled {
-    opacity: 0.5;
     cursor: not-allowed;
   }
 
@@ -272,26 +399,5 @@
     to {
       transform: rotate(360deg);
     }
-  }
-
-  .cards {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.35rem;
-    flex: 1 1 auto;
-    align-content: flex-start;
-    overflow-y: auto;
-  }
-
-  .stats {
-    display: flex;
-    gap: 0.75rem;
-    flex-shrink: 0;
-  }
-
-  .stat {
-    font-size: 0.7rem;
-    color: rgb(148 163 184);
-    font-variant-numeric: tabular-nums;
   }
 </style>

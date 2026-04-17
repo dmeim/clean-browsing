@@ -57,6 +57,12 @@ export type WidgetDefinition<TSettings = unknown> = {
   settingsComponent?: Component<WidgetSettingsProps<TSettings>>;
   /** When present, the widget settings dialog renders a tabbed layout. */
   settingsTabs?: WidgetSettingsTab<TSettings>[];
+  /**
+   * All `*Size` fields are expressed in normal-mode cell units. When the
+   * grid is in dense mode (cells are half-size on each axis), the grid
+   * store scales these values by 2 so the widget keeps its intended
+   * physical size in either mode.
+   */
   defaultSize: GridSize;
   minSize?: GridSize;
   maxSize?: GridSize;
