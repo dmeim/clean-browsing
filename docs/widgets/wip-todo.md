@@ -1,10 +1,14 @@
 # To-Do / Reminder Widget (WIP)
 
-> **Status:** ⭕ Planned
+> **Status:** Superseded by Notes widget
 >
-> **Stage:** Planning
+> **Stage:** Cancelled
 >
-> This is a design document for a widget that does **not** ship yet. Scope and settings are provisional.
+> The Notes widget (v1.4.0) covers the core use case — GFM task-list
+> checkboxes with single-click toggle and a "Clear completed" hover
+> action (v1.4.1). The structured metadata features below (priorities,
+> due dates, notifications, sorting) remain ideas for the future but
+> do not warrant a separate widget today.
 
 ## Overview
 

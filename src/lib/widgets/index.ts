@@ -9,3 +9,4 @@ import "./weather/definition.js";
 import "./stopwatch/definition.js";
 import "./timer/definition.js";
 import "./notes/definition.js";
+import "./ping-monitor/definition.js";
