@@ -1,7 +1,7 @@
 {
   "name": "clean-browsing",
   "private": true,
-  "version": "1.5.1",
+  "version": "1.5.2",
   "type": "module",
   "scripts": {
     "dev": "concurrently \"vite build --watch\" \"web-ext run --source-dir=dist --target=firefox-desktop --no-reload-extension --firefox-profile=.firefox-dev-profile --profile-create-if-missing --keep-profile-changes\"",
@@ -42,6 +42,7 @@
     "dayjs": "^1.11.20",
     "dompurify": "^3.4.0",
     "fflate": "^0.8.2",
+    "lightweight-charts": "^5.1.0",
     "lucide-svelte": "^0.475.0",
     "marked": "^18.0.0",
     "mode-watcher": "^0.5.0",

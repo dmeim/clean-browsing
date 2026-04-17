@@ -18,6 +18,14 @@ export type GridPosition = {
 export type WidgetProps<TSettings = unknown> = {
   settings: TSettings;
   updateSettings: (next: TSettings) => void;
+  /**
+   * Live widget size in **normal-mode** grid cells. In dense mode, the
+   * grid stores cell counts at 2× and we divide them back here so widget
+   * code can use a single set of thresholds regardless of grid density.
+   * Tracks the resize preview, not just the committed size.
+   */
+  gridW: number;
+  gridH: number;
 };
 
 export type WidgetSettingsProps<TSettings = unknown> = {

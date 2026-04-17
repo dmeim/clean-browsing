@@ -26,6 +26,13 @@
   const dispW = $derived(previewW ?? instance.w);
   const dispH = $derived(previewH ?? instance.h);
 
+  // Normal-mode equivalents for widgets that branch on physical size
+  // (e.g. the Stock widget hides its chart below ~2×2 normal). The grid
+  // stores cell counts at 2× in dense mode, so we divide them back here.
+  const denseScale = $derived(gridStore.isDense ? 2 : 1);
+  const gridW = $derived(dispW / denseScale);
+  const gridH = $derived(dispH / denseScale);
+
   const style = $derived(
     `grid-column: ${dispX + 1} / span ${dispW}; ` + `grid-row: ${dispY + 1} / span ${dispH};`,
   );
@@ -266,7 +273,7 @@
   <div class="grid-item-inner" use:widgetScaler style={widgetStyleVars}>
     {#if def}
       {@const Widget = def.component}
-      <Widget settings={instance.settings} updateSettings={handleUpdateSettings} />
+      <Widget settings={instance.settings} updateSettings={handleUpdateSettings} {gridW} {gridH} />
     {:else}
       <div class="grid-item-missing">
         Unknown widget: <code>{instance.widgetId}</code>
