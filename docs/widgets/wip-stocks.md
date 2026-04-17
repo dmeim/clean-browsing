@@ -1,10 +1,11 @@
 # Stocks & Crypto Widget Suite (WIP)
 
-> **Status:** 🟡 Partial — Stock widget shipped; other three still planned.
+> **Status:** 🟡 Partial — Stock and Stock Watchlist shipped; two still planned.
 >
-> **Stage:** Phase 1 complete (`src/lib/markets/` backbone + Stock widget,
-> v1.5.2). Phases 2–4 (Stock Watchlist, Crypto, Crypto Watchlist) still
-> planned, all on the same backbone.
+> **Stage:** Phase 2 complete (Stock Watchlist widget, v1.5.3). Phase 1
+> shipped the `src/lib/markets/` backbone + Stock widget in v1.5.2.
+> Phases 3–4 (Crypto, Crypto Watchlist) still planned, all on the same
+> backbone.
 >
 > The user-facing Stock widget docs are at [`./stock.md`](./stock.md).
 > Everything below describes the still-WIP three widgets and the shared
@@ -20,7 +21,7 @@ times:
 | Widget               | ID                 | Default size | Status     | Purpose                                   |
 | -------------------- | ------------------ | ------------ | ---------- | ----------------------------------------- |
 | **Stock**            | `stock`            | 4 × 4        | ✅ Shipped | Single ticker — price + stats + chart     |
-| **Stock Watchlist**  | `stock-watchlist`  | 4 × 6        | ⭕ Planned | Table of multiple tickers with sparklines |
+| **Stock Watchlist**  | `stock-watchlist`  | 4 × 6        | ✅ Shipped | Table of multiple tickers with sparklines |
 | **Crypto**           | `crypto`           | 4 × 4        | ⭕ Planned | Single coin — price + stats + chart       |
 | **Crypto Watchlist** | `crypto-watchlist` | 4 × 6        | ⭕ Planned | Table of multiple coins with sparklines   |
 
@@ -154,8 +155,9 @@ loop runs continuously.
 1. **v1.5.2 — ✅ Shipped.** `markets/` backbone (yfinance provider, types,
    format helpers, market-hours utility, lightweight-charts wrapper) +
    Stock widget.
-2. **Next — Stock Watchlist widget.** Reuses everything from phase 1.
-3. **Then — CoinGecko provider + Crypto widget.**
+2. **v1.5.3 — ✅ Shipped.** Stock Watchlist widget + shared Sparkline
+   component + `fetchChartBatch()` provider utility.
+3. **Next — CoinGecko provider + Crypto widget.**
 4. **Finally — Crypto Watchlist widget.**
 
 ---

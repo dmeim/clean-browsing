@@ -173,6 +173,22 @@ export async function fetchChart(
   return { quote, history };
 }
 
+export async function fetchChartBatch(
+  symbols: string[],
+  range: ChartRange,
+  signal?: AbortSignal,
+): Promise<Record<string, ChartFetchResult>> {
+  const results = await Promise.allSettled(symbols.map((s) => fetchChart(s, range, signal)));
+  const out: Record<string, ChartFetchResult> = {};
+  for (let i = 0; i < symbols.length; i++) {
+    const r = results[i];
+    if (r.status === "fulfilled") {
+      out[symbols[i].trim().toUpperCase()] = r.value;
+    }
+  }
+  return out;
+}
+
 export async function searchSymbols(
   query: string,
   signal?: AbortSignal,

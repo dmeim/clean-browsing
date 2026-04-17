@@ -122,8 +122,8 @@ ticker; that's expected behavior, not a widget bug.
 - **Network errors render an inline error bar inside the widget** (no
   toast spam). The cached price stays visible underneath, so a flaky API
   doesn't blank out your dashboard.
-- **One ticker per widget.** To watch several symbols, drop several Stock
-  widgets on the grid.
+- **One ticker per widget.** To watch several symbols at a glance, use the
+  [Stock Watchlist](./stock-watchlist.md) widget.
 
 ## Source-data caveats
 
@@ -139,7 +139,7 @@ of an upstream hiccup.
 
 ## Out of scope (today)
 
-A multi-ticker watchlist widget, a dedicated crypto widget, options
+A dedicated crypto widget, options
 chains, news feeds, earnings calendars, technical indicators (MA / RSI /
 MACD), pre-market and after-hours pricing (mostly paywalled / patchy on
 free Yahoo), portfolio tracking with cost-basis, dividend calendar, and

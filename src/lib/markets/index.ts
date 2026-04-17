@@ -25,4 +25,9 @@ export {
 
 export { isUSEquityMarketOpen, usEquityMarketState } from "./marketHours.js";
 
-export { fetchChart, searchSymbols, type ChartFetchResult } from "./providers/yfinance.js";
+export {
+  fetchChart,
+  fetchChartBatch,
+  searchSymbols,
+  type ChartFetchResult,
+} from "./providers/yfinance.js";

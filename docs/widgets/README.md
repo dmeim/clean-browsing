@@ -6,30 +6,31 @@ For the developer-facing "how do I build a new widget" walkthrough, see [`../WID
 
 ## Shipping widgets
 
-| Widget                            | ID             | Default size | Summary                                                        |
-| --------------------------------- | -------------- | ------------ | -------------------------------------------------------------- |
-| [Clock](./clock.md)               | `clock`        | 4 × 2        | Current time with configurable format and locale               |
-| [Date](./date.md)                 | `date`         | 4 × 2        | Current date formatted with a Day.js pattern                   |
-| [Search](./search.md)             | `search`       | 8 × 2        | Search bar targeting Google, Bing, DuckDuckGo, or custom       |
-| [Calculator](./calculator.md)     | `calculator`   | 4 × 6        | Basic calculator with optional history                         |
-| [Picture](./picture.md)           | `picture`      | 4 × 4        | Custom image from the shared image library                     |
-| [Weather](./weather.md)           | `weather`      | 6 × 4        | Current conditions and forecast from Open-Meteo (opt-in HTTP)  |
-| [Timer](./timer.md)               | `timer`        | 4 × 4        | Countdown timer with presets, progress ring, and OS alerts     |
-| [Stopwatch](./stopwatch.md)       | `stopwatch`    | 4 × 5        | Precision stopwatch with lap timing and CSV export             |
-| [Notes](./notes.md)               | `notes`        | 6 × 4        | Markdown sticky-note with interactive task checkboxes          |
-| [Ping Monitor](./ping-monitor.md) | `ping-monitor` | 6 × 3        | Per-target HTTP health checks with sparklines and uptime stats |
-| [Stock](./stock.md)               | `stock`        | 4 × 4        | Single-ticker price + chart + stats from Yahoo Finance         |
+| Widget                                  | ID                | Default size | Summary                                                        |
+| --------------------------------------- | ----------------- | ------------ | -------------------------------------------------------------- |
+| [Clock](./clock.md)                     | `clock`           | 4 × 2        | Current time with configurable format and locale               |
+| [Date](./date.md)                       | `date`            | 4 × 2        | Current date formatted with a Day.js pattern                   |
+| [Search](./search.md)                   | `search`          | 8 × 2        | Search bar targeting Google, Bing, DuckDuckGo, or custom       |
+| [Calculator](./calculator.md)           | `calculator`      | 4 × 6        | Basic calculator with optional history                         |
+| [Picture](./picture.md)                 | `picture`         | 4 × 4        | Custom image from the shared image library                     |
+| [Weather](./weather.md)                 | `weather`         | 6 × 4        | Current conditions and forecast from Open-Meteo (opt-in HTTP)  |
+| [Timer](./timer.md)                     | `timer`           | 4 × 4        | Countdown timer with presets, progress ring, and OS alerts     |
+| [Stopwatch](./stopwatch.md)             | `stopwatch`       | 4 × 5        | Precision stopwatch with lap timing and CSV export             |
+| [Notes](./notes.md)                     | `notes`           | 6 × 4        | Markdown sticky-note with interactive task checkboxes          |
+| [Ping Monitor](./ping-monitor.md)       | `ping-monitor`    | 6 × 3        | Per-target HTTP health checks with sparklines and uptime stats |
+| [Stock](./stock.md)                     | `stock`           | 4 × 4        | Single-ticker price + chart + stats from Yahoo Finance         |
+| [Stock Watchlist](./stock-watchlist.md) | `stock-watchlist` | 4 × 6        | Multi-ticker table with sparklines from Yahoo Finance          |
 
 ## In development
 
 These are design documents for widgets that are planned or at the brainstorming stage. None of them ship yet, and everything on these pages is provisional — scope, settings, and even whether a given widget lands at all are open questions. Each page flags the open design decisions that need to be resolved before implementation starts.
 
-| Widget                                   | Status     | Notes                                                                                                                  |
-| ---------------------------------------- | ---------- | ---------------------------------------------------------------------------------------------------------------------- |
-| [To-Do / Reminder](./wip-todo.md)        | ⭕ Planned | Per-widget task list with due dates, priority, and opt-in notifications.                                               |
-| [Mini-Sites](./wip-mini-sites.md)        | ⭕ Planned | Iframe embed of an external URL; gracefully handles unembeddable sites.                                                |
-| [Embeds](./wip-embeds.md)                | ⭕ Planned | Paste-an-embed-snippet widget (YouTube, Twitter, etc.) with sanitization.                                              |
-| [Stocks & Crypto suite](./wip-stocks.md) | 🟡 Partial | Stock widget shipped; Stock Watchlist, Crypto, and Crypto Watchlist still planned over the shared `markets/` backbone. |
+| Widget                                   | Status     | Notes                                                                                                             |
+| ---------------------------------------- | ---------- | ----------------------------------------------------------------------------------------------------------------- |
+| [To-Do / Reminder](./wip-todo.md)        | ⭕ Planned | Per-widget task list with due dates, priority, and opt-in notifications.                                          |
+| [Mini-Sites](./wip-mini-sites.md)        | ⭕ Planned | Iframe embed of an external URL; gracefully handles unembeddable sites.                                           |
+| [Embeds](./wip-embeds.md)                | ⭕ Planned | Paste-an-embed-snippet widget (YouTube, Twitter, etc.) with sanitization.                                         |
+| [Stocks & Crypto suite](./wip-stocks.md) | 🟡 Partial | Stock and Stock Watchlist shipped; Crypto and Crypto Watchlist still planned over the shared `markets/` backbone. |
 
 ### Widgets that make network calls
 
