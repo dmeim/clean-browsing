@@ -21,10 +21,12 @@
 
   const def = $derived(instance ? getWidget(instance.widgetId) : undefined);
   const isOpen = $derived(uiStore.widgetSettingsInstanceId !== null);
+  const useTabs = $derived(!!def?.settingsTabs && def.settingsTabs.length > 0);
 
   let committed = false;
   let appearanceOpen = $state(false);
   let workingStyle = $state<WidgetDefaults | null>(null);
+  let activeTabId = $state<string>("");
 
   $effect(() => {
     const open = isOpen;
@@ -34,6 +36,9 @@
       imageLibrary.beginEdit();
       committed = false;
       appearanceOpen = false;
+      if (def?.settingsTabs && def.settingsTabs.length > 0) {
+        activeTabId = def.settingsTabs[0].id;
+      }
       if (instance) {
         // $state.snapshot unwraps Svelte 5 reactive proxies to plain objects.
         // structuredClone would throw "Proxy object could not be cloned" in
@@ -109,14 +114,22 @@
     workingStyle = $state.snapshot(preset.style) as WidgetDefaults;
   }
 
+  function setWorkingStyle(next: WidgetDefaults) {
+    workingStyle = next;
+  }
+
   const hasOverrides = $derived(
     !!instance?.styleOverrides && Object.keys(instance.styleOverrides).length > 0,
   );
+
+  const activeTab = $derived(def?.settingsTabs?.find((t) => t.id === activeTabId));
 </script>
 
 <Dialog.Root open={isOpen} onOpenChange={handleOpenChange}>
   <Dialog.Content
-    class="bg-background border-border text-foreground flex !max-h-[min(90vh,680px)] flex-col !gap-0 !p-0"
+    class={useTabs
+      ? "bg-background border-border text-foreground flex !h-[min(90vh,760px)] !max-h-[min(90vh,760px)] !w-[calc(100vw-2rem)] !max-w-4xl flex-col !gap-0 overflow-hidden !p-0"
+      : "bg-background border-border text-foreground flex !max-h-[min(90vh,680px)] flex-col !gap-0 !p-0"}
   >
     <div class="header">
       <Dialog.Title class="title">
@@ -129,46 +142,91 @@
       {/if}
     </div>
 
-    <div class="body">
-      {#if instance && workingStyle}
-        <section class="appearance-section">
-          <button
-            type="button"
-            class="appearance-header"
-            class:open={appearanceOpen}
-            onclick={() => (appearanceOpen = !appearanceOpen)}
-          >
-            <span class="chev">{appearanceOpen ? "▾" : "▸"}</span>
-            <span class="title-text">Appearance</span>
-            {#if hasOverrides}
-              <span class="badge">custom</span>
-            {/if}
-          </button>
-
-          {#if appearanceOpen}
-            <div class="appearance-body">
-              <WidgetPresetBar onApply={applyPreset} allowSave={false} />
-              <WidgetPreviewTile style={workingStyle} label="Preview" />
-              {#if hasOverrides}
-                <button type="button" class="reset-all" onclick={resetOverrides}>
-                  Reset to global defaults
-                </button>
+    {#if useTabs && def?.settingsTabs && instance && workingStyle}
+      <!-- Tabs mode: sidebar on the left, active tab content on the right. -->
+      <div class="layout">
+        <nav class="tablist" aria-label="Widget settings sections">
+          {#each def.settingsTabs as tab (tab.id)}
+            <button
+              type="button"
+              class="tab"
+              class:active={activeTabId === tab.id}
+              onclick={() => (activeTabId = tab.id)}
+            >
+              {#if tab.icon}
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.8"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path d={tab.icon} />
+                </svg>
               {/if}
-              <WidgetAppearanceEditor bind:value={workingStyle} />
-            </div>
-          {/if}
-        </section>
-      {/if}
+              <span>{tab.label}</span>
+            </button>
+          {/each}
+        </nav>
 
-      {#if instance && def?.settingsComponent}
-        {@const SettingsForm = def.settingsComponent}
-        <SettingsForm settings={instance.settings} updateSettings={handleUpdate} />
-      {:else if instance && !def?.settingsComponent}
-        <p class="text-sm" style="color: var(--ui-muted-fg);">
-          This widget has no configurable settings beyond appearance.
-        </p>
-      {/if}
-    </div>
+        <div class="content">
+          {#if activeTab}
+            {@const TabComponent = activeTab.component}
+            <TabComponent
+              settings={instance.settings}
+              updateSettings={handleUpdate}
+              {workingStyle}
+              {setWorkingStyle}
+              {hasOverrides}
+              {resetOverrides}
+            />
+          {/if}
+        </div>
+      </div>
+    {:else}
+      <!-- Legacy mode: flat body with collapsible appearance + settingsComponent. -->
+      <div class="body">
+        {#if instance && workingStyle}
+          <section class="appearance-section">
+            <button
+              type="button"
+              class="appearance-header"
+              class:open={appearanceOpen}
+              onclick={() => (appearanceOpen = !appearanceOpen)}
+            >
+              <span class="chev">{appearanceOpen ? "▾" : "▸"}</span>
+              <span class="title-text">Appearance</span>
+              {#if hasOverrides}
+                <span class="badge">custom</span>
+              {/if}
+            </button>
+
+            {#if appearanceOpen}
+              <div class="appearance-body">
+                <WidgetPresetBar onApply={applyPreset} allowSave={false} />
+                <WidgetPreviewTile style={workingStyle} label="Preview" />
+                {#if hasOverrides}
+                  <button type="button" class="reset-all" onclick={resetOverrides}>
+                    Reset to global defaults
+                  </button>
+                {/if}
+                <WidgetAppearanceEditor bind:value={workingStyle} />
+              </div>
+            {/if}
+          </section>
+        {/if}
+
+        {#if instance && def?.settingsComponent}
+          {@const SettingsForm = def.settingsComponent}
+          <SettingsForm settings={instance.settings} updateSettings={handleUpdate} />
+        {:else if instance && !def?.settingsComponent && !useTabs}
+          <p class="text-sm" style="color: var(--ui-muted-fg);">
+            This widget has no configurable settings beyond appearance.
+          </p>
+        {/if}
+      </div>
+    {/if}
 
     <div class="footer">
       <button type="button" class="btn" onclick={handleCancel}>Cancel</button>
@@ -193,6 +251,8 @@
     color: var(--ui-muted-fg) !important;
     margin-top: 0.125rem !important;
   }
+
+  /* Legacy flat body */
   .body {
     flex: 1;
     min-height: 0;
@@ -264,6 +324,60 @@
   .reset-all:hover {
     background: var(--ui-subtle-bg-hover);
   }
+
+  /* Tabs mode */
+  .layout {
+    display: grid;
+    grid-template-columns: 190px 1fr;
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .tablist {
+    display: flex;
+    flex-direction: column;
+    gap: 0.125rem;
+    padding: 0.75rem 0.5rem;
+    background: var(--ui-inset-bg);
+    border-right: 1px solid var(--ui-panel-border);
+  }
+
+  .tab {
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+    padding: 0.5rem 0.75rem;
+    border-radius: 0.375rem;
+    border: 1px solid transparent;
+    background: transparent;
+    color: var(--ui-muted-fg);
+    font-size: 0.8125rem;
+    text-align: left;
+    cursor: pointer;
+    transition: all 120ms ease;
+  }
+  .tab svg {
+    width: 1rem;
+    height: 1rem;
+    flex-shrink: 0;
+  }
+  .tab:hover {
+    background: var(--ui-subtle-bg);
+    color: var(--ui-fg);
+  }
+  .tab.active {
+    background: var(--ui-accent-soft-bg);
+    border-color: var(--ui-accent-soft-border);
+    color: var(--ui-accent-soft-fg);
+  }
+
+  .content {
+    padding: 1rem 1.25rem 1.25rem;
+    overflow-y: auto;
+  }
+
+  /* Footer (shared) */
   .footer {
     display: flex;
     justify-content: flex-end;
@@ -291,5 +405,21 @@
   }
   .btn-primary:hover {
     background: var(--ui-accent-hover);
+  }
+
+  @media (max-width: 640px) {
+    .layout {
+      grid-template-columns: 1fr;
+      grid-template-rows: auto 1fr;
+    }
+    .tablist {
+      flex-direction: row;
+      overflow-x: auto;
+      border-right: none;
+      border-bottom: 1px solid var(--ui-panel-border);
+    }
+    .tab {
+      flex-shrink: 0;
+    }
   }
 </style>

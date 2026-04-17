@@ -1,8 +1,8 @@
 <script lang="ts">
   import { onDestroy, untrack } from "svelte";
   import type { WidgetProps } from "$lib/widgets/types.js";
-  import type { PingMonitorSettings, PingStatus } from "./definition.js";
-  import { MAX_HISTORY } from "./definition.js";
+  import type { PingMonitorSettings, PingStatus, PingTarget } from "./definition.js";
+  import { MAX_HISTORY, normalizeTarget } from "./definition.js";
   import {
     checkUrl,
     normalizeUrl,
@@ -16,97 +16,136 @@
 
   let { settings, updateSettings }: WidgetProps<PingMonitorSettings> = $props();
 
-  let loading = $state(false);
+  // UI-facing flag: true while any target's check is in flight.
+  let anyLoading = $state(false);
 
+  // Plain bookkeeping (not reactive): prevents spurious transition
+  // notifications on mount and serializes per-target fetches. A reactive
+  // SvelteSet would re-trigger the timer $effect on every mutation,
+  // which caused the v1 infinite-loop bug.
   const prevStatuses: Record<string, PingStatus> = {};
+  // eslint-disable-next-line svelte/prefer-svelte-reactivity
+  const loadingTargets = new Set<string>();
 
-  async function runChecks() {
-    if (loading) return;
-    const valid = settings.targets.filter((t) => isValidPingInput(t.url));
-    if (valid.length === 0) return;
-    loading = true;
+  // Per-target timer bookkeeping, entirely plain (not reactive).
+  // Maps targetId → { id: intervalId, intervalMs }. The $effect below
+  // diffs desired vs actual state; timers are only touched when targets
+  // are added, removed, or have their intervalMs edited. A SvelteMap
+  // here would make every .set() invalidate the effect, looping forever.
+  // eslint-disable-next-line svelte/prefer-svelte-reactivity
+  const timers = new Map<string, { id: ReturnType<typeof setInterval>; intervalMs: number }>();
+
+  /**
+   * Normalize the stored targets (handles legacy schema migration) and
+   * return the current read view. We don't persist normalization back
+   * eagerly — that happens the next time the user edits settings or a
+   * check persists history.
+   */
+  function readTargets(): PingTarget[] {
+    const legacy = settings as unknown as Record<string, unknown>;
+    return settings.targets.map((t) => normalizeTarget(t, legacy));
+  }
+
+  async function runCheckForTarget(targetId: string): Promise<void> {
+    if (loadingTargets.has(targetId)) return;
+    const targets = readTargets();
+    const target = targets.find((t) => t.id === targetId);
+    if (!target || !isValidPingInput(target.url)) return;
+
+    loadingTargets.add(targetId);
+    anyLoading = true;
     try {
-      const results = await Promise.all(
-        valid.map((t) =>
-          checkUrl(normalizeUrl(t.url), settings.timeoutMs, settings.slowThresholdMs, t.method),
-        ),
+      const sample = await checkUrl(
+        normalizeUrl(target.url),
+        target.timeoutMs,
+        target.slowThresholdMs,
+        target.method,
       );
 
-      // Re-read targets AFTER the async gap so we never overwrite
-      // user edits (label/URL) made while fetches were in flight.
-      const fresh = settings.targets;
-      const updatedTargets = fresh.map((t) => {
-        const idx = valid.findIndex((v) => v.id === t.id);
-        if (idx === -1) return t;
+      // Re-read after the async gap so we never overwrite user edits
+      // made while the fetch was in flight.
+      const fresh = readTargets().find((t) => t.id === targetId);
+      if (!fresh) return; // target was removed while in flight
 
-        const sample = results[idx];
-        const nextHistory = [...t.history, sample].slice(-MAX_HISTORY);
+      const nextHistory = [...fresh.history, sample].slice(-MAX_HISTORY);
 
-        const prev = prevStatuses[t.id] ?? "unknown";
-        if (
-          settings.notificationsOnTransition &&
-          prev !== "unknown" &&
-          statusTransitioned(prev, sample.status)
-        ) {
-          fireTransitionNotification(t.label, t.url, prev, sample.status);
-        }
-        prevStatuses[t.id] = sample.status;
+      const prev = prevStatuses[targetId] ?? "unknown";
+      if (
+        settings.notificationsOnTransition &&
+        prev !== "unknown" &&
+        statusTransitioned(prev, sample.status)
+      ) {
+        fireTransitionNotification(fresh.label, fresh.url, prev, sample.status);
+      }
+      prevStatuses[targetId] = sample.status;
 
-        return { ...t, history: nextHistory };
-      });
-
+      const updatedTargets = readTargets().map((t) =>
+        t.id === targetId ? { ...t, history: nextHistory } : t,
+      );
       updateSettings({ ...settings, targets: updatedTargets });
     } finally {
-      loading = false;
+      loadingTargets.delete(targetId);
+      anyLoading = loadingTargets.size > 0;
     }
   }
 
-  // Timer is managed with plain variables — never recreated unless the
-  // user actually changes intervalSec. runChecks() is NEVER called from
-  // this effect; it only fires from the timer ticks and the manual
-  // "Check now" button.
-  //
-  // Why this matters: every updateSettings() call replaces the settings
-  // prop reference, which causes $effect to re-run even though
-  // intervalSec is unchanged. If we called runChecks() here, each check
-  // would schedule the next one instantly. The value-equality guard
-  // (`interval === currentInterval`) turns the re-run into a no-op.
-  let timerId: ReturnType<typeof setInterval> | null = null;
-  let currentInterval = 0;
-  let seeded = false;
+  function checkAll() {
+    for (const t of readTargets()) {
+      if (isValidPingInput(t.url)) runCheckForTarget(t.id);
+    }
+  }
 
+  // Diff-based timer management. This effect re-runs on every settings
+  // change (same reason every prop update triggers a re-run), but the
+  // diff ensures we only touch timers when a target's intervalMs truly
+  // changes, or a target is added/removed. Everything else is a no-op.
   $effect(() => {
-    const interval = settings.intervalSec;
+    const targets = readTargets();
 
-    // One-time seed of prevStatuses from persisted history so we don't
-    // fire spurious transition notifications on first check.
-    if (!seeded) {
-      seeded = true;
-      untrack(() => {
-        for (const t of settings.targets) {
-          if (t.history.length > 0) {
-            prevStatuses[t.id] = t.history[t.history.length - 1].status;
-          }
+    // Seed prevStatuses on first encounter of each target so we don't
+    // fire a spurious transition notification for the first check.
+    untrack(() => {
+      for (const t of targets) {
+        if (!(t.id in prevStatuses) && t.history.length > 0) {
+          prevStatuses[t.id] = t.history[t.history.length - 1].status;
         }
-      });
+      }
+    });
+
+    // Desired state: which targets should have timers, and at what interval.
+    // Plain Map — purely local bookkeeping, never read reactively.
+    // eslint-disable-next-line svelte/prefer-svelte-reactivity
+    const desired = new Map<string, number>();
+    for (const t of targets) {
+      if (isValidPingInput(t.url)) desired.set(t.id, t.intervalMs);
     }
 
-    // Only (re)create the timer when intervalSec actually changes by value.
-    if (interval === currentInterval) return;
+    // Remove stale or mis-intervaled timers.
+    for (const [id, { id: timerId, intervalMs }] of timers) {
+      if (desired.get(id) !== intervalMs) {
+        clearInterval(timerId);
+        timers.delete(id);
+      }
+    }
 
-    if (timerId !== null) clearInterval(timerId);
-    currentInterval = interval;
-    timerId = setInterval(runChecks, interval * 1000);
+    // Add missing timers.
+    for (const [id, intervalMs] of desired) {
+      if (!timers.has(id)) {
+        const timerId = setInterval(() => runCheckForTarget(id), intervalMs);
+        timers.set(id, { id: timerId, intervalMs });
+      }
+    }
   });
 
   onDestroy(() => {
-    if (timerId !== null) clearInterval(timerId);
+    for (const { id } of timers.values()) clearInterval(id);
+    timers.clear();
   });
 
   const HOUR_MS = 3_600_000;
   const DAY_MS = 86_400_000;
 
-  const allHistory = $derived(settings.targets.flatMap((t) => t.history));
+  const allHistory = $derived(settings.targets.flatMap((t) => t.history ?? []));
   const uptime1h = $derived(uptimePercent(allHistory, HOUR_MS));
   const uptime24h = $derived(uptimePercent(allHistory, DAY_MS));
 
@@ -134,17 +173,21 @@
         <button
           type="button"
           class="refresh-btn"
-          onclick={() => runChecks()}
-          disabled={loading}
+          onclick={checkAll}
+          disabled={anyLoading}
           title="Check now"
         >
-          <PingIcon name="rotate-cw" size={14} class={loading ? "spin" : ""} />
+          <PingIcon name="rotate-cw" size={14} class={anyLoading ? "spin" : ""} />
         </button>
       </div>
 
       <div class="cards">
         {#each settings.targets as target (target.id)}
-          <PingTargetCard {target} slowThresholdMs={settings.slowThresholdMs} />
+          {@const normalized = (() => {
+            const legacy = settings as unknown as Record<string, unknown>;
+            return normalizeTarget(target, legacy);
+          })()}
+          <PingTargetCard target={normalized} slowThresholdMs={normalized.slowThresholdMs} />
         {/each}
       </div>
 

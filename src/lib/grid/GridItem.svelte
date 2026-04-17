@@ -236,7 +236,9 @@
     uiStore.openWidgetSettings(instance.instanceId);
   }
 
-  const hasSettings = $derived(!!def?.settingsComponent);
+  const hasSettings = $derived(
+    !!def?.settingsComponent || !!(def?.settingsTabs && def.settingsTabs.length > 0),
+  );
 
   const resolvedStyle = $derived(
     resolveWidgetStyle(settingsStore.settings.widgetDefaults, instance.styleOverrides),
