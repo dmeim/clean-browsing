@@ -1,7 +1,8 @@
 # Stock
 
 A single-ticker market widget. Pick one symbol — anything Yahoo Finance
-covers (US, UK, Tokyo, Frankfurt, etc.) — and the widget shows the latest
+covers: stocks (US, UK, Tokyo, Frankfurt, etc.), ETFs, and crypto
+(`BTC-USD`, `ETH-USD`, `DOGE-USD`, etc.) — and the widget shows the latest
 price, day's change, a configurable row of stats, and a price chart for the
 range you choose. Powered by Yahoo Finance's public HTTP endpoints (the same
 ones the Python `yfinance` library wraps).
@@ -22,7 +23,8 @@ This is a network-using widget and follows the rules described in
   charts, and symbol search). No other host.
 - Quotes refresh on the interval you choose (30 s – 15 min). The widget
   pauses auto-refresh outside US NYSE / NASDAQ trading hours by default —
-  toggle the **Pause when market closed** option to change that.
+  toggle the **Pause when market closed** option to change that. Crypto
+  symbols always refresh regardless of this setting (crypto trades 24/7).
 - Each refresh is a single HTTP request that returns both the latest quote
   and the full chart history for the active range, so the widget is light
   on the upstream API.
@@ -40,8 +42,8 @@ stops.
 1. Add **Stock** from the **Add widget** menu in edit mode. The widget will
    show a placeholder asking you to pick a symbol.
 2. Open the widget's settings (gear icon in edit mode).
-3. On the **Symbol** tab, type a ticker (`AAPL`) or a company name
-   (`Apple`) and click **Search**, then pick a result from the list.
+3. On the **Symbol** tab, type a ticker (`AAPL`), company name (`Apple`),
+   or crypto pair (`BTC-USD`) and click **Search**, then pick a result.
 4. Optional: open the **Display** tab to choose which stats appear,
    change the chart range, or change the refresh interval.
 5. The widget will fetch its first quote immediately and start displaying
@@ -49,9 +51,10 @@ stops.
 
 ## What it shows
 
-- **Header:** the symbol (mono-font), the company name (or your custom
-  label), a "Closed" badge when the US market is closed, and a "delayed"
-  badge with the lag in minutes when the quote isn't real-time.
+- **Header:** the symbol (mono-font), the company/coin name (or your
+  custom label), a "Closed" badge when the US market is closed (not shown
+  for crypto — crypto trades 24/7), and a "delayed" badge with the lag in
+  minutes when the quote isn't real-time.
 - **Hero price:** the current price, formatted in the symbol's native
   currency (USD for US equities, GBP for `.L` London tickers, JPY for
   `.T` Tokyo, etc.).
@@ -75,18 +78,18 @@ controls every widget has; the other two tabs are documented below.
 
 | Setting    | Type                       | Default | What it does                                                                                                                                                              |
 | ---------- | -------------------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Symbol** | Search box + result picker | empty   | Pick a ticker via Yahoo's search. Exchange suffixes are accepted (`TSCO.L` for London, `7203.T` for Tokyo). Required before any quote loads.                              |
+| **Symbol** | Search box + result picker | empty   | Pick a ticker via Yahoo's search. Exchange suffixes accepted (`TSCO.L` for London, `7203.T` for Tokyo). Crypto: `BTC-USD`, `ETH-USD`. Required before any quote loads.    |
 | **Label**  | text                       | empty   | Custom display name shown next to the symbol. Blank falls back to the company name returned by Yahoo — handy when the company name is too long to fit at the chosen size. |
 
 ### Display tab
 
-| Setting                      | Type                                         | Default                                                 | What it does                                                                                                                                                             |
-| ---------------------------- | -------------------------------------------- | ------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| **Stats to show**            | multi-select pills                           | Change, Change %, Day high, Day low, Prev close, Volume | Tap to toggle. Order in the list reflects render order. The full menu also includes Day range, Open, 52-week high/low, Avg volume, Market cap, P/E ratio, and Div yield. |
-| **Chart range**              | segmented: 1D / 5D / 1M / 6M / YTD / 1Y / 5Y | `1D`                                                    | Refetches the chart in the new range. 1D shows intraday 5-minute bars; 1Y and 5Y show daily / weekly bars.                                                               |
-| **Show chart**               | toggle                                       | `on`                                                    | Off hides the chart and gives the stats grid the full body.                                                                                                              |
-| **Refresh interval**         | select: 30 s / 1 min / 5 min / 15 min        | `1 min`                                                 | How often the widget refetches in the background. Lower values are friendlier to live trading; higher values are friendlier to Yahoo's rate limits.                      |
-| **Pause when market closed** | toggle                                       | `on`                                                    | Suspends the refresh loop outside US NYSE / NASDAQ trading hours (Mon–Fri 09:30–16:00 ET). The widget continues to display the last close.                               |
+| Setting                      | Type                                         | Default                                                 | What it does                                                                                                                                                                       |
+| ---------------------------- | -------------------------------------------- | ------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Stats to show**            | multi-select pills                           | Change, Change %, Day high, Day low, Prev close, Volume | Tap to toggle. Order in the list reflects render order. The full menu also includes Day range, Open, 52-week high/low, Avg volume, Market cap, P/E ratio, and Div yield.           |
+| **Chart range**              | segmented: 1D / 5D / 1M / 6M / YTD / 1Y / 5Y | `1D`                                                    | Refetches the chart in the new range. 1D shows intraday 5-minute bars; 1Y and 5Y show daily / weekly bars.                                                                         |
+| **Show chart**               | toggle                                       | `on`                                                    | Off hides the chart and gives the stats grid the full body.                                                                                                                        |
+| **Refresh interval**         | select: 30 s / 1 min / 5 min / 15 min        | `1 min`                                                 | How often the widget refetches in the background. Lower values are friendlier to live trading; higher values are friendlier to Yahoo's rate limits.                                |
+| **Pause when market closed** | toggle                                       | `on`                                                    | Suspends the refresh loop outside US NYSE / NASDAQ trading hours (Mon–Fri 09:30–16:00 ET). Has no effect on crypto symbols (24/7). The widget continues to display the last close. |
 
 ## Stat reference
 
@@ -139,12 +142,9 @@ of an upstream hiccup.
 
 ## Out of scope (today)
 
-A dedicated crypto widget, options
-chains, news feeds, earnings calendars, technical indicators (MA / RSI /
-MACD), pre-market and after-hours pricing (mostly paywalled / patchy on
-free Yahoo), portfolio tracking with cost-basis, dividend calendar, and
-price-threshold alerts are not implemented in this release. The Stocks &
-Crypto suite design doc at
-[`./wip-stocks.md`](./wip-stocks.md) tracks the planned follow-ups: a
-Stock Watchlist widget, a single-coin Crypto widget, and a Crypto
-Watchlist, all built on the same shared `markets/` backbone.
+Options chains, news feeds, earnings calendars, technical indicators
+(MA / RSI / MACD), pre-market and after-hours pricing (mostly paywalled /
+patchy on free Yahoo), portfolio tracking with cost-basis, dividend
+calendar, and price-threshold alerts are not implemented in this release.
+A CoinGecko provider for richer crypto metadata (market cap rank, ATH,
+circulating supply, coin icons) is a potential future addition.

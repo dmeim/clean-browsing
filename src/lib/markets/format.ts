@@ -64,6 +64,24 @@ export function changeColor(value: number): ChangeColor {
   return value > 0 ? "up" : "down";
 }
 
+export function formatPriceSmart(value: number, currency: string): string {
+  if (!Number.isFinite(value)) return "—";
+  let decimals = 2;
+  if (value !== 0 && Math.abs(value) < 1) {
+    decimals = Math.min(8, Math.max(2, -Math.floor(Math.log10(Math.abs(value))) + 3));
+  }
+  try {
+    return new Intl.NumberFormat(undefined, {
+      style: "currency",
+      currency: currency || "USD",
+      minimumFractionDigits: Math.min(decimals, 2),
+      maximumFractionDigits: decimals,
+    }).format(value);
+  } catch {
+    return value.toFixed(decimals);
+  }
+}
+
 /** Maps a ChangeColor to the matching CSS variable used in app.css. */
 export function colorVarForChange(c: ChangeColor): string {
   switch (c) {

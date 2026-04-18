@@ -1,9 +1,10 @@
-# Stock Watchlist
+# Watchlist
 
-A multi-ticker table widget. Add the symbols you care about and the widget
-renders a compact, scrollable table showing price, change, sparkline, and
-more for each — all refreshed on a single interval. Powered by the same
-Yahoo Finance public HTTP endpoints as the Stock widget.
+A multi-ticker table widget. Add the symbols you care about — stocks, ETFs,
+and crypto (`BTC-USD`, `ETH-USD`, etc.) — and the widget renders a compact,
+scrollable table showing price, change, sparkline, and more for each, all
+refreshed on a single interval. Powered by the same Yahoo Finance public
+HTTP endpoints as the Stock widget.
 
 - **Widget ID:** `stock-watchlist`
 - **Default size:** 4 x 6 (width x height in grid cells)
@@ -15,25 +16,26 @@ Yahoo Finance public HTTP endpoints as the Stock widget.
 This is a network-using widget and follows the rules described in
 [`PRIVACY_POLICY.md`](../PRIVACY_POLICY.md):
 
-- A freshly added Stock Watchlist widget makes **no requests** until you
-  add at least one symbol in its settings.
+- A freshly added Watchlist widget makes **no requests** until you add at
+  least one symbol in its settings.
 - Once configured, it contacts only `query1.finance.yahoo.com` (quotes,
   charts, and symbol search). No other host.
 - Each refresh fetches all symbols in parallel. The widget pauses
-  auto-refresh outside US NYSE / NASDAQ trading hours by default.
+  auto-refresh outside US NYSE / NASDAQ trading hours by default. Crypto
+  symbols always refresh regardless of this setting (crypto trades 24/7).
 - Yahoo's free tier is typically **delayed 15 minutes** for US equities,
   and the widget surfaces this as a "15m" badge in the header.
 
-If you remove the Stock Watchlist widget from your grid, all of its
-outbound traffic stops.
+If you remove the Watchlist widget from your grid, all of its outbound
+traffic stops.
 
 ## Usage
 
-1. Add **Stock Watchlist** from the **Add widget** menu in edit mode. The
-   widget will show a placeholder asking you to add symbols.
+1. Add **Watchlist** from the **Add widget** menu in edit mode. The widget
+   will show a placeholder asking you to add symbols.
 2. Open the widget's settings (gear icon in edit mode).
-3. On the **Symbols** tab, search for a ticker or company name, then click
-   a result to add it to your list. Repeat for each symbol you want.
+3. On the **Symbols** tab, search for a ticker, company name, or crypto
+   pair (`BTC-USD`), then click a result to add it. Repeat for each symbol.
 4. Optional: drag symbols to reorder, or switch to the **Display** tab to
    configure columns, sort mode, sparkline range, or refresh interval.
 5. The widget fetches all symbols immediately and starts displaying the
@@ -42,17 +44,20 @@ outbound traffic stops.
 ## What it shows
 
 - **Header:** a title (defaults to "Watchlist," customizable in the
-  Display tab), a "Closed" badge when the US market is closed, and a
-  "15m" badge when any quote is delayed.
+  Display tab), a "Closed" badge when the US market is closed (or
+  "Equities closed" for mixed stock + crypto lists — crypto never shows
+  a closed badge), and a "15m" badge when any quote is delayed.
+- **Column titles** (optional) — a header row with abbreviated labels.
+  Off by default; toggle in the Display tab.
 - **Table rows:** one row per symbol. Each row shows the ticker symbol
   plus whichever columns you've enabled.
-- **Sparklines:** tiny inline canvas charts per row, drawn at the range
-  you choose (1D, 5D, or 1M). Color tracks the direction of the day's
-  change (green up, red down, muted flat).
+- **Sparklines:** tiny inline SVG charts per row, drawn at the range you
+  choose (1D, 5D, or 1M). Color tracks the direction of the day's change
+  (green up, red down, muted flat).
 
 ## Settings
 
-The Stock Watchlist uses three tabs: **Appearance**, **Symbols**, and
+The Watchlist uses three tabs: **Appearance**, **Symbols**, and
 **Display**. Appearance controls are the same standard widget chrome
 controls every widget has; the other two tabs are documented below.
 
@@ -60,7 +65,7 @@ controls every widget has; the other two tabs are documented below.
 
 | Setting         | Type                       | Default | What it does                                                                                                                                                         |
 | --------------- | -------------------------- | ------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Add symbol**  | Search box + result picker | —       | Search by ticker or company name via Yahoo's search. Exchange suffixes accepted (`TSCO.L`, `7203.T`). Click a result to add it. Duplicates are rejected with a hint. |
+| **Add symbol**  | Search box + result picker | —       | Search by ticker, company name, or crypto pair (`BTC-USD`) via Yahoo's search. Exchange suffixes accepted (`TSCO.L`, `7203.T`). Duplicates are rejected with a hint. |
 | **Symbol list** | Draggable list with remove | empty   | Shows all added symbols with their company name (when cached). Drag to reorder; click the trash icon to remove. Order matters when sort is set to Manual.            |
 
 ### Display tab
@@ -69,10 +74,11 @@ controls every widget has; the other two tabs are documented below.
 | ---------------------------- | ------------------------------------------------- | -------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
 | **Title**                    | text                                              | empty (shows "Watchlist")  | Custom title for the widget header. Leave blank to show "Watchlist."                                                                    |
 | **Columns to show**          | multi-select pills                                | Price, Change %, Sparkline | Tap to toggle. Order reflects left-to-right render order. Full menu: Price, Change, Change %, Sparkline, Day range, Volume, Market cap. |
+| **Show column titles**       | toggle                                            | off                        | Renders a header row with abbreviated column labels above the data rows.                                                                |
 | **Sort by**                  | select: Manual / A-Z / Change % desc / Price desc | Manual                     | Manual honors the order from the Symbols tab. Other modes sort the rendered rows without changing your stored order.                    |
 | **Sparkline range**          | segmented: 1D / 5D / 1M                           | 1D                         | Range used for every row's sparkline. Changing the range clears the sparkline cache and refetches.                                      |
 | **Refresh interval**         | select: 1 min / 2 min / 5 min / 15 min            | 2 min                      | How often the widget refetches all symbols in the background.                                                                           |
-| **Pause when market closed** | toggle                                            | on                         | Suspends the refresh loop outside US NYSE / NASDAQ trading hours (Mon-Fri 09:30-16:00 ET).                                              |
+| **Pause when market closed** | toggle                                            | on                         | Suspends the refresh loop outside US NYSE / NASDAQ trading hours (Mon-Fri 09:30-16:00 ET). Has no effect on crypto symbols (24/7).      |
 
 ## Tips
 

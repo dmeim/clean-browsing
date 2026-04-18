@@ -3,7 +3,7 @@
 // days the widget will still attempt a fetch and Yahoo will return last-
 // close data, which is the correct rendering anyway.
 
-import type { MarketState } from "./types.js";
+import type { AssetType, MarketState, Quote } from "./types.js";
 
 const NYSE_OPEN_MINUTES = 9 * 60 + 30; // 09:30 ET
 const NYSE_CLOSE_MINUTES = 16 * 60; // 16:00 ET
@@ -43,4 +43,25 @@ export function isUSEquityMarketOpen(now: Date = new Date()): boolean {
 
 export function usEquityMarketState(now: Date = new Date()): MarketState {
   return isUSEquityMarketOpen(now) ? "open" : "closed";
+}
+
+export function shouldPauseRefresh(
+  assetType: AssetType | undefined,
+  pauseSetting: boolean,
+  now?: Date,
+): boolean {
+  if ((assetType ?? "equity") === "crypto") return false;
+  if (!pauseSetting) return false;
+  return !isUSEquityMarketOpen(now);
+}
+
+export function shouldPauseRefreshMixed(
+  quotes: Record<string, Quote>,
+  pauseSetting: boolean,
+  now?: Date,
+): boolean {
+  if (!pauseSetting) return false;
+  const vals = Object.values(quotes);
+  if (vals.some((q) => (q.assetType ?? "equity") === "crypto")) return false;
+  return !isUSEquityMarketOpen(now);
 }

@@ -66,6 +66,17 @@
   </section>
 
   <section class="group">
+    <label class="row">
+      <span class="row-label">Show column titles</span>
+      <input
+        type="checkbox"
+        checked={settings.showColumnTitles ?? false}
+        onchange={(e) => set("showColumnTitles", (e.currentTarget as HTMLInputElement).checked)}
+      />
+    </label>
+  </section>
+
+  <section class="group">
     <label for="wl-sort" class="group-title">Sort by</label>
     <select
       id="wl-sort"
@@ -127,7 +138,10 @@
           set("pauseWhenMarketClosed", (e.currentTarget as HTMLInputElement).checked)}
       />
     </label>
-    <p class="hint">Suspends auto-refresh outside US NYSE / NASDAQ trading hours.</p>
+    <p class="hint">
+      Suspends auto-refresh outside US NYSE / NASDAQ trading hours. Has no effect on crypto symbols
+      (24/7).
+    </p>
   </section>
 </div>
 

@@ -3,6 +3,7 @@
 // can reshape the internals without touching call sites.
 
 export type {
+  AssetType,
   ChartRange,
   HistoryPoint,
   MarketState,
@@ -10,6 +11,8 @@ export type {
   StatField,
   SymbolSearchResult,
 } from "./types.js";
+
+export { EQUITY_ONLY_STATS, assetTypeFromYahoo } from "./types.js";
 
 export {
   type ChangeColor,
@@ -20,10 +23,16 @@ export {
   formatPercent,
   formatPrice,
   formatPriceCompact,
+  formatPriceSmart,
   formatVolume,
 } from "./format.js";
 
-export { isUSEquityMarketOpen, usEquityMarketState } from "./marketHours.js";
+export {
+  isUSEquityMarketOpen,
+  shouldPauseRefresh,
+  shouldPauseRefreshMixed,
+  usEquityMarketState,
+} from "./marketHours.js";
 
 export {
   fetchChart,

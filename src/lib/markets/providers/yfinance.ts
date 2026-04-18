@@ -10,6 +10,7 @@
 // call as an opt-in.
 
 import type { ChartRange, HistoryPoint, Quote, SymbolSearchResult } from "../types.js";
+import { assetTypeFromYahoo } from "../types.js";
 
 const CHART_URL = "https://query1.finance.yahoo.com/v8/finance/chart";
 const SEARCH_URL = "https://query1.finance.yahoo.com/v1/finance/search";
@@ -47,6 +48,7 @@ type ChartMeta = {
   trailingPE?: number;
   trailingAnnualDividendYield?: number;
   averageDailyVolume3Month?: number;
+  instrumentType?: string;
 };
 
 type ChartResponse = {
@@ -146,6 +148,7 @@ export async function fetchChart(
     name: meta.longName ?? meta.shortName ?? trimmed,
     currency: meta.currency ?? "USD",
     exchange: meta.fullExchangeName ?? meta.exchangeName ?? "",
+    assetType: assetTypeFromYahoo(meta.instrumentType, meta.exchangeName),
     price,
     change,
     changePercent,

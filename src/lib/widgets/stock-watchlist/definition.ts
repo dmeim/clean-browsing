@@ -28,6 +28,7 @@ export type StockWatchlistSettings = {
   sortBy: WatchlistSort;
   sparklineRange: SparklineRange;
   refreshIntervalSec: WatchlistRefreshSec;
+  showColumnTitles: boolean;
   pauseWhenMarketClosed: boolean;
   cachedQuotes: Record<string, Quote>;
   cachedSparklines: Record<string, number[]>;
@@ -81,8 +82,9 @@ export const DEFAULT_WATCHLIST_COLUMNS: WatchlistColumn[] = ["price", "changePer
 
 export const stockWatchlistDefinition: WidgetDefinition<StockWatchlistSettings> = {
   id: "stock-watchlist",
-  name: "Stock Watchlist",
-  description: "Track multiple tickers at a glance with prices, changes, and sparklines",
+  name: "Watchlist",
+  description:
+    "Track multiple tickers at a glance — stocks, ETFs, and crypto — with prices, changes, and sparklines",
   component: StockWatchlist,
   settingsTabs: [
     {
@@ -113,6 +115,7 @@ export const stockWatchlistDefinition: WidgetDefinition<StockWatchlistSettings> 
     sortBy: "manual",
     sparklineRange: "1D",
     refreshIntervalSec: 120,
+    showColumnTitles: false,
     pauseWhenMarketClosed: true,
     cachedQuotes: {},
     cachedSparklines: {},

@@ -7,7 +7,6 @@
   };
 
   let { data, color }: Props = $props();
-  let canvas: HTMLCanvasElement;
 
   function lineColorFor(c: ChangeColor): string {
     switch (c) {
@@ -20,42 +19,38 @@
     }
   }
 
-  $effect(() => {
-    if (!canvas || data.length < 2) return;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
+  const VW = 1000;
+  const VH = 100;
+  const PAD = 2;
 
-    const w = canvas.clientWidth;
-    const h = canvas.clientHeight;
-    if (w === 0 || h === 0) return;
-
-    const dpr = window.devicePixelRatio || 1;
-    canvas.width = w * dpr;
-    canvas.height = h * dpr;
-    ctx.scale(dpr, dpr);
-    ctx.clearRect(0, 0, w, h);
-
+  const points = $derived.by(() => {
+    if (data.length < 2) return "";
     const min = Math.min(...data);
     const max = Math.max(...data);
     const range = max - min || 1;
-    const pad = 1;
-
-    ctx.beginPath();
-    for (let i = 0; i < data.length; i++) {
-      const x = (i / (data.length - 1)) * w;
-      const y = pad + ((max - data[i]) / range) * (h - pad * 2);
-      if (i === 0) ctx.moveTo(x, y);
-      else ctx.lineTo(x, y);
-    }
-    ctx.strokeStyle = lineColorFor(color);
-    ctx.lineWidth = 1.5;
-    ctx.lineJoin = "round";
-    ctx.lineCap = "round";
-    ctx.stroke();
+    return data
+      .map((v, i) => {
+        const x = (i / (data.length - 1)) * VW;
+        const y = PAD + ((max - v) / range) * (VH - PAD * 2);
+        return `${x},${y}`;
+      })
+      .join(" ");
   });
 </script>
 
-<canvas bind:this={canvas} class="sparkline" aria-hidden="true"></canvas>
+{#if points}
+  <svg class="sparkline" viewBox="0 0 {VW} {VH}" preserveAspectRatio="none" aria-hidden="true">
+    <polyline
+      {points}
+      fill="none"
+      stroke={lineColorFor(color)}
+      stroke-width="1.5"
+      stroke-linejoin="round"
+      stroke-linecap="round"
+      vector-effect="non-scaling-stroke"
+    />
+  </svg>
+{/if}
 
 <style>
   .sparkline {

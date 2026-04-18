@@ -71,7 +71,7 @@ export const DEFAULT_STOCK_STATS: StatField[] = [
 export const stockDefinition: WidgetDefinition<StockSettings> = {
   id: "stock",
   name: "Stock",
-  description: "Live(ish) price + chart for a single ticker, powered by Yahoo Finance",
+  description: "Live(ish) price + chart for a single ticker — stocks, ETFs, and crypto",
   component: Stock,
   settingsTabs: [
     {

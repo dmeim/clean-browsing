@@ -9,9 +9,11 @@
     formatPercent,
     formatPrice,
     formatPriceCompact,
+    formatPriceSmart,
     formatVolume,
     fetchChartBatch,
     isUSEquityMarketOpen,
+    shouldPauseRefreshMixed,
     type Quote,
   } from "$lib/markets/index.js";
   import Sparkline from "$lib/markets/chart/Sparkline.svelte";
@@ -133,7 +135,7 @@
 
     if (currentTimer) clearInterval(currentTimer.id);
     const id = setInterval(() => {
-      if (settings.pauseWhenMarketClosed && !isUSEquityMarketOpen()) return;
+      if (shouldPauseRefreshMixed(settings.cachedQuotes, settings.pauseWhenMarketClosed)) return;
       void refresh(true);
     }, intervalSec * 1000);
     currentTimer = { id, key, intervalSec };
@@ -175,6 +177,12 @@
   const displayTitle = $derived((settings.customTitle ?? "").trim() || "Watchlist");
   const hasCachedData = $derived(Object.keys(settings.cachedQuotes).length > 0);
   const hasDelay = $derived(Object.values(settings.cachedQuotes).some((q) => q.isDelayed));
+  const hasCrypto = $derived(
+    Object.values(settings.cachedQuotes).some((q) => (q.assetType ?? "equity") === "crypto"),
+  );
+  const hasEquity = $derived(
+    Object.values(settings.cachedQuotes).some((q) => (q.assetType ?? "equity") !== "crypto"),
+  );
 
   function quoteFor(sym: string): Quote | undefined {
     return settings.cachedQuotes[sym.trim().toUpperCase()];
@@ -186,16 +194,17 @@
 
   function formatColumnValue(col: WatchlistColumn, q: Quote | undefined): string {
     if (!q) return "\u2014";
+    const fp = (q.assetType ?? "equity") === "crypto" ? formatPriceSmart : formatPrice;
     switch (col) {
       case "price":
-        return formatPrice(q.price, q.currency);
+        return fp(q.price, q.currency);
       case "change":
         return formatChange(q.change);
       case "changePercent":
         return formatPercent(q.changePercent);
       case "dayRange":
         return Number.isFinite(q.dayLow) && Number.isFinite(q.dayHigh)
-          ? `${formatPrice(q.dayLow, q.currency)}\u2013${formatPrice(q.dayHigh, q.currency)}`
+          ? `${fp(q.dayLow, q.currency)}\u2013${fp(q.dayHigh, q.currency)}`
           : "\u2014";
       case "volume":
         return formatVolume(q.volume);
@@ -209,6 +218,16 @@
   function isColoredColumn(col: WatchlistColumn): boolean {
     return col === "change" || col === "changePercent";
   }
+
+  const COLUMN_TITLES: Record<WatchlistColumn, string> = {
+    price: "Price",
+    change: "Chg",
+    changePercent: "Chg %",
+    sparkline: "",
+    dayRange: "Range",
+    volume: "Vol",
+    marketCap: "Mkt Cap",
+  };
 </script>
 
 <!-- svelte-ignore a11y_no_static_element_interactions -->
@@ -241,8 +260,10 @@
       <header class="head">
         <span class="title">{displayTitle}</span>
         <div class="badges">
-          {#if !marketOpen}
+          {#if !marketOpen && hasEquity && !hasCrypto}
             <span class="badge muted" title="US market closed \u2014 last close shown">Closed</span>
+          {:else if !marketOpen && hasEquity && hasCrypto}
+            <span class="badge muted" title="US equity market closed">Equities closed</span>
           {/if}
           {#if hasDelay}
             <span class="badge warn" title="Quotes delayed ~15 min">
@@ -254,6 +275,16 @@
       </header>
 
       <div class="table-body">
+        {#if settings.showColumnTitles}
+          <div class="row header-row">
+            <div class="cell sym-cell"></div>
+            {#each settings.columns as col (col)}
+              <div class="cell {col === 'sparkline' ? 'sparkline-cell' : 'data-cell'} col-title">
+                {COLUMN_TITLES[col]}
+              </div>
+            {/each}
+          </div>
+        {/if}
         {#each sortedSymbols as sym (sym)}
           {@const q = quoteFor(sym)}
           {@const cc = q ? changeColor(q.change) : "neutral"}
@@ -413,6 +444,20 @@
     border-bottom: none;
   }
 
+  .header-row {
+    padding-top: 0;
+    padding-bottom: clamp(0.1rem, 0.5cqi, 0.2rem);
+    border-bottom: 1px solid rgb(71 85 105 / 0.35);
+  }
+
+  .col-title {
+    font-size: clamp(0.5rem, 2cqi, 0.65rem);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: rgb(148 163 184);
+  }
+
   .sym-cell {
     flex: 0 0 auto;
     min-width: clamp(2.5rem, 12cqi, 4rem);
@@ -441,7 +486,8 @@
   }
 
   .sparkline-cell {
-    flex: 0 0 clamp(36px, 15cqi, 72px);
+    flex: 1;
+    min-width: 0;
     height: clamp(16px, 5cqi, 24px);
   }
 

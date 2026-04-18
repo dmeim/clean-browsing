@@ -39,6 +39,7 @@ export type Quote = {
   marketCap: number | null;
   peRatio: number | null;
   dividendYield: number | null;
+  assetType: AssetType;
   /** Epoch ms when this quote was fetched from the provider. */
   fetchedAt: number;
   /** Epoch ms of the last price update reported by the provider. */
@@ -61,3 +62,20 @@ export type SymbolSearchResult = {
 };
 
 export type MarketState = "open" | "closed";
+
+export type AssetType = "equity" | "crypto" | "etf" | "fund" | "other";
+
+export const EQUITY_ONLY_STATS: ReadonlySet<StatField> = new Set(["peRatio", "dividendYield"]);
+
+export function assetTypeFromYahoo(
+  instrumentType: string | undefined,
+  exchangeName?: string,
+): AssetType {
+  const t = (instrumentType ?? "").toUpperCase();
+  if (t === "CRYPTOCURRENCY") return "crypto";
+  if (t === "ETF") return "etf";
+  if (t === "MUTUALFUND") return "fund";
+  if (t === "EQUITY") return "equity";
+  if ((exchangeName ?? "").toUpperCase() === "CCC") return "crypto";
+  return t ? "other" : "equity";
+}

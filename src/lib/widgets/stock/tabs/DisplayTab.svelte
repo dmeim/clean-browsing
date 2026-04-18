@@ -108,7 +108,10 @@
           set("pauseWhenMarketClosed", (e.currentTarget as HTMLInputElement).checked)}
       />
     </label>
-    <p class="hint">Suspends auto-refresh outside US NYSE / NASDAQ trading hours.</p>
+    <p class="hint">
+      Suspends auto-refresh outside US NYSE / NASDAQ trading hours. Has no effect on crypto symbols
+      (24/7).
+    </p>
   </section>
 </div>
 

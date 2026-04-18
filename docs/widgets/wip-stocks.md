@@ -1,11 +1,11 @@
 # Stocks & Crypto Widget Suite (WIP)
 
-> **Status:** 🟡 Partial — Stock and Stock Watchlist shipped; two still planned.
+> **Status:** 🟢 Crypto merged into existing widgets — no separate
+> Crypto / Crypto Watchlist needed.
 >
-> **Stage:** Phase 2 complete (Stock Watchlist widget, v1.5.3). Phase 1
-> shipped the `src/lib/markets/` backbone + Stock widget in v1.5.2.
-> Phases 3–4 (Crypto, Crypto Watchlist) still planned, all on the same
-> backbone.
+> **Stage:** Phase 3 complete. Stock and Watchlist widgets now support
+> stocks, ETFs, and crypto via Yahoo Finance (`BTC-USD`, `ETH-USD`, etc.).
+> CoinGecko provider remains a future option for richer crypto metadata.
 >
 > The user-facing Stock widget docs are at [`./stock.md`](./stock.md).
 > Everything below describes the still-WIP three widgets and the shared
@@ -18,12 +18,12 @@ sitting on top of a shared backbone module so the data-fetching, formatting,
 market-hours logic, and chart rendering are written once and reused four
 times:
 
-| Widget               | ID                 | Default size | Status     | Purpose                                   |
-| -------------------- | ------------------ | ------------ | ---------- | ----------------------------------------- |
-| **Stock**            | `stock`            | 4 × 4        | ✅ Shipped | Single ticker — price + stats + chart     |
-| **Stock Watchlist**  | `stock-watchlist`  | 4 × 6        | ✅ Shipped | Table of multiple tickers with sparklines |
-| **Crypto**           | `crypto`           | 4 × 4        | ⭕ Planned | Single coin — price + stats + chart       |
-| **Crypto Watchlist** | `crypto-watchlist` | 4 × 6        | ⭕ Planned | Table of multiple coins with sparklines   |
+| Widget               | ID                 | Default size | Status     | Purpose                                                          |
+| -------------------- | ------------------ | ------------ | ---------- | ---------------------------------------------------------------- |
+| **Stock**            | `stock`            | 4 × 4        | ✅ Shipped | Single ticker — price + stats + chart (stocks, ETFs, crypto)     |
+| **Watchlist**        | `stock-watchlist`  | 4 × 6        | ✅ Shipped | Table of multiple tickers with sparklines (stocks, ETFs, crypto) |
+| **Crypto**           | `crypto`           | —            | ⛔ Merged  | Merged into Stock widget via Yahoo Finance crypto tickers        |
+| **Crypto Watchlist** | `crypto-watchlist` | —            | ⛔ Merged  | Merged into Watchlist widget via Yahoo Finance crypto tickers    |
 
 All four are network-using widgets and follow Clean Browsing's network policy
 for opt-in, disclosed, host-scoped traffic. See the shared rules in
@@ -157,8 +157,12 @@ loop runs continuously.
    Stock widget.
 2. **v1.5.3 — ✅ Shipped.** Stock Watchlist widget + shared Sparkline
    component + `fetchChartBatch()` provider utility.
-3. **Next — CoinGecko provider + Crypto widget.**
-4. **Finally — Crypto Watchlist widget.**
+3. **v1.5.4 — ✅ Shipped.** Crypto support merged into Stock and Watchlist
+   widgets. Added `AssetType` detection from Yahoo Finance, crypto-aware
+   market-hours logic (24/7 refresh), smart sub-cent price formatting, and
+   updated UI hints/badges. No separate Crypto widgets needed.
+4. **Future (optional).** CoinGecko provider for richer crypto metadata
+   (market cap rank, ATH, circulating supply, coin icons).
 
 ---
 

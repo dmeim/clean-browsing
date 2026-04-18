@@ -100,9 +100,9 @@
   {#if settings.symbols.length === 0}
     <div class="notice">
       <strong>Network notice.</strong> This widget calls
-      <code>query1.finance.yahoo.com</code> to fetch quote and chart data for each symbol. Nothing is
-      sent anywhere else, and no requests fire until you add symbols below. Free Yahoo data is typically
-      delayed 15 minutes for US equities.
+      <code>query1.finance.yahoo.com</code> to fetch quote and chart data for stocks, ETFs, and crypto.
+      Nothing is sent anywhere else, and no requests fire until you add symbols below. Free Yahoo data
+      is typically delayed 15 minutes for US equities.
     </div>
   {/if}
 
@@ -145,7 +145,8 @@
     {/if}
 
     <p class="hint">
-      Exchange suffixes accepted: <code>TSCO.L</code> (London), <code>7203.T</code> (Tokyo).
+      Exchange suffixes accepted: <code>TSCO.L</code> (London), <code>7203.T</code> (Tokyo). Crypto:
+      <code>BTC-USD</code>, <code>ETH-USD</code>.
     </p>
   </div>
 

@@ -2,18 +2,21 @@
   import { onDestroy, untrack } from "svelte";
   import type { WidgetProps } from "$lib/widgets/types.js";
   import type { StockSettings } from "./definition.js";
-  import type { StatField } from "$lib/markets/index.js";
+  import type { AssetType, StatField } from "$lib/markets/index.js";
   import {
     changeColor,
     colorVarForChange,
+    EQUITY_ONLY_STATS,
     fetchChart,
     formatChange,
     formatNumber,
     formatPercent,
     formatPrice,
     formatPriceCompact,
+    formatPriceSmart,
     formatVolume,
     isUSEquityMarketOpen,
+    shouldPauseRefresh,
   } from "$lib/markets/index.js";
   import ChartCanvas from "$lib/markets/chart/ChartCanvas.svelte";
   import StockIcon from "./StockIcon.svelte";
@@ -119,7 +122,8 @@
 
     if (currentTimer) clearInterval(currentTimer.id);
     const id = setInterval(() => {
-      if (settings.pauseWhenMarketClosed && !isUSEquityMarketOpen()) return;
+      if (shouldPauseRefresh(settings.cachedQuote?.assetType, settings.pauseWhenMarketClosed))
+        return;
       void refresh(true);
     }, intervalSec * 1000);
     currentTimer = { id, symbol, intervalSec };
@@ -158,6 +162,8 @@
   const changeKind = $derived(visibleQuote ? changeColor(visibleQuote.change) : "neutral");
   const accentColor = $derived(colorVarForChange(changeKind));
 
+  const assetType = $derived<AssetType>(visibleQuote?.assetType ?? "equity");
+  const isCrypto = $derived(assetType === "crypto");
   const displayTitle = $derived((settings.label ?? "").trim() || visibleQuote?.name || "");
   const showRefresh = $derived(hovered && settings.symbol && !uiStore.editMode);
   const showRefLine = $derived(settings.chartRange === "1D" && visibleQuote != null);
@@ -165,27 +171,28 @@
   function formatStatValue(field: StatField): string {
     if (!visibleQuote) return "—";
     const q = visibleQuote;
+    const fp = isCrypto ? formatPriceSmart : formatPrice;
     switch (field) {
       case "change":
         return formatChange(q.change);
       case "changePercent":
         return formatPercent(q.changePercent);
       case "dayHigh":
-        return formatPrice(q.dayHigh, q.currency);
+        return fp(q.dayHigh, q.currency);
       case "dayLow":
-        return formatPrice(q.dayLow, q.currency);
+        return fp(q.dayLow, q.currency);
       case "dayRange":
         return Number.isFinite(q.dayLow) && Number.isFinite(q.dayHigh)
-          ? `${formatPrice(q.dayLow, q.currency)}–${formatPrice(q.dayHigh, q.currency)}`
+          ? `${fp(q.dayLow, q.currency)}–${fp(q.dayHigh, q.currency)}`
           : "—";
       case "open":
-        return formatPrice(q.open, q.currency);
+        return fp(q.open, q.currency);
       case "previousClose":
-        return formatPrice(q.previousClose, q.currency);
+        return fp(q.previousClose, q.currency);
       case "fiftyTwoHigh":
-        return formatPrice(q.fiftyTwoHigh, q.currency);
+        return fp(q.fiftyTwoHigh, q.currency);
       case "fiftyTwoLow":
-        return formatPrice(q.fiftyTwoLow, q.currency);
+        return fp(q.fiftyTwoLow, q.currency);
       case "volume":
         return formatVolume(q.volume);
       case "avgVolume":
@@ -256,7 +263,7 @@
           {/if}
         </div>
         <div class="badges">
-          {#if !marketOpen}
+          {#if !isCrypto && !marketOpen}
             <span class="badge muted" title="US market closed — last close shown">Closed</span>
           {/if}
           {#if visibleQuote.isDelayed}
@@ -270,7 +277,9 @@
 
       <section class="hero">
         <div class="price" style="color: var(--widget-text, rgb(241 245 249));">
-          {formatPrice(visibleQuote.price, visibleQuote.currency)}
+          {isCrypto
+            ? formatPriceSmart(visibleQuote.price, visibleQuote.currency)
+            : formatPrice(visibleQuote.price, visibleQuote.currency)}
         </div>
         <div class="change" style="color: {accentColor};">
           <StockIcon
@@ -298,7 +307,7 @@
 
       {#if settings.stats.length > 0}
         <section class="stats">
-          {#each settings.stats as field (field)}
+          {#each settings.stats.filter((f) => !isCrypto || !EQUITY_ONLY_STATS.has(f)) as field (field)}
             <div class="stat">
               <span class="stat-label">{STAT_LABELS[field]}</span>
               <span class="stat-value" style={isColoredStat(field) ? `color: ${accentColor};` : ""}>
