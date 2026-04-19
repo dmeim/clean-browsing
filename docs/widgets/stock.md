@@ -9,7 +9,7 @@ ones the Python `yfinance` library wraps).
 
 - **Widget ID:** `stock`
 - **Default size:** 4 × 4 (width × height in grid cells)
-- **Minimum size:** 3 × 3
+- **Minimum size:** 1 × 1
 - **Source:** [`src/lib/widgets/stock/`](../../src/lib/widgets/stock/)
 
 ## Network notice
@@ -53,8 +53,8 @@ stops.
 
 - **Header:** the symbol (mono-font), the company/coin name (or your
   custom label), a "Closed" badge when the US market is closed (not shown
-  for crypto — crypto trades 24/7), and a "delayed" badge with the lag in
-  minutes when the quote isn't real-time.
+  for crypto — crypto trades 24/7), and a compact delay badge (`15m`,
+  `16m`, etc.) when the quote isn't real-time.
 - **Hero price:** the current price, formatted in the symbol's native
   currency (USD for US equities, GBP for `.L` London tickers, JPY for
   `.T` Tokyo, etc.).
@@ -83,30 +83,30 @@ controls every widget has; the other two tabs are documented below.
 
 ### Display tab
 
-| Setting                      | Type                                         | Default                                                 | What it does                                                                                                                                                                       |
-| ---------------------------- | -------------------------------------------- | ------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Stats to show**            | multi-select pills                           | Change, Change %, Day high, Day low, Prev close, Volume | Tap to toggle. Order in the list reflects render order. The full menu also includes Day range, Open, 52-week high/low, Avg volume, Market cap, P/E ratio, and Div yield.           |
-| **Chart range**              | segmented: 1D / 5D / 1M / 6M / YTD / 1Y / 5Y | `1D`                                                    | Refetches the chart in the new range. 1D shows intraday 5-minute bars; 1Y and 5Y show daily / weekly bars.                                                                         |
-| **Show chart**               | toggle                                       | `on`                                                    | Off hides the chart and gives the stats grid the full body.                                                                                                                        |
-| **Refresh interval**         | select: 30 s / 1 min / 5 min / 15 min        | `1 min`                                                 | How often the widget refetches in the background. Lower values are friendlier to live trading; higher values are friendlier to Yahoo's rate limits.                                |
-| **Pause when market closed** | toggle                                       | `on`                                                    | Suspends the refresh loop outside US NYSE / NASDAQ trading hours (Mon–Fri 09:30–16:00 ET). Has no effect on crypto symbols (24/7). The widget continues to display the last close. |
+| Setting                      | Type                                         | Default                                                 | What it does                                                                                                                                                                                                                                                                 |
+| ---------------------------- | -------------------------------------------- | ------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Stats to show**            | multi-select pills                           | Change, Change %, Day high, Day low, Prev close, Volume | Tap to toggle. Newly enabled stats are appended to the end of the rendered grid. The full menu also includes Day range, Open, 52-week high/low, Avg volume, Market cap, P/E ratio, and Div yield. P/E ratio and Div yield are equity-only and are hidden for crypto symbols. |
+| **Chart range**              | segmented: 1D / 5D / 1M / 6M / YTD / 1Y / 5Y | `1D`                                                    | Refetches the chart in the new range. 1D shows intraday 5-minute bars; 1Y and 5Y show daily / weekly bars.                                                                                                                                                                   |
+| **Show chart**               | toggle                                       | `on`                                                    | Off hides the chart and gives the stats grid the full body. The widget also auto-hides the chart at very small sizes, then turns it back on again once the widget is large enough.                                                                                           |
+| **Refresh interval**         | select: 30 s / 1 min / 5 min / 15 min        | `1 min`                                                 | How often the widget refetches in the background. Lower values are friendlier to live trading; higher values are friendlier to Yahoo's rate limits.                                                                                                                          |
+| **Pause when market closed** | toggle                                       | `on`                                                    | Suspends the refresh loop outside US NYSE / NASDAQ trading hours (Mon–Fri 09:30–16:00 ET). Has no effect on crypto symbols (24/7). The widget continues to display the last close.                                                                                           |
 
 ## Stat reference
 
-| Stat field         | What it shows                                                                                                                 |
-| ------------------ | ----------------------------------------------------------------------------------------------------------------------------- |
-| **Change**         | Absolute price change since the previous close, signed.                                                                       |
-| **Change %**       | Percent change since the previous close, signed.                                                                              |
-| **Day high / low** | The session's highest and lowest trade.                                                                                       |
-| **Day range**      | A combined low–high label, e.g. `$187.10–$190.55`.                                                                            |
-| **Open**           | Opening trade price for the session.                                                                                          |
-| **Prev close**     | Closing trade price from the previous session — the baseline for the change row.                                              |
-| **52w high / low** | 52-week extremes.                                                                                                             |
-| **Volume**         | Shares traded this session, in compact notation (`1.2B`, `58.4M`).                                                            |
-| **Avg volume**     | 3-month average daily volume. Shows `—` if Yahoo hasn't returned it for this ticker.                                          |
-| **Market cap**     | Current market capitalization, in compact currency notation. Shows `—` if Yahoo hasn't returned it.                           |
-| **P/E ratio**      | Trailing twelve-month price / earnings ratio. Shows `—` if Yahoo hasn't returned it.                                          |
-| **Div yield**      | Trailing annual dividend yield, as a percentage. Shows `—` if Yahoo hasn't returned it (e.g. for non-dividend-paying stocks). |
+| Stat field         | What it shows                                                                                                                                                         |
+| ------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Change**         | Absolute price change since the previous close, signed.                                                                                                               |
+| **Change %**       | Percent change since the previous close, signed.                                                                                                                      |
+| **Day high / low** | The session's highest and lowest trade.                                                                                                                               |
+| **Day range**      | A combined low–high label, e.g. `$187.10–$190.55`.                                                                                                                    |
+| **Open**           | Opening trade price for the session.                                                                                                                                  |
+| **Prev close**     | Closing trade price from the previous session — the baseline for the change row.                                                                                      |
+| **52w high / low** | 52-week extremes.                                                                                                                                                     |
+| **Volume**         | Shares traded this session, in compact notation (`1.2B`, `58.4M`).                                                                                                    |
+| **Avg volume**     | 3-month average daily volume. Shows `—` if Yahoo hasn't returned it for this ticker.                                                                                  |
+| **Market cap**     | Current market capitalization, in compact currency notation. Shows `—` if Yahoo hasn't returned it.                                                                   |
+| **P/E ratio**      | Trailing twelve-month price / earnings ratio. Equity-only; hidden for crypto symbols. Shows `—` if Yahoo hasn't returned it.                                          |
+| **Div yield**      | Trailing annual dividend yield, as a percentage. Equity-only; hidden for crypto symbols. Shows `—` if Yahoo hasn't returned it (e.g. for non-dividend-paying stocks). |
 
 The four "may be `—`" stats (Avg volume, Market cap, P/E, Div yield) come
 from Yahoo's chart-meta payload and aren't always populated for every
@@ -118,6 +118,9 @@ ticker; that's expected behavior, not a widget bug.
   own settings**, so reopening Firefox shows the previous numbers
   immediately and only refetches if the cache is older than your refresh
   interval.
+- **The widget can shrink all the way to 1 × 1.** At very small sizes the
+  chart auto-hides so the symbol, price, and change stay readable; once the
+  widget grows back to roughly 3 × 3 or larger, the chart turns back on.
 - **The chart range refetches the history**, not just re-renders, because
   different ranges have different data resolutions (5-minute bars for 1D,
   daily for 1M, etc.). Switching range can briefly flicker on slow
