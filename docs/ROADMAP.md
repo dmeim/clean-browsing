@@ -36,14 +36,13 @@ cleanly or fail loudly.
 Widgets that could be built next. Each would be a new folder under
 `src/lib/widgets/`. Rough difficulty / risk callouts.
 
-| Widget                    | Notes                                                                                                                                                                                                                                                                                                                                                                                                |
-| ------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Weather**               | Needs geolocation + a weather API. Network calls are allowed for this widget under the project's "widgets can fetch what they need to function" policy, but the implementation must be opt-in, clearly disclosed in the settings dialog, and reflected in the privacy policy. Open-Meteo (no API key, global) is the leading candidate. See [`docs/widgets/wip-weather.md`](widgets/wip-weather.md). |
-| **To-Do**                 | Straightforward: a list store per-instance. Notifications API is optional.                                                                                                                                                                                                                                                                                                                           |
-| **Pomodoro**              | Specialized timer — build on top of the shipped Timer widget rather than duplicating logic.                                                                                                                                                                                                                                                                                                          |
-| **World Clock**           | Multiple timezones. Likely a variant of the Clock widget rather than a new one.                                                                                                                                                                                                                                                                                                                      |
-| **RSS reader**            | Needs a CORS-safe fetch path. Local-first-ish if the user supplies their own feed URLs.                                                                                                                                                                                                                                                                                                              |
-| **Top sites / bookmarks** | Requires the `topSites` or `bookmarks` permission — opt-in via the extension permission model.                                                                                                                                                                                                                                                                                                       |
+| Widget                    | Notes                                                                                          |
+| ------------------------- | ---------------------------------------------------------------------------------------------- |
+| **To-Do**                 | Straightforward: a list store per-instance. Notifications API is optional.                     |
+| **Pomodoro**              | Specialized timer — build on top of the shipped Timer widget rather than duplicating logic.    |
+| **World Clock**           | Multiple timezones. Likely a variant of the Clock widget rather than a new one.                |
+| **RSS reader**            | Needs a CORS-safe fetch path. Local-first-ish if the user supplies their own feed URLs.        |
+| **Top sites / bookmarks** | Requires the `topSites` or `bookmarks` permission — opt-in via the extension permission model. |
 
 ## 🛠️ Platform work
 
@@ -103,9 +102,14 @@ completeness; don't assume any of these will ship.
 
 ## Shipped
 
+- **v1.6.1** — Watchlist shared-column sizing and sparkline expansion fix. See [`release-notes/v1.6.1.md`](release-notes/v1.6.1.md).
+- **v1.6.0** — Stock and Watchlist crypto support, Watchlist rename, and column titles. See [`release-notes/v1.6.0.md`](release-notes/v1.6.0.md).
+- **v1.5.3** — Watchlist widget. See [`release-notes/v1.5.3.md`](release-notes/v1.5.3.md).
+- **v1.5.2** — Stock widget and shared markets backbone. See [`release-notes/v1.5.2.md`](release-notes/v1.5.2.md).
 - **v1.5.0** — Ping Monitor widget and tabbed widget settings modals. See [`release-notes/v1.5.0.md`](release-notes/v1.5.0.md).
 - **v1.4.0** — Notes widget. See [`release-notes/v1.4.0.md`](release-notes/v1.4.0.md).
 - **v1.3.0** — Timer and Stopwatch widgets. See [`release-notes/v1.3.0.md`](release-notes/v1.3.0.md).
+- **v1.2.0** — Weather widget. See [`release-notes/v1.2.0.md`](release-notes/v1.2.0.md).
 - **v1.0.0** — Initial rewrite. For reference, what the first release
   actually contains:
   - 24×16 widget grid with drag, resize, edit mode

@@ -2,7 +2,7 @@
 
 Clean Browsing is a Firefox (MV2) new-tab extension: a persistent grid of draggable, resizable widgets, all local-first. This doc covers the codebase at the repo root, built on **Svelte 5**, **Vite**, **TypeScript**, **Tailwind v4**, and **shadcn-svelte**.
 
-> 🚧 The older docs in this folder (`WIDGET_DEVELOPMENT.md`, `STYLING_GUIDE.md`, `COMPONENT_RULES.md`, `UI_BEHAVIOR.md`) still describe the legacy vanilla-JS build that was removed in v1.0.0 (preserved at the `legacy-final` git tag) and are being rewritten.
+> These docs target the current Svelte 5 codebase. When a section lags, the source under `src/` and `public/` is the source of truth.
 
 ---
 
@@ -57,7 +57,8 @@ For a one-off manual load, use `about:debugging#/runtime/this-firefox` → **Loa
 ├── tsconfig.json
 ├── svelte.config.js
 ├── public/
-│   ├── manifest.json         # MV2; chrome_url_overrides.newtab = index.html
+│   ├── manifest.json         # MV2; permissions + chrome_url_overrides.newtab = index.html
+│   ├── background.js         # alarms + notifications bridge for Timer
 │   ├── branding/             # logo + banner variants (color/mono, filled/outline, svg/png, transparent)
 │   └── resources/
 └── src/
@@ -69,6 +70,9 @@ For a one-off manual load, use `about:debugging#/runtime/this-firefox` → **Loa
         │   ├── Grid.svelte
         │   ├── GridItem.svelte
         │   └── store.svelte.ts
+        ├── markets/          # shared market-data types/providers/helpers for Stock + Watchlist
+        ├── settings/         # global settings store, presets, export bundle, background CSS
+        ├── storage/          # IndexedDB-backed image library
         ├── ui/
         │   ├── Toolbar.svelte
         │   ├── AddWidgetDialog.svelte
@@ -79,11 +83,18 @@ For a one-off manual load, use `about:debugging#/runtime/this-firefox` → **Loa
         │   ├── types.ts      # WidgetDefinition, WidgetInstance, GridLayout
         │   ├── registry.ts   # registerWidget / getWidget / listWidgets
         │   ├── index.ts      # side-effect imports of every definition.ts
-        │   ├── clock/        # Clock.svelte, ClockSettings.svelte, definition.ts
+        │   ├── clock/
         │   ├── date/
         │   ├── search/
         │   ├── calculator/
-        │   └── picture/
+        │   ├── picture/
+        │   ├── weather/
+        │   ├── timer/
+        │   ├── stopwatch/
+        │   ├── notes/
+        │   ├── ping-monitor/
+        │   ├── stock/
+        │   └── stock-watchlist/
         └── components/ui/    # shadcn-svelte primitives
             ├── button/
             ├── card/
@@ -112,6 +123,7 @@ type WidgetInstance = {
   w: number;
   h: number;
   settings: unknown;
+  styleOverrides?: WidgetStyleOverrides;
 };
 ```
 
@@ -150,6 +162,7 @@ type WidgetDefinition<TSettings = unknown> = {
   description?: string;
   component: Component<WidgetProps<TSettings>>;
   settingsComponent?: Component<WidgetSettingsProps<TSettings>>;
+  settingsTabs?: WidgetSettingsTab<TSettings>[];
   defaultSize: GridSize;
   minSize?: GridSize;
   maxSize?: GridSize;
@@ -159,7 +172,7 @@ type WidgetDefinition<TSettings = unknown> = {
 
 Each widget's `definition.ts` calls `registerWidget(def)` at module load. `src/lib/widgets/index.ts` side-effect-imports every definition so the registry is populated before the grid renders.
 
-`GridItem.svelte` looks up `getWidget(instance.widgetId)` and renders `<def.component settings={instance.settings} updateSettings={...} />`. The "Add Widget" dialog enumerates via `listWidgets()`.
+`GridItem.svelte` looks up `getWidget(instance.widgetId)` and renders `<def.component settings={instance.settings} updateSettings={...} gridW={...} gridH={...} />`. The "Add Widget" dialog enumerates via `listWidgets()`.
 
 ---
 
@@ -178,7 +191,7 @@ Each widget's `definition.ts` calls `registerWidget(def)` at module load. `src/l
    <div class="h-full w-full">...</div>
    ```
 
-3. **Settings form** — `<Name>Settings.svelte`, same `$props()` shape, edits a local copy and calls `updateSettings(next)` on change.
+3. **Settings UI** — either a flat `<Name>Settings.svelte` form or tab components referenced from `settingsTabs`, each editing settings through the same update callback.
 4. **Definition** — `definition.ts`:
 
    ```ts
@@ -243,26 +256,26 @@ Runs `svelte-check --tsconfig ./tsconfig.json`. Note: there are currently two pr
 
 ## 🗺️ Roadmap (port status)
 
-| Area                               | Status          |
-| ---------------------------------- | --------------- |
-| Grid, drag, resize, edit mode      | ✅ Ported       |
-| Clock / Date / Search / Calc / Pic | ✅ Ported       |
-| Per-widget settings dialogs        | ✅ Ported       |
-| Persistent layout                  | ✅ Ported       |
-| Global appearance overrides        | ⏳ Not yet      |
-| Layout import/export               | ⏳ Not yet      |
-| Sidepanel feature                  | ⏳ Not yet      |
-| Notes widget                       | ⏳ Not yet      |
-| Remove legacy `extension/` tree    | ⏳ After parity |
+| Area                                               | Status     |
+| -------------------------------------------------- | ---------- |
+| Grid, drag, resize, edit mode                      | ✅ Shipped |
+| Clock / Date / Search / Calc / Pic                 | ✅ Shipped |
+| Weather / Timer / Stopwatch / Notes / Ping Monitor | ✅ Shipped |
+| Stock / Watchlist + markets backbone               | ✅ Shipped |
+| Per-widget settings dialogs                        | ✅ Shipped |
+| Tabbed settings + appearance overrides             | ✅ Shipped |
+| Layout export                                      | ✅ Shipped |
+| Layout import                                      | ⏳ Not yet |
+| Sidepanel feature                                  | ⏳ Not yet |
+| Chrome / Chromium port                             | ⏳ Not yet |
 
 ---
 
-## 📖 Legacy Docs
+## 📖 Related Docs
 
-These describe the old vanilla-JS build under `extension/`. They're kept for reference while the port is in progress and will be replaced once the legacy tree is removed:
-
+- [`DEVELOPER.md`](DEVELOPER.md)
 - [`WIDGET_DEVELOPMENT.md`](WIDGET_DEVELOPMENT.md)
 - [`STYLING_GUIDE.md`](STYLING_GUIDE.md)
 - [`COMPONENT_RULES.md`](COMPONENT_RULES.md)
 - [`UI_BEHAVIOR.md`](UI_BEHAVIOR.md)
-- [`features/README.md`](features/README.md)
+- [`widgets/README.md`](widgets/README.md)

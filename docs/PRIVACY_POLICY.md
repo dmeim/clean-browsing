@@ -56,6 +56,8 @@ Clean Browsing currently declares only these Firefox extension permissions (see 
 | ---------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `storage`                                | Save your grid layout, settings, and widget content locally.                                                                                                               |
 | `unlimitedStorage`                       | Lift the default per-extension storage quota so the image library can hold more than a few pictures.                                                                       |
+| `notifications`                          | Used by the Timer widget for expiry alerts and by Ping Monitor for optional transition alerts. Granting it does not send data to any external service.                     |
+| `alarms`                                 | Used by the Timer widget to schedule expiry in the background via `browser.alarms`, so timers survive the new-tab page being closed.                                       |
 | `geolocation`                            | Used by the Weather widget **only when** you click "Use my location" in its settings. Never accessed automatically.                                                        |
 | `https://api.open-meteo.com/*`           | Used by the Weather widget to fetch the forecast for your configured location. Only contacted after you finish configuring the widget.                                     |
 | `https://geocoding-api.open-meteo.com/*` | Used by the Weather widget to look up a city's coordinates when you search for a location in its settings. Only contacted when you submit a search.                        |
@@ -64,7 +66,7 @@ Clean Browsing currently declares only these Firefox extension permissions (see 
 
 Clean Browsing also declares `chrome_url_overrides.newtab` so that opening a new tab loads the extension's own page instead of Firefox's default. This is how the extension takes effect — it does not give the extension access to any other browser state.
 
-The extension does **not** request `tabs`, `activeTab`, `history`, `bookmarks`, `webRequest`, `cookies`, or `<all_urls>`. The host permissions above are scoped to the two specific Open-Meteo endpoints the Weather widget uses; no other host can be contacted. If a future release adds a new permission, it will be called out in the release notes and this policy will be updated.
+The extension does **not** request `tabs`, `activeTab`, `history`, `bookmarks`, `webRequest`, `cookies`, or `<all_urls>`. The host permissions above are scoped to the specific Open-Meteo and Yahoo Finance endpoints the shipped network-using widgets need; no other host can be contacted through manifest-scoped requests. If a future release adds a new permission, it will be called out in the release notes and this policy will be updated.
 
 ---
 

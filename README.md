@@ -13,7 +13,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/dmeim/clean-browsing/releases"><img src="https://img.shields.io/badge/version-1.5.2-blue" alt="Version" /></a>
+  <a href="https://github.com/dmeim/clean-browsing/releases"><img src="https://img.shields.io/badge/version-1.6.1-blue" alt="Version" /></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="License" /></a>
   <a href="https://github.com/dmeim/clean-browsing"><img src="https://img.shields.io/badge/platform-Firefox%20Extension-orange" alt="Firefox Extension" /></a>
   <a href="src/"><img src="https://img.shields.io/badge/stack-Svelte%205%20%C2%B7%20Vite%20%C2%B7%20TS%20%C2%B7%20Tailwind%20v4-ff3e00" alt="Stack" /></a>
@@ -32,20 +32,22 @@
 
 ## 🧩 Supported Widgets
 
-| Widget              | Description                                                 | Default size |
-| ------------------- | ----------------------------------------------------------- | ------------ |
-| 🕒 **Clock**        | Locale-aware time, 12/24h, seconds, AM/PM                   | 4×2          |
-| 📅 **Date**         | Day.js formatted date with customizable format              | 4×2          |
-| 🔍 **Search**       | Multi-engine search bar                                     | 8×2          |
-| 🧮 **Calculator**   | Keyboard-friendly calculator                                | 4×6          |
-| 🖼️ **Picture**      | User-supplied image tile                                    | 4×4          |
-| 🌤️ **Weather**      | Current conditions + forecast from Open-Meteo (opt-in HTTP) | 6×4          |
-| ⏲️ **Timer**        | Countdown with presets, progress ring, and OS notification  | 4×4          |
-| ⏱️ **Stopwatch**    | Precision stopwatch with lap timing and CSV export          | 4×5          |
-| 📝 **Notes**        | Markdown sticky-note with interactive task checkboxes       | 6×4          |
-| 📡 **Ping Monitor** | HTTP health check for one endpoint with sparkline + uptime  | 2×2          |
+| Widget              | Description                                                                | Default size |
+| ------------------- | -------------------------------------------------------------------------- | ------------ |
+| 🕒 **Clock**        | Locale-aware time, 12/24h, seconds, AM/PM                                  | 4×2          |
+| 📅 **Date**         | Day.js formatted date with customizable format                             | 4×2          |
+| 🔍 **Search**       | Multi-engine search bar with Google, Bing, DDG, Yahoo, or custom           | 8×2          |
+| 🧮 **Calculator**   | Simple calculator with keyboard support and history                        | 4×6          |
+| 🖼️ **Picture**      | User-supplied image tile from the shared image library                     | 4×4          |
+| 🌤️ **Weather**      | Current conditions + forecast from Open-Meteo (opt-in HTTP)                | 6×4          |
+| ⏲️ **Timer**        | Countdown with presets, progress ring/bar, and notifications               | 4×4          |
+| ⏱️ **Stopwatch**    | Precision stopwatch with lap timing and CSV export                         | 4×5          |
+| 📝 **Notes**        | Markdown sticky-note with interactive task checkboxes                      | 6×4          |
+| 📡 **Ping Monitor** | Single-endpoint health check with response time and uptime                 | 2×2          |
+| 📈 **Stock**        | Single-ticker price, chart, and stats for stocks, ETFs, and crypto         | 4×4          |
+| 📊 **Watchlist**    | Multi-ticker table with prices and sparklines for stocks, ETFs, and crypto | 4×6          |
 
-More widgets are on the [roadmap](docs/ROADMAP.md).
+Full per-widget docs live in [docs/widgets](docs/widgets/README.md). More widgets are on the [roadmap](docs/ROADMAP.md).
 
 ## 🚀 Quick Start
 
@@ -72,6 +74,7 @@ Then open `about:debugging#/runtime/this-firefox` → **Load Temporary Add-on…
 
 - **[Developer Setup](docs/DEVELOPER.md)** — local build, project structure, architecture overview
 - **[Developer Guide](docs/README.md)** — stack overview and deep-dive
+- **[Widget Docs](docs/widgets/README.md)** — user-facing widget list, usage, and settings
 - **[Widget Development](docs/WIDGET_DEVELOPMENT.md)** — how to build a new widget
 - **[Styling Guide](docs/STYLING_GUIDE.md)** — Tailwind v4 and design tokens
 - **[Component Rules](docs/COMPONENT_RULES.md)** — Svelte 5 patterns and conventions
