@@ -50,7 +50,9 @@ traffic stops.
 - **Column titles** (optional) — a header row with abbreviated labels.
   Off by default; toggle in the Display tab.
 - **Table rows:** one row per symbol. Each row shows the ticker symbol
-  plus whichever columns you've enabled.
+  plus whichever columns you've enabled. Visible columns stay aligned across
+  the whole table, and when the Sparkline column is enabled it expands to
+  consume the remaining horizontal space.
 - **Sparklines:** tiny inline SVG charts per row, drawn at the range you
   choose (1D, 5D, or 1M). Color tracks the direction of the day's change
   (green up, red down, muted flat).

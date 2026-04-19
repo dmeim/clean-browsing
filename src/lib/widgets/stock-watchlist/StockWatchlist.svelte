@@ -275,40 +275,57 @@
       </header>
 
       <div class="table-body">
-        {#if settings.showColumnTitles}
-          <div class="row header-row">
-            <div class="cell sym-cell"></div>
+        <table class="watchlist-table">
+          <colgroup>
+            <col class="sym-col" />
             {#each settings.columns as col (col)}
-              <div class="cell {col === 'sparkline' ? 'sparkline-cell' : 'data-cell'} col-title">
-                {COLUMN_TITLES[col]}
-              </div>
+              <col class={col === "sparkline" ? "sparkline-col" : "data-col"} />
             {/each}
-          </div>
-        {/if}
-        {#each sortedSymbols as sym (sym)}
-          {@const q = quoteFor(sym)}
-          {@const cc = q ? changeColor(q.change) : "neutral"}
-          {@const accent = colorVarForChange(cc)}
-          <div class="row">
-            <div class="cell sym-cell">
-              <span class="sym">{sym}</span>
-            </div>
-            {#each settings.columns as col (col)}
-              {#if col === "sparkline"}
-                {@const sd = sparklineFor(sym)}
-                <div class="cell sparkline-cell">
-                  {#if sd.length > 1}
-                    <Sparkline data={sd} color={cc} />
+          </colgroup>
+
+          {#if settings.showColumnTitles}
+            <thead>
+              <tr class="row header-row">
+                <th class="cell sym-cell"></th>
+                {#each settings.columns as col (col)}
+                  <th class="cell {col === 'sparkline' ? 'sparkline-cell' : 'data-cell'} col-title">
+                    {COLUMN_TITLES[col]}
+                  </th>
+                {/each}
+              </tr>
+            </thead>
+          {/if}
+
+          <tbody>
+            {#each sortedSymbols as sym (sym)}
+              {@const q = quoteFor(sym)}
+              {@const cc = q ? changeColor(q.change) : "neutral"}
+              {@const accent = colorVarForChange(cc)}
+              <tr class="row">
+                <td class="cell sym-cell">
+                  <span class="sym">{sym}</span>
+                </td>
+                {#each settings.columns as col (col)}
+                  {#if col === "sparkline"}
+                    {@const sd = sparklineFor(sym)}
+                    <td class="cell sparkline-cell">
+                      {#if sd.length > 1}
+                        <Sparkline data={sd} color={cc} />
+                      {/if}
+                    </td>
+                  {:else}
+                    <td
+                      class="cell data-cell"
+                      style={isColoredColumn(col) ? `color: ${accent}` : ""}
+                    >
+                      {formatColumnValue(col, q)}
+                    </td>
                   {/if}
-                </div>
-              {:else}
-                <div class="cell data-cell" style={isColoredColumn(col) ? `color: ${accent}` : ""}>
-                  {formatColumnValue(col, q)}
-                </div>
-              {/if}
+                {/each}
+              </tr>
             {/each}
-          </div>
-        {/each}
+          </tbody>
+        </table>
       </div>
 
       {#if error}
@@ -427,27 +444,42 @@
     overflow-y: auto;
     overflow-x: hidden;
     min-height: 0;
-    display: flex;
-    flex-direction: column;
   }
 
-  .row {
-    display: flex;
-    align-items: center;
-    gap: clamp(0.3rem, 1.5cqi, 0.6rem);
-    padding: clamp(0.15rem, 0.8cqi, 0.3rem) 0;
+  .watchlist-table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: auto;
+  }
+
+  .watchlist-table col.sym-col,
+  .watchlist-table col.data-col {
+    width: 1%;
+  }
+
+  .cell {
+    min-width: 0;
+    padding: clamp(0.15rem, 0.8cqi, 0.3rem) clamp(0.15rem, 0.75cqi, 0.3rem);
+    vertical-align: middle;
     border-bottom: 1px solid rgb(51 65 85 / 0.25);
-    flex-shrink: 0;
   }
 
-  .row:last-child {
-    border-bottom: none;
-  }
-
-  .header-row {
+  .header-row > .cell {
     padding-top: 0;
     padding-bottom: clamp(0.1rem, 0.5cqi, 0.2rem);
     border-bottom: 1px solid rgb(71 85 105 / 0.35);
+  }
+
+  tbody .row:last-child > .cell {
+    border-bottom: none;
+  }
+
+  .cell:first-child {
+    padding-left: 0;
+  }
+
+  .cell:last-child {
+    padding-right: 0;
   }
 
   .col-title {
@@ -456,11 +488,14 @@
     text-transform: uppercase;
     letter-spacing: 0.04em;
     color: rgb(148 163 184);
+    text-align: right;
+    white-space: nowrap;
   }
 
   .sym-cell {
-    flex: 0 0 auto;
-    min-width: clamp(2.5rem, 12cqi, 4rem);
+    overflow: hidden;
+    text-align: left;
+    white-space: nowrap;
   }
 
   .sym {
@@ -474,7 +509,6 @@
   }
 
   .data-cell {
-    flex: 1;
     text-align: right;
     font-variant-numeric: tabular-nums;
     font-size: clamp(0.6rem, 2.5cqi, 0.82rem);
@@ -486,9 +520,9 @@
   }
 
   .sparkline-cell {
-    flex: 1;
     min-width: 0;
     height: clamp(16px, 5cqi, 24px);
+    width: 100%;
   }
 
   .error-bar {
