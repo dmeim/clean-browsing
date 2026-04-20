@@ -34,15 +34,28 @@ cleanly or fail loudly.
 ## 🧪 Candidate widgets
 
 Widgets that could be built next. Each would be a new folder under
-`src/lib/widgets/`. Rough difficulty / risk callouts.
+`src/lib/widgets/`. Items with a design doc link have a full WIP
+specification; the rest are still at the idea stage.
 
-| Widget                    | Notes                                                                                          |
-| ------------------------- | ---------------------------------------------------------------------------------------------- |
-| **To-Do**                 | Straightforward: a list store per-instance. Notifications API is optional.                     |
-| **Pomodoro**              | Specialized timer — build on top of the shipped Timer widget rather than duplicating logic.    |
-| **World Clock**           | Multiple timezones. Likely a variant of the Clock widget rather than a new one.                |
-| **RSS reader**            | Needs a CORS-safe fetch path. Local-first-ish if the user supplies their own feed URLs.        |
-| **Top sites / bookmarks** | Requires the `topSites` or `bookmarks` permission — opt-in via the extension permission model. |
+| Widget                                    | Notes                                                                                                  |
+| ----------------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| **[Pomodoro](widgets/wip-pomodoro.md)**   | Focus-session timer with work/break cycles. Builds on Timer's alarms + notification patterns.          |
+| **[Links](widgets/wip-links.md)**         | Curated quick-access link grid with favicons and optional grouping. The quintessential new-tab widget. |
+| **[Countdown](widgets/wip-countdown.md)** | Countdown to a specific date/event. Fully offline — just date math.                                    |
+| **[Quote](widgets/wip-quote.md)**         | Rotating quote display. Ships with a bundled collection; user can add their own. Fully offline.        |
+| **[Converter](widgets/wip-converter.md)** | Unit and currency converter. Offline units; currency fetches rates from Frankfurter (opt-in).          |
+| **[Group](widgets/wip-group.md)**         | Container widget with collapse/expand. Children live in a mini-grid; deep grid-store changes required. |
+| **World Clock**                           | Multiple timezones. Likely a variant of the Clock widget rather than a new one.                        |
+| **RSS reader**                            | Needs a CORS-safe fetch path. Local-first-ish if the user supplies their own feed URLs.                |
+| **Top sites / bookmarks**                 | Requires the `topSites` or `bookmarks` permission — opt-in via the extension permission model.         |
+
+### Cancelled / deferred
+
+| Widget         | Status    | Reason                                                                            |
+| -------------- | --------- | --------------------------------------------------------------------------------- |
+| **To-Do**      | Cancelled | Superseded by the Notes widget (v1.4.0) — GFM checkboxes cover the core use case. |
+| **Embeds**     | Deferred  | Design doc exists; deferred indefinitely.                                         |
+| **Mini-Sites** | Deferred  | Design doc exists; deferred indefinitely.                                         |
 
 ## 🛠️ Platform work
 
@@ -94,9 +107,6 @@ completeness; don't assume any of these will ship.
 
 - **System monitor** — CPU/RAM via any available browser APIs (none exist
   in MV2, so this is probably never)
-- **Embeds** — configurable iframe widget with safelist
-- **Mini-sites** — bookmarked iframe panel for quick-access web UIs
-- **Widget grouping** — multi-widget containers that move/resize together
 - **Widget marketplace / plugin system** — load third-party widgets from
   a directory. Big architectural shift; needs careful sandboxing.
 

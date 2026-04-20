@@ -25,11 +25,17 @@ For the developer-facing "how do I build a new widget" walkthrough, see [`../WID
 
 These are design documents for widgets that are planned or at the brainstorming stage. None of them ship yet, and everything on these pages is provisional — scope, settings, and even whether a given widget lands at all are open questions. Each page flags the open design decisions that need to be resolved before implementation starts.
 
-| Widget                            | Status     | Notes                                                                     |
-| --------------------------------- | ---------- | ------------------------------------------------------------------------- |
-| [To-Do / Reminder](./wip-todo.md) | ⭕ Planned | Per-widget task list with due dates, priority, and opt-in notifications.  |
-| [Mini-Sites](./wip-mini-sites.md) | ⭕ Planned | Iframe embed of an external URL; gracefully handles unembeddable sites.   |
-| [Embeds](./wip-embeds.md)         | ⭕ Planned | Paste-an-embed-snippet widget (YouTube, Twitter, etc.) with sanitization. |
+| Widget                            | Status                    | Notes                                                                      |
+| --------------------------------- | ------------------------- | -------------------------------------------------------------------------- |
+| [Pomodoro](./wip-pomodoro.md)     | :red_circle: Planned      | Focus-session timer with work/break cycles, built on Timer patterns.       |
+| [Links](./wip-links.md)           | :red_circle: Planned      | Curated quick-access link grid with favicons and optional grouping.        |
+| [Countdown](./wip-countdown.md)   | :red_circle: Planned      | Countdown to a specific date/event with multiple display styles.           |
+| [Quote](./wip-quote.md)           | :red_circle: Planned      | Rotating quote display with bundled collection and user customization.     |
+| [Converter](./wip-converter.md)   | :red_circle: Planned      | Unit and currency converter — offline units, opt-in exchange rates.        |
+| [Group](./wip-group.md)           | :red_circle: Planned      | Container widget with collapse/expand; holds other widgets in a mini-grid. |
+| [Mini-Sites](./wip-mini-sites.md) | :zzz: Deferred            | Iframe embed of an external URL; gracefully handles unembeddable sites.    |
+| [Embeds](./wip-embeds.md)         | :zzz: Deferred            | Paste-an-embed-snippet widget (YouTube, Twitter, etc.) with sanitization.  |
+| [To-Do / Reminder](./wip-todo.md) | :no_entry_sign: Cancelled | Superseded by Notes widget (v1.4.0); see doc for details.                  |
 
 ### Widgets that make network calls
 
