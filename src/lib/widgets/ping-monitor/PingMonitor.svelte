@@ -86,6 +86,7 @@
     if (desired !== null && !currentTimer) {
       const id = setInterval(runCheck, desired);
       currentTimer = { id, intervalMs: desired };
+      untrack(() => void runCheck());
     }
   });
 

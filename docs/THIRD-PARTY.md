@@ -57,4 +57,4 @@ upstream repositories linked in the table above.
 
 ---
 
-_Last updated for Clean Browsing v1.6.1._
+_Last updated for Clean Browsing v1.6.2._

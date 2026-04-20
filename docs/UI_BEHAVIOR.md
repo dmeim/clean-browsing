@@ -106,6 +106,12 @@ Clicking one calls `gridStore.addWidgetAuto(id)`, which finds the first
 free slot on the grid using the widget's `defaultSize`. Opens via the +
 button in edit mode. `uiStore.addWidgetOpen` controls visibility.
 
+Uses the same fixed-size shell as the Settings dialog
+(`!h-[min(90vh,760px)]`, `!max-w-4xl`) with a styled header and a
+scrollable body holding a 3-column widget grid (collapses to 2 columns
+below 640 px). No tabs and no footer — clicking a widget adds it and
+closes the dialog.
+
 ### 3. Per-Widget Settings Dialog — `src/lib/ui/WidgetSettingsDialog.svelte`
 
 Opens via a per-widget control when the user wants to configure a specific

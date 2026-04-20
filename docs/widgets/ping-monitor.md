@@ -46,7 +46,7 @@ Network calls use `fetch(url, { mode: "no-cors" })`, which means **no per-host m
    - **Check every** — how often to ping. Type a duration: `5s`, `30s`, `1m`, `15m`, `1h`.
    - **Timeout** — how long to wait before marking a sample unreachable.
    - **Slow threshold** — round trips above this mark as "slow" rather than "reachable".
-4. Hover the widget body to reveal the **⟳** refresh icon in the top-right; click it to check immediately instead of waiting for the next tick. The icon hides during edit mode.
+4. Hover the widget body to reveal the **⟳** refresh icon in the top-right; click it to check immediately instead of waiting for the next tick. The icon hides during edit mode. The widget also runs a check automatically on every page load (opening or reloading a new tab).
 5. To monitor more endpoints, add another Ping Monitor widget.
 
 ## Status meanings

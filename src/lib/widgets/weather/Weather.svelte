@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { onMount } from "svelte";
   import type { WidgetProps } from "$lib/widgets/types.js";
   import { WEATHER_CACHE_SCHEMA, type WeatherSettings, type CachedWeather } from "./definition.js";
   import { fetchForecast } from "./api.js";
@@ -32,6 +33,7 @@
   }
 
   async function refresh(force: boolean) {
+    if (loading) return;
     if (!settings.hasBeenConfigured) return;
     if (settings.location.lat === 0 && settings.location.lon === 0) return;
 
@@ -73,6 +75,10 @@
     refresh(false);
     const id = setInterval(() => refresh(true), intervalMin * 60_000);
     return () => clearInterval(id);
+  });
+
+  onMount(() => {
+    void refresh(true);
   });
 
   $effect(() => {

@@ -112,6 +112,7 @@ completeness; don't assume any of these will ship.
 
 ## Shipped
 
+- **v1.6.2** — Add Widget modal redesign, and Weather / Ping Monitor refresh on page load. See [`release-notes/v1.6.2.md`](release-notes/v1.6.2.md).
 - **v1.6.1** — Watchlist shared-column sizing and sparkline expansion fix. See [`release-notes/v1.6.1.md`](release-notes/v1.6.1.md).
 - **v1.6.0** — Stock and Watchlist crypto support, Watchlist rename, and column titles. See [`release-notes/v1.6.0.md`](release-notes/v1.6.0.md).
 - **v1.5.3** — Watchlist widget. See [`release-notes/v1.5.3.md`](release-notes/v1.5.3.md).

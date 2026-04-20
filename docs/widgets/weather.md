@@ -12,7 +12,7 @@ This is the only widget in Clean Browsing that makes network requests, and it fo
 
 - A freshly added Weather widget makes **no requests** until you pick a location in its settings.
 - Once configured, it contacts only `api.open-meteo.com` (forecast) and `geocoding-api.open-meteo.com` (city search). No other host.
-- Forecasts refresh on the interval you choose (15 min – 2 hr). The widget also serves the previous response from a local cache between refreshes, so reloading the new tab does not re-fetch.
+- Forecasts refresh on the interval you choose (15 min – 2 hr), on every page load (opening or reloading a new tab), and when you click the manual refresh icon. Between these, the widget serves the previous response from a local cache.
 - Geolocation is requested only when you click **Use my location** in the widget settings, and only then.
 
 If you remove the Weather widget from your grid, all of its outbound traffic stops.
@@ -49,7 +49,7 @@ The widget always fetches the full 7-day / 48-hour forecast window from Open-Met
 
 ## Tips
 
-- The widget caches the most recent response in its own settings, so reopening Firefox shows the previous forecast immediately and only refetches if it is older than your refresh interval.
+- The widget caches the most recent response in its own settings, so reopening Firefox shows the previous forecast immediately while a fresh forecast is fetched in the background.
 - If you change locations frequently, search a city, pick the result, and the widget will refetch with the new coordinates automatically.
 - Network errors render an inline error bar inside the widget (no toast spam). Cached data, if present, stays visible underneath.
 - Open-Meteo provides global coverage and does not require an API key, so the widget works the same way whether you are searching for "Reykjavík" or "Auckland."
